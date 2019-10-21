@@ -42,13 +42,7 @@ import org.apache.thrift.TException;
 import org.apache.thrift.TServiceClient;
 import org.apache.thrift.TServiceClientFactory;
 import org.apache.thrift.protocol.TProtocolFactory;
-import org.apache.thrift.transport.TFramedTransport;
-import org.apache.thrift.transport.TSSLTransportFactory;
-import org.apache.thrift.transport.TSaslClientTransport;
-import org.apache.thrift.transport.TSocket;
-import org.apache.thrift.transport.TTransport;
-import org.apache.thrift.transport.TTransportException;
-import org.apache.thrift.transport.TTransportFactory;
+import org.apache.thrift.transport.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -230,6 +224,10 @@ public class ThriftUtil {
     return transportFactory((int) maxFrameSize);
   }
 
+  public static TTransport createCompressedTransport(final TTransport transport){
+    return new TZlibTransport(transport);
+  }
+
   /**
    * Create a TTransport for clients to the given address with the provided socket timeout and
    * session-layer configuration
@@ -285,6 +283,7 @@ public class ThriftUtil {
         }
 
         transport = ThriftUtil.transportFactory().getTransport(transport);
+        TZlibTransport
       } else if (saslParams != null) {
         if (!UserGroupInformation.isSecurityEnabled()) {
           throw new IllegalStateException(
