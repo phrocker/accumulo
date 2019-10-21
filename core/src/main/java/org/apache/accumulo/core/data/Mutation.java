@@ -18,9 +18,7 @@ package org.apache.accumulo.core.data;
 
 import static java.util.Objects.requireNonNull;
 
-import java.io.DataInput;
-import java.io.DataOutput;
-import java.io.IOException;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,6 +26,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.zip.GZIPOutputStream;
 
 import org.apache.accumulo.core.dataImpl.thrift.TMutation;
 import org.apache.accumulo.core.security.ColumnVisibility;
@@ -1537,8 +1536,12 @@ public class Mutation implements Writable {
   }
 
   @Override
-  public void readFields(DataInput in) throws IOException {
-
+  public void readFields(DataInput compressedInput) throws IOException {
+    int compressed = WritableUtils.readVInt(compressedInput);
+    byte [] comp = new byte[compressed];
+    compressedInput.readFully(comp);
+    ByteArrayInputStream bin = new ByteArrayInputStream(comp);
+    DataInputStream in = new DataInputStream(bin);
     // Clear out cached column updates and value lengths so
     // that we recalculate them based on the (potentially) new
     // data we are about to read in.
@@ -1649,7 +1652,9 @@ public class Mutation implements Writable {
   }
 
   @Override
-  public void write(DataOutput out) throws IOException {
+  public void write(DataOutput uncompressedOutput) throws IOException {
+    ByteArrayOutputStream bout = new ByteArrayOutputStream();
+    DataOutputStream out = new DataOutputStream(bout);
     final byte[] integerBuffer = new byte[5];
     serialize();
     byte hasValues = (values == null) ? 0 : (byte) 1;
@@ -1679,6 +1684,8 @@ public class Mutation implements Writable {
         WritableUtils.writeString(out, source);
       }
     }
+    WritableUtils.writeVInt(uncompressedOutput,bout.size());
+    WritableUtils.writeCompressedByteArray(uncompressedOutput,bout.toByteArray());
   }
 
   @Override
