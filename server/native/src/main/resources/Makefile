@@ -15,6 +15,7 @@
 
 SRCS=$(wildcard nativeMap/*.cc)
 HDRS=$(wildcard nativeMap/*.h) $(wildcard javah/*.h)
+THIRDPARTY="-Ithirdparty/"
 TESTSRCS=$(wildcard testNativeMap/*.cc)
 CXX=g++
 MAVERICKFLAGS=
@@ -30,7 +31,7 @@ ifeq ($(shell uname),Linux)
 		JAVA_HOME=$(shell dirname "$$(dirname "$$(readlink -e "$$(which javac)")")")
 	endif
 	NATIVE_LIB := libaccumulo.so
-	CXXFLAGS=-g -fPIC -shared -O3 -Wall -I'$(JAVA_HOME)'/include -I'$(JAVA_HOME)'/include/linux -Ijavah $(USERFLAGS)
+	CXXFLAGS=-g --std=c++14 -fPIC -shared -O3 -Wall -I'$(JAVA_HOME)'/include -I'$(JAVA_HOME)'/include/linux -Ijavah $(THIRDPARTY) $(USERFLAGS)
 endif
 
 ifeq ($(shell uname),Darwin)
@@ -42,7 +43,7 @@ ifeq ($(shell uname),Darwin)
 ifneq (,$(findstring 10.9,$(shell sw_vers -productVersion)))
 	MAVERICKFLAGS=-stdlib=libstdc++
 endif
-	CXXFLAGS=-dynamiclib -undefined dynamic_lookup -O3 -I/System/Library/Frameworks/JavaVM.framework/Headers -I'$(JAVA_HOME)'/include -I'$(JAVA_HOME)'/include/darwin -Ijavah $(USERFLAGS) $(MAVERICK_FLAGS)
+	CXXFLAGS=-dynamiclib --std=c++14 -undefined dynamic_lookup -O3 -I/System/Library/Frameworks/JavaVM.framework/Headers -I'$(JAVA_HOME)'/include -I'$(JAVA_HOME)'/include/darwin -Ijavah $(THIRDPARTY) $(USERFLAGS) $(MAVERICK_FLAGS)
 endif
 
 # escape space and parens in path for wildcard
@@ -62,7 +63,7 @@ testJavaHome :
 	@echo 'JAVA_HOME is $(JAVA_HOME)'
 
 runTests : $(NATIVE_LIB) $(TESTSRCS) $(OUTPUT_DIR_ESCAPED)
-	$(CXX) -g -Wall -I/System/Library/Frameworks/JavaVM.framework/Headers -I'$(JAVA_HOME)'/include -I'$(JAVA_HOME)'/include/linux -I'$(JAVA_HOME)'/include/darwin -InativeMap -o $@ $(TESTSRCS) $(NATIVE_LIB) $(MAVERICK_FLAGS)
+	$(CXX) -g --std=c++14 -Wall -I/System/Library/Frameworks/JavaVM.framework/Headers -I'$(JAVA_HOME)'/include -I'$(JAVA_HOME)'/include/linux -I'$(JAVA_HOME)'/include/darwin -InativeMap $(THIRDPARTY) -o $@ $(TESTSRCS) $(NATIVE_LIB) $(MAVERICK_FLAGS)
 	LD_LIBRARY_PATH=./ ./$@ 20 20 20 20 20 20 20 20 true
 	if [ ! -z "$(OUTPUT_DIR)" ]; then cp '$(NATIVE_LIB)' "$(OUTPUT_DIR)"; fi
 

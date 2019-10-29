@@ -18,9 +18,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#if defined(__APPLE__) && defined(__MACH__)
+#include <mach/mach.h>
+#endif
+
 #include "util.h"
 
 size_t getMemUsage(){
+#if  (defined(__APPLE__) && defined(__MACH__))
+           /* BSD, Linux, and OSX -------------------------------------- */
+           struct rusage rusage;
+           getrusage( RUSAGE_SELF, &rusage );
+           return (size_t)rusage.ru_maxrss;
+#else
 	pid_t pid = getpid();
 	char cmd[1000];
 	sprintf(cmd, "cat /proc/%d/status | grep VmData |  awk '{print $2}'", pid);
@@ -29,4 +39,5 @@ size_t getMemUsage(){
 	fscanf(f, "%d\n", &dataSize);
 	pclose(f);
 	return (size_t)dataSize * (size_t)1024;
+#endif
 }

@@ -28,6 +28,7 @@ using namespace std;
 
 class SubKey {
 
+    BlockSegment segment;
   public:
 
     int32_t colQualifierOffset;
@@ -51,16 +52,28 @@ class SubKey {
       return 1;
     }
 
+    virtual ~SubKey(){
+            // returning the block segment is optional, but preferred.
+            BlockAllocator::getAllocator()->deallocate(std::move(segment));
+        }
+
+        SubKey(const SubKey  &other) = delete;
+            SubKey(SubKey &&other) = default;
+            SubKey &operator =(SubKey &&other) = default;
+            SubKey operator =(const SubKey &other) = delete;
+
     /**
      * Constructor for testing purposes
      */
-    SubKey(LinkedBlockAllocator *lba, const string &cf, const string &cq, const string &cv, int64_t ts, bool del, int32_t mc){
+    explicit SubKey(const std::string &cf, const std::string &cq, const std::string &cv, int64_t ts, bool del, int32_t mc){
 
       colQualifierOffset = cf.length();
       colVisibilityOffset = colQualifierOffset + cq.length();
       totalLen = colVisibilityOffset + cv.length();
 
-      keyData = (uint8_t *)lba->allocate(totalLen);
+      segment = BlockAllocator::getAllocator()->allocate( totalLen ) ;
+
+        keyData = segment.get();
 
       copy(cf.begin(), cf.end(), keyData);
       copy(cq.begin(), cq.end(), keyData+colQualifierOffset);
@@ -72,7 +85,7 @@ class SubKey {
       mutationCount = mc;
     }
 
-    SubKey(LinkedBlockAllocator *lba, JNIEnv *env, jbyteArray cf, jbyteArray cq, jbyteArray cv, jlong ts, jboolean del, int32_t mc){
+    explicit SubKey(JNIEnv *env, jbyteArray cf, jbyteArray cq, jbyteArray cv, jlong ts, jboolean del, int32_t mc){
 
       int cfLen = env->GetArrayLength(cf);
       int cqLen = env->GetArrayLength(cq);
@@ -82,10 +95,9 @@ class SubKey {
       colVisibilityOffset = colQualifierOffset + cqLen;
       totalLen = colVisibilityOffset + cvLen;
 
-      if(lba == NULL)
-        keyData = new uint8_t[totalLen];
-      else
-        keyData = (uint8_t *)lba->allocate(totalLen);
+      segment = BlockAllocator::getAllocator()->allocate( totalLen ) ;
+
+      keyData = segment.get();
 
 
       env->GetByteArrayRegion(cf, 0, cfLen, (jbyte *)keyData);
@@ -126,9 +138,6 @@ class SubKey {
       //delete(keyData);
     }
 
-    void clear(LinkedBlockAllocator *lba){
-      lba->deleteLast(keyData);
-    }
 
     int64_t bytesUsed() const{
       return totalLen + 9;
@@ -162,7 +171,7 @@ class SubKey {
       return Field(keyData + colVisibilityOffset, getCVLen());
     }
 
-    string toString() const{
+    std::string toString() const{
       return getCF().toString()+":"+getCQ().toString()+":"+getCV().toString();
     }
 
@@ -178,10 +187,10 @@ class SubKey {
 
 struct LocalSubKey : public SubKey {
 
-  LocalSubKey(JNIEnv *env, jbyteArray cf, jbyteArray cq, jbyteArray cv, jlong ts, jboolean del):SubKey(NULL, env, cf, cq, cv, ts, del, INT_MAX){}
+  explicit LocalSubKey(JNIEnv *env, jbyteArray cf, jbyteArray cq, jbyteArray cv, jlong ts, jboolean del) : SubKey(env, cf, cq, cv, ts, del, INT_MAX){}
 
   ~LocalSubKey(){
-    delete(keyData);
+    //delete(keyData);
   }
 };
 

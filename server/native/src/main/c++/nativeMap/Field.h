@@ -20,17 +20,19 @@
 #include <string>
 #include <string.h>
 #include <iostream>
+#include <vector>
 #include <stdlib.h>
 #include "BlockAllocator.h"
-
-using namespace std;
 
 #ifndef __FIELD__
 #define __FIELD__
 
-struct Field {
-  uint8_t *field;
-  int32_t len;
+class Field {
+private:
+  BlockSegment segment_;
+  public:
+  uint8_t *data_;
+  size_t size_;
 
   int compare(const uint8_t *d1, int len1, const uint8_t *d2, int len2) const{
     int result = memcmp(d1, d2, len1 < len2 ? len1 : len2);
@@ -45,55 +47,85 @@ struct Field {
     return 1;
   }
 
-  Field(){}
+  Field(){
+    size_ = 131072;
 
-  Field(LinkedBlockAllocator *lba, JNIEnv *env, jbyteArray f, int l){
-    len = l;
-    field=(uint8_t *)lba->allocate(len);
-    env->GetByteArrayRegion(f, 0, len, (jbyte *)field);
+          segment_ =  BlockAllocator::getAllocator()->allocate( size_ ) ;
+
+          data_ = segment_.get();
   }
 
-  Field(LinkedBlockAllocator *lba, JNIEnv *env, jbyteArray f){
-    len = env->GetArrayLength(f);
-    field=(uint8_t *)lba->allocate(len);
-    env->GetByteArrayRegion(f, 0, len, (jbyte *)field);
+
+  Field(const Field  &other) = delete;
+      Field(Field &&other) = default;
+      Field &operator =(Field &&other) = default;
+      Field operator =(const Field &other) = delete;
+
+    explicit Field(JNIEnv *env, jbyteArray f, int length) : size_(length){
+        segment_ = BlockAllocator::getAllocator()->allocate( length );
+        size_ = length;
+        data_ = segment_.get();
+        env->GetByteArrayRegion(f, 0, size_, reinterpret_cast<jbyte *>(data_));
+    }
+
+  explicit Field(JNIEnv *env, jbyteArray f){
+        auto length  = env->GetArrayLength(f);
+        segment_ = BlockAllocator::getAllocator()->allocate( length );
+        size_ = length;
+
+        data_ = segment_.get();
+
+        env->GetByteArrayRegion(f, 0, size_, reinterpret_cast<jbyte *>(data_));
   }
 
-  Field(uint8_t *f, int32_t l):field(f),len(l){
+  explicit Field(uint8_t *f, int32_t length) : size_(length){
+    // don't make an assumption about the lifetime of f
+    segment_ = BlockAllocator::getAllocator()->allocate( length );
+    size_ = length;
+
+    data_ = segment_.get();
+
+    memcpy(data_, f, size_);
   }
 
-  Field(const char *cstr){
-    //constructor for testing C++
-    len = strlen(cstr);
-    field=new uint8_t[len];
-    memcpy(field, cstr, len);
-  }
+  explicit Field(const char * const cstr){
+        //constructor for testing C++
+        auto length = strlen(cstr);
+        segment_ = BlockAllocator::getAllocator()->allocate( length );
+        size_ = length;
+        data_ = segment_.get();
+        memcpy(data_, cstr, size_);
+    }
 
-  Field(LinkedBlockAllocator *lba, const char *cstr){
-    //constructor for testing C++
-    len = strlen(cstr);
-    field=(uint8_t *)lba->allocate(len);
-    memcpy(field, cstr, len);
-  }
+
+    virtual ~Field(){
+      // returning the block segment is optional, but preferred.
+      BlockAllocator::getAllocator()->deallocate(std::move(segment_));
+    }
+
 
   void set(const char *d, int l){
-    if(l < 0 || l > len){
-      cerr << "Tried to set field with value that is too long " << l << " " << len << endl;
+    if(l < 0 || l > size_){
+      std::cerr << "Tried to set field with value that is too long " << l << " " << size_ << std::endl;
     }
-    memcpy(field, d, l);
-    len = l;
+    memcpy(data_, d, l);
   }
 
   void set(JNIEnv *env, jbyteArray f, int l){
-    if(l < 0 || l > len){
-      cerr << "Tried to set field with value that is too long " << l << " " << len << endl;
+    if(l < 0 || l > size_){
+      std::cerr << "Tried to set field with value that is too long " << l << " " << size_ << std::endl;
     }
-    len = l;
-    env->GetByteArrayRegion(f, 0, len, (jbyte *)field);
+    if (l > size_ && l > segment_.size()){
+        BlockAllocator::getAllocator()->deallocate(std::move(segment_));
+        segment_ = BlockAllocator::getAllocator()->allocate( l );
+        size_ = l;
+        data_ = segment_.get();
+    }
+    env->GetByteArrayRegion(f, 0, size_, reinterpret_cast<jbyte *>(data_));
   }
 
   int compare(const Field &of) const{
-    return compare(field, len, of.field, of.len);
+    return compare(data_, size_, of.data_, of.size_);
   }
 
   bool operator<(const Field &of) const{
@@ -101,42 +133,38 @@ struct Field {
   }
 
   int32_t length() const {
-    return len;
+    return size_;
   }
 
   void fillIn(JNIEnv *env, jbyteArray d) const {
     //TODO ensure lengths match up
-    env->SetByteArrayRegion(d, 0, len, (jbyte *)field);
+    env->SetByteArrayRegion(d, 0, size_, reinterpret_cast<jbyte *>(data_));
   }
 
   jbyteArray createJByteArray(JNIEnv *env) const{
-    jbyteArray valData = env->NewByteArray(len);
-    env->SetByteArrayRegion(valData, 0, len, (jbyte *)field);
+    jbyteArray valData = env->NewByteArray(size_);
+    env->SetByteArrayRegion(valData, 0, size_, reinterpret_cast<jbyte *>(data_));
     return valData;
   }
 
-  string toString() const{
-    return string((char *)field, len);
+  std::string toString() const{
+    return std::string(reinterpret_cast<char *>(data_), size_);
   }
 
   void clear(){
+
     //delete(field);
   }
 
-  void clear(LinkedBlockAllocator *lba){
-    lba->deleteLast(field);
-  }
+
 };
 
 struct LocalField : public Field {
-  LocalField(JNIEnv *env, jbyteArray f){
-    len = env->GetArrayLength(f);
-    field= new uint8_t[len];
-    env->GetByteArrayRegion(f, 0, len, (jbyte *)field);
+  explicit LocalField(JNIEnv *env, jbyteArray f) : Field(env,f){
   }
 
   ~LocalField(){
-    delete(field);
+
   }
 };
 #endif

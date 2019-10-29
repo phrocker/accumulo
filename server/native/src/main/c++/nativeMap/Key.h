@@ -19,21 +19,25 @@
 #include <string.h>
 #include <string>
 #include <jni.h>
+#include "BlockAllocator.h"
 
-using namespace std;
 
 class Key {
-
-  public:
+BlockSegment segment_;
+public:
+    // should be uint32?
     int32_t colFamilyOffset;
     int32_t colQualifierOffset;
     int32_t colVisibilityOffset;
     int32_t totalLen;
 
+
     uint8_t *keyData;
 
     int64_t timestamp;
     bool deleted;
+
+
 
     int compare(const uint8_t *d1, int len1, const uint8_t *d2, int len2) const{
       int result = memcmp(d1, d2, len1 < len2 ? len1 : len2);
@@ -52,16 +56,33 @@ class Key {
      * Constructor for testing purposes
      */
 
-    Key(){}
+    Key(){
+        totalLen = 4096;
 
-    Key(const string &r, const string &cf, const string &cq, const string &cv, long ts, bool del){
+        segment_ =  BlockAllocator::getAllocator()->allocate( 4096 ) ;
 
+        keyData = segment_.get();
+    }
+
+    Key(const Key  &other) = delete;
+    Key(Key &&other) = default;
+    Key &operator =(Key &&other) = default;
+    Key operator =(const Key &other) = delete;
+
+    virtual ~Key(){
+        // returning the block segment is optional, but preferred.
+        BlockAllocator::getAllocator()->deallocate(std::move(segment_));
+    }
+
+    explicit Key(const string &r, const string &cf, const string &cq, const string &cv, long ts, bool del){
       colFamilyOffset = r.length();
       colQualifierOffset = colFamilyOffset + cf.length();
       colVisibilityOffset = colQualifierOffset + cq.length();
       totalLen = colVisibilityOffset + cv.length();
 
-      keyData = new uint8_t[totalLen];
+      segment_ =  BlockAllocator::getAllocator()->allocate( totalLen ) ;
+
+      keyData = segment_.get();
 
       copy(r.begin(), r.end(), keyData);
       copy(cf.begin(), cf.end(), keyData+colFamilyOffset);
@@ -76,7 +97,7 @@ class Key {
      * Constructor used for taking data from Java Key
      */
 
-    Key(JNIEnv *env, jbyteArray kd, jint cfo, jint cqo, jint cvo, jint tl, jlong ts, jboolean del){
+    explicit Key(JNIEnv *env, jbyteArray kd, jint cfo, jint cqo, jint cvo, jint tl, jlong ts, jboolean del){
 
       colFamilyOffset = cfo;
       colQualifierOffset = cqo;
@@ -84,8 +105,8 @@ class Key {
       totalLen = tl;
       timestamp = ts;
       deleted = del == JNI_TRUE ? true : false;
-
-      keyData = new uint8_t[totalLen];
+      segment_ =  BlockAllocator::getAllocator()->allocate( totalLen ) ;
+      keyData = segment_.get();
       env->GetByteArrayRegion(kd, 0, totalLen, (jbyte *)keyData);
     }
 
@@ -121,7 +142,7 @@ class LocalKey : public Key {
     JNIEnv *envPtr;
     jbyteArray kd;
 
-    LocalKey(JNIEnv *env, jbyteArray kd, jint cfo, jint cqo, jint cvo, jint tl, jlong ts, jboolean del){
+    explicit LocalKey(JNIEnv *env, jbyteArray kd, jint cfo, jint cqo, jint cvo, jint tl, jlong ts, jboolean del){
       envPtr = env;
 
       colFamilyOffset = cfo;
