@@ -19,41 +19,39 @@
 
 #include "SubKey.h"
 #include "Field.h"
+#include "Allocator.h"
 #include "BlockAllocator.h"
 #include <map>
 #include <vector>
 #include <iostream>
 
-using namespace std;
-
-typedef map<SubKey, Field, std::less<SubKey>,  BlockAllocator<std::pair<const SubKey, Field> > > ColumnMap;
-typedef map<Field, ColumnMap, std::less<Field>,  BlockAllocator<std::pair<const Field, ColumnMap> > > RowMap;
+typedef map<SubKey, Field, std::less<SubKey>,  Moya::Allocator<std::pair<const SubKey, Field> > > ColumnMap;
+typedef map<Field, ColumnMap, std::less<Field>,  Moya::Allocator<std::pair<const Field, ColumnMap>> > RowMap;
 
 
 struct NativeMapData {
-  LinkedBlockAllocator *lba;
   RowMap rowmap;
   int count;
 
-  NativeMapData(int blockSize, int bigBlockSize):lba(new LinkedBlockAllocator(blockSize, bigBlockSize)),
-  rowmap(RowMap(std::less<Field>(), BlockAllocator<std::pair<Field, ColumnMap> >(lba))){
+  explicit NativeMapData(int blockSize, int bigBlockSize)/*:lba(new LinkedBlockAllocator(blockSize, bigBlockSize)),
+  rowmap(RowMap(std::less<Field>(), BlockAllocator<std::pair<Field, ColumnMap> >(lba)))*/{
   }
 
   ~NativeMapData(){
     rowmap.clear(); //if row map is not cleared here, it will be deconstructed after lba is deleted
-    delete(lba);
+//    delete(lba);
   }
 };
 
 
 struct Iterator {
-  NativeMapData &nativeMap;
+  NativeMapData *nativeMap;
   RowMap::iterator rowIter;
   ColumnMap::iterator colIter;
 
-  Iterator(NativeMapData &nm, int32_t *ia):nativeMap(nm){
-    rowIter = nativeMap.rowmap.begin();
-    if(rowIter == nativeMap.rowmap.end()){
+  explicit Iterator(NativeMapData &nm, int32_t *ia):nativeMap(&nm){
+    rowIter = nativeMap->rowmap.begin();
+    if(rowIter == nativeMap->rowmap.end()){
       return;
     }
 
@@ -63,9 +61,9 @@ struct Iterator {
   }
 
 
-  Iterator(NativeMapData &nm, Field &row, SubKey &sk, int32_t *ia):nativeMap(nm){
-    rowIter = nativeMap.rowmap.lower_bound(row);
-    if(rowIter == nativeMap.rowmap.end()){
+  explicit Iterator(NativeMapData &nm, Field &row, SubKey &sk, int32_t *ia):nativeMap(&nm){
+    rowIter = nativeMap->rowmap.lower_bound(row);
+    if(rowIter == nativeMap->rowmap.end()){
       return;
     }
 
@@ -86,7 +84,7 @@ struct Iterator {
     while(colIter == rowIter->second.end()){
       rowIter++;
       rowChanged = true;
-      if(rowIter == nativeMap.rowmap.end()){
+      if(rowIter == nativeMap->rowmap.end()){
         return false;
       }
       colIter = rowIter->second.begin();
@@ -104,7 +102,7 @@ struct Iterator {
   }
 
   bool atEnd(){
-    return rowIter == nativeMap.rowmap.end();
+    return rowIter == nativeMap->rowmap.end();
   }
 
   void advance(int32_t *ia){
@@ -115,6 +113,8 @@ struct Iterator {
 
 struct NativeMap : public NativeMapData {
 
+  Moya::Allocator<std::pair<const Field, ColumnMap> > keyallocator;
+
   NativeMap(int blockSize, int bigBlockSize):NativeMapData(blockSize, bigBlockSize){
     count = 0;
   }
@@ -124,27 +124,28 @@ struct NativeMap : public NativeMapData {
   }
 
 
+
   ColumnMap *startUpdate(JNIEnv * env, jbyteArray r){
-    Field row(lba, env, r);
-    return startUpdate(row);
+    Field row(env, r);
+    return startUpdate(std::move(row));
   }
 
   ColumnMap *startUpdate(const char *r){
-    Field row(lba, r);
-    return startUpdate(row);
+    Field row(r);
+    return startUpdate(std::move(row));
   }
 
-  ColumnMap *startUpdate(Field &row){
+  ColumnMap *startUpdate(Field &&row){
     // This method is structured to avoid allocating the column map in the case
     // where it already exists in the map.  This is done so the row key memory can
     // be easily deallocated.
     RowMap::iterator lbi = rowmap.lower_bound(row);
     if(lbi == rowmap.end() || row < lbi->first) {
-      RowMap::iterator iter = rowmap.insert(lbi, pair<Field, ColumnMap>(row, ColumnMap(std::less<SubKey>(), BlockAllocator<std::pair<SubKey, Field> >(lba))));
+      RowMap::iterator iter = rowmap.insert(lbi, std::pair<Field, ColumnMap>(std::move(row), ColumnMap(std::less<SubKey>(), Moya::Allocator<std::pair<const Field, ColumnMap> >(&keyallocator))));
       return &(iter->second);
     } else {
       // Return row memory because an insert was not done.
-      row.clear(lba);
+      // row.clear(lba);
       return &(lbi->second);
     }
   }
@@ -154,7 +155,7 @@ struct NativeMap : public NativeMapData {
     // The following code will allocate memory from lba.  This must be done to
     // copy data from java land.  However if the key already exist in the map,
     // the memory will be returned to lba.
-    SubKey sk(lba, env, cf, cq, cv, ts, del, mutationCount);
+    SubKey sk( env, cf, cq, cv, ts, del, mutationCount);
     //cout << "Updating " << sk.toString() << " " << sk.getTimestamp() << " " << sk.isDeleted() << endl;
 
     // cm->lower_bound is called instead of cm-> insert because insert may
@@ -163,38 +164,38 @@ struct NativeMap : public NativeMapData {
     ColumnMap::iterator lbi = cm->lower_bound(sk);
 
     if(lbi == cm->end() || sk < lbi->first) {
-      Field value = Field(lba, env, val);
-      cm->insert(lbi, pair<SubKey, Field>(sk, value));
+      Field value = Field(env, val);
+      cm->insert(lbi, pair<SubKey, Field>(std::move(sk), std::move(value)));
       count++;
     } else {
-      sk.clear(lba);
+      //sk.clear(lba);
       int valLen =  env->GetArrayLength(val);
       if(valLen <= lbi->second.length()){
         lbi->second.set(env, val, valLen);
       } else {
         lbi->second.clear();
-        lbi->second  = Field(lba, env, val, valLen);
+        lbi->second  = Field(env, val, valLen);
       }
     }
   }
 
   void update(ColumnMap *cm, const char *cf, const char *cq, const char *cv, long ts, bool del, const char *val, int valLen, int mutationCount){
 
-    SubKey sk(lba, cf, cq, cv, ts, del, mutationCount);
+    SubKey sk( cf, cq, cv, ts, del, mutationCount);
 
     ColumnMap::iterator lbi = cm->lower_bound(sk);
 
     if(lbi == cm->end() || sk < lbi->first) {
-      Field value = Field(lba, val);
-      cm->insert(lbi, pair<SubKey, Field>(sk, value));
+      Field value = Field(val);
+      cm->insert(lbi, pair<SubKey, Field>(std::move(sk), std::move(value)));
       count++;
     } else {
-      sk.clear(lba);
+      //sk.clear(lba);
       if(valLen <= lbi->second.length()){
         lbi->second.set(val, valLen);
       } else {
         lbi->second.clear();
-        lbi->second  = Field(lba, val); //TODO ignores valLen
+        lbi->second  = Field(val); //TODO ignores valLen
       }
     }
   }
@@ -207,8 +208,8 @@ struct NativeMap : public NativeMapData {
     return new Iterator(*this, row, sk, ia);
   }
 
-  int64_t getMemoryUsed(){
-    return lba->getMemoryUsed();
+  int64_t getMemoryUsed() const {
+    return  BlockAllocator::getAllocator()->getMemoryUsed();
   }
 };
 

@@ -27,7 +27,6 @@
 #include <sys/mman.h>
 #endif
 
-using namespace std;
 
 JNIEXPORT jlong JNICALL Java_org_apache_accumulo_tserver_NativeMap_createNM(JNIEnv *env, jclass cls) {
   return (jlong)(new NativeMap(1<<17, 1<<11));

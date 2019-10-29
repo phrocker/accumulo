@@ -78,7 +78,7 @@ void runTest(int numRows, int numCf, int numCq, int rowLen, int cfLen, int cqLen
 				if(!testOld){	
 				  nm.update(cmt, colf, colq, colv, 5, false, val, valLen, cf * numCq + numCq);	
 				}else{
-					oldMap.insert(pair<Key, Field>(Key(row, colf, colq, colv, 5, false), Field(val)));
+					oldMap.insert(pair<Key, Field>(Key(std::string(row), std::string(colf), std::string(colq), std::string(colv), 5, false), Field(val)));
 				}
 
 
@@ -102,8 +102,6 @@ void runTest(int numRows, int numCf, int numCq, int rowLen, int cfLen, int cqLen
 	if(testOld){
 		map<Key, Field>::iterator iter = oldMap.begin();
 		while(iter != oldMap.end()){
-			delete(iter->first.keyData);
-			delete(iter->second.field);
 			iter++;
 		}
 	}
