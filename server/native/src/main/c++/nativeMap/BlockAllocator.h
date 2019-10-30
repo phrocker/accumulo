@@ -26,7 +26,9 @@
 #include "Allocator.h"
 #include "concurrentqueue.h"
 
-#define PAGE_SIZE 4096L
+#define TINY_SIZE 1025L
+
+#define PAGE_SIZE 4097L
 
 #define MAX_SIZE 131072L
 
@@ -44,7 +46,22 @@ public:
 
     BlockSegment(const BlockSegment  &other) = delete;
     BlockSegment(BlockSegment &&other) = default;
+    /*BlockSegment(BlockSegment &&other){
+    std::cout << "1) on move constructor size is " << other.size_ << " and " << other.data_.size() << std::endl;
+        data_ = std::move(other.data_);
+        size_ = other.size_;
+        returnable_ = other.returnable_;
+        std::cout << "2) on move constructor size is " << size_ << " and " << data_.size() << std::endl;
+    }*/
     BlockSegment &operator =(BlockSegment &&other) = default;
+    /*BlockSegment &operator =(BlockSegment &&other){
+    std::cout << "1) on move operator size is " << other.size_ << " and " << other.data_.size() << std::endl;
+    data_ = std::move(other.data_);
+            size_ = other.size_;
+            returnable_ = other.returnable_;
+            std::cout << "2) on move operator size is " << size_ << " and " << data_.size() << std::endl;
+            return *this;
+    }*/
     BlockSegment operator =(const BlockSegment &other) = delete;
 
     explicit BlockSegment(unsigned char *pos, size_t size) : data_(size), size_(size), returnable_(false){
@@ -56,7 +73,7 @@ public:
 
     bool isReturnable() const {
         // only return if we have an allocated buffer
-        return returnable_ && size_ > 0;
+        return returnable_ && data_.size() && size_ > 0;
     }
 
     unsigned char *get()  {
@@ -88,7 +105,13 @@ public:
         BlockSegment segment;
         if (mem < MAX_SIZE){
             size_t size = mem < PAGE_SIZE ? PAGE_SIZE : MAX_SIZE;
-            if ((mem < PAGE_SIZE && segment_page.try_dequeue(segment)) || segments_128k.try_dequeue(segment)){
+            if (size == PAGE_SIZE && mem < TINY_SIZE)
+                size = TINY_SIZE;
+            if (
+            (mem < TINY_SIZE && segment_tiny.try_dequeue(segment)) ||
+            (mem > TINY_SIZE && mem < PAGE_SIZE && segment_page.try_dequeue(segment)) ||
+            (mem > PAGE_SIZE && segments_128k.try_dequeue(segment))
+            ){
                 consumed_+=size;
                 return segment;
             }
@@ -106,13 +129,17 @@ public:
     }
 
     bool deallocate(BlockSegment &&mem){
-        if (mem.size())
-            return false;
+
         consumed_-=mem.size();
-        if (mem.isReturnable())
-            return mem.size() < PAGE_SIZE ? segment_page.try_enqueue(std::move(mem)) : segments_128k.try_enqueue(std::move(mem));
-        else
+        if (mem.isReturnable()){
+
+            auto sz = mem.size();
+            return sz < TINY_SIZE ? segment_tiny.try_enqueue(std::move(mem)) :
+                    sz < PAGE_SIZE ? segment_page.try_enqueue(std::move(mem)) : segments_128k.try_enqueue(std::move(mem));
+        }
+        else {
             return false;
+            }
     }
 
     int64_t getMemoryUsed(){
@@ -124,7 +151,10 @@ private:
     BlockAllocator() :consumed_(0){
     }
 
-    std::atomic<int64_t> consumed_;
+    int64_t consumed_;
+    //std::atomic<int64_t> consumed_;
+
+    moodycamel::ConcurrentQueue<BlockSegment> segment_tiny;
 
     moodycamel::ConcurrentQueue<BlockSegment> segment_page;
 

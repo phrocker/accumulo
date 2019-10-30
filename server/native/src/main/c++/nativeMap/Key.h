@@ -57,9 +57,9 @@ public:
      */
 
     Key(){
-        totalLen = 4096;
+        totalLen = 1024;
 
-        segment_ =  BlockAllocator::getAllocator()->allocate( 4096 ) ;
+        segment_ =  BlockAllocator::getAllocator()->allocate( 1024 ) ;
 
         keyData = segment_.get();
     }

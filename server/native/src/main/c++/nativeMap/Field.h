@@ -57,9 +57,9 @@ private:
 
 
   Field(const Field  &other) = delete;
-      Field(Field &&other) = default;
-      Field &operator =(Field &&other) = default;
-      Field operator =(const Field &other) = delete;
+  Field(Field &&other) = default;
+  Field &operator =(Field &&other) = default;
+  Field operator =(const Field &other) = delete;
 
     explicit Field(JNIEnv *env, jbyteArray f, int length) : size_(length){
         segment_ = BlockAllocator::getAllocator()->allocate( length );

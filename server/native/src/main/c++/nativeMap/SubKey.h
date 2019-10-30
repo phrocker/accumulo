@@ -65,19 +65,23 @@ class SubKey {
     /**
      * Constructor for testing purposes
      */
-    explicit SubKey(const std::string &cf, const std::string &cq, const std::string &cv, int64_t ts, bool del, int32_t mc){
+    explicit SubKey(const char *cf, const char *cq, const char *cv, int64_t ts, bool del, int32_t mc){
 
-      colQualifierOffset = cf.length();
-      colVisibilityOffset = colQualifierOffset + cq.length();
-      totalLen = colVisibilityOffset + cv.length();
+      auto cfLen = strlen(cf);
+      auto cqLen = strlen(cq);
+      auto cvLen = strlen(cv);
+      colQualifierOffset = cfLen;
+      colVisibilityOffset = colQualifierOffset + cqLen;
+      totalLen = colVisibilityOffset + cvLen;
 
       segment = BlockAllocator::getAllocator()->allocate( totalLen ) ;
 
-        keyData = segment.get();
+      keyData = segment.get();
 
-      copy(cf.begin(), cf.end(), keyData);
-      copy(cq.begin(), cq.end(), keyData+colQualifierOffset);
-      copy(cv.begin(), cv.end(), keyData+colVisibilityOffset);
+
+      memcpy(keyData,cf,cfLen);
+      memcpy(keyData+colQualifierOffset,cq,cqLen);
+      memcpy(keyData+colVisibilityOffset,cv,cvLen);
 
       timestamp = ts;
       deleted = del;

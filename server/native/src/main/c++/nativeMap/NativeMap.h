@@ -156,7 +156,6 @@ struct NativeMap : public NativeMapData {
     // copy data from java land.  However if the key already exist in the map,
     // the memory will be returned to lba.
     SubKey sk( env, cf, cq, cv, ts, del, mutationCount);
-    //cout << "Updating " << sk.toString() << " " << sk.getTimestamp() << " " << sk.isDeleted() << endl;
 
     // cm->lower_bound is called instead of cm-> insert because insert may
     // allocate memory from lba even when nothing is inserted. Allocating memory
@@ -184,7 +183,6 @@ struct NativeMap : public NativeMapData {
     SubKey sk( cf, cq, cv, ts, del, mutationCount);
 
     ColumnMap::iterator lbi = cm->lower_bound(sk);
-
     if(lbi == cm->end() || sk < lbi->first) {
       Field value = Field(val);
       cm->insert(lbi, pair<SubKey, Field>(std::move(sk), std::move(value)));
