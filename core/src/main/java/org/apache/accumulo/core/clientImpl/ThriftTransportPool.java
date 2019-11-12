@@ -490,6 +490,8 @@ public class ThriftTransportPool {
     TTransport transport = ThriftUtil.createClientTransport(cacheKey.getServer(),
         (int) cacheKey.getTimeout(), cacheKey.getSslParams(), cacheKey.getSaslParams());
 
+    transport = ThriftUtil.createCompressedTransport( transport);
+
     log.trace("Creating new connection to connection to {}", cacheKey.getServer());
 
     CachedTTransport tsc = new CachedTTransport(transport, cacheKey);
