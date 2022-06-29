@@ -122,7 +122,7 @@
     <!-- overwritten in profiles hadoop-1 or hadoop-2 -->
     <slf4j.version>1.4.3</slf4j.version>
     <!-- ZooKeeper 3.4.x works also, but we're not using new features yet; this ensures 3.3.x compatibility. -->
-    <zookeeper.version>3.3.6</zookeeper.version>
+    <zookeeper.version>3.4.14</zookeeper.version>
   </properties>
   <dependencyManagement>
     <dependencies>
