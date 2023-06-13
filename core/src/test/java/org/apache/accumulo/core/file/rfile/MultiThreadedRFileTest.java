@@ -50,7 +50,6 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.file.FileSKVIterator;
 import org.apache.accumulo.core.file.blockfile.impl.CachableBlockFile;
 import org.apache.accumulo.core.file.blockfile.impl.CachableBlockFile.CachableBuilder;
-import org.apache.accumulo.core.file.rfile.RFile.Reader;
 import org.apache.accumulo.core.file.rfile.bcfile.BCFile;
 import org.apache.accumulo.core.iterators.SortedKeyValueIterator;
 import org.apache.accumulo.core.iteratorsImpl.system.ColumnFamilySkippingIterator;
@@ -75,7 +74,7 @@ public class MultiThreadedRFileTest {
   private static final Logger LOG = LoggerFactory.getLogger(MultiThreadedRFileTest.class);
   private static final Collection<ByteSequence> EMPTY_COL_FAMS = new ArrayList<>();
 
-  private static void checkIndex(Reader reader) throws IOException {
+  private static void checkIndex(RFileReader reader) throws IOException {
     FileSKVIterator indexIter = reader.getIndex();
 
     if (indexIter.hasTop()) {
@@ -111,7 +110,7 @@ public class MultiThreadedRFileTest {
     public RFile.Writer writer;
     private FSDataOutputStream dos;
     private AccumuloConfiguration accumuloConfiguration;
-    public Reader reader;
+    public RFileReader reader;
     public SortedKeyValueIterator<Key,Value> iter;
     public File rfile = null;
     public boolean deepCopy = false;
@@ -134,7 +133,7 @@ public class MultiThreadedRFileTest {
     public TestRFile deepCopy() throws IOException {
       TestRFile copy = new TestRFile(accumuloConfiguration);
       // does not copy any writer resources. This would be for read only.
-      copy.reader = (Reader) reader.deepCopy(null);
+      copy.reader = (RFileReader) reader.deepCopy(null);
       copy.rfile = rfile;
       copy.iter = new ColumnFamilySkippingIterator(copy.reader);
       copy.deepCopy = true;
@@ -186,7 +185,7 @@ public class MultiThreadedRFileTest {
       // the caches used to obfuscate the multithreaded issues
       CachableBuilder b = new CachableBuilder().fsPath(fs, path).conf(conf)
           .cryptoService(CryptoFactoryLoader.getServiceForServer(defaultConf));
-      reader = new RFile.Reader(new CachableBlockFile.Reader(b));
+      reader = new RFileReader(new CachableBlockFile.Reader(b));
       iter = new ColumnFamilySkippingIterator(reader);
 
       checkIndex(reader);

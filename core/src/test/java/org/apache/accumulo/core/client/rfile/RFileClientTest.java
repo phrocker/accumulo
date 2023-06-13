@@ -60,7 +60,7 @@ import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.file.FileOperations;
 import org.apache.accumulo.core.file.FileSKVIterator;
-import org.apache.accumulo.core.file.rfile.RFile.Reader;
+import org.apache.accumulo.core.file.rfile.RFileReader;
 import org.apache.accumulo.core.iterators.user.RegExFilter;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.spi.crypto.NoCryptoServiceFactory;
@@ -227,7 +227,7 @@ public class RFileClientTest {
     writer.append(testData1.entrySet());
     writer.close();
 
-    Reader reader = getReader(localFs, testFile);
+    RFileReader reader = getReader(localFs, testFile);
     FileSKVIterator iiter = reader.getIndex();
 
     int count = 0;
@@ -289,7 +289,7 @@ public class RFileClientTest {
 
     scanner.close();
 
-    Reader reader = getReader(localFs, testFile);
+    RFileReader reader = getReader(localFs, testFile);
     Map<String,ArrayList<ByteSequence>> lGroups = reader.getLocalityGroupCF();
     assertTrue(lGroups.containsKey("z"));
     assertEquals(2, lGroups.get("z").size());
@@ -810,8 +810,8 @@ public class RFileClientTest {
     }
   }
 
-  private Reader getReader(LocalFileSystem localFs, String testFile) throws IOException {
-    return (Reader) FileOperations.getInstance().newReaderBuilder()
+  private RFileReader getReader(LocalFileSystem localFs, String testFile) throws IOException {
+    return (RFileReader) FileOperations.getInstance().newReaderBuilder()
         .forFile(testFile, localFs, localFs.getConf(), NoCryptoServiceFactory.NONE)
         .withTableConfiguration(DefaultConfiguration.getInstance()).build();
   }

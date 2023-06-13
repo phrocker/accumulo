@@ -32,34 +32,34 @@ import org.apache.hadoop.io.WritableUtils;
 
 public class RelativeKey implements Writable {
 
-  private static final byte BIT = 0x01;
+  protected static final byte BIT = 0x01;
 
-  private Key key;
-  private Key prevKey;
+  protected Key key;
+  protected Key prevKey;
 
-  private byte fieldsSame;
-  private byte fieldsPrefixed;
+  protected byte fieldsSame;
+  protected byte fieldsPrefixed;
 
   // Exact match compression options (first byte) and flag for further
-  private static final byte ROW_SAME = BIT << 0;
-  private static final byte CF_SAME = BIT << 1;
-  private static final byte CQ_SAME = BIT << 2;
-  private static final byte CV_SAME = BIT << 3;
-  private static final byte TS_SAME = BIT << 4;
-  private static final byte DELETED = BIT << 5;
-  // private static final byte UNUSED_1_6 = BIT << 6;
-  private static final byte PREFIX_COMPRESSION_ENABLED = (byte) (BIT << 7);
+  protected static final byte ROW_SAME = BIT << 0;
+  protected static final byte CF_SAME = BIT << 1;
+  protected static final byte CQ_SAME = BIT << 2;
+  protected static final byte CV_SAME = BIT << 3;
+  protected static final byte TS_SAME = BIT << 4;
+  protected static final byte DELETED = BIT << 5;
+  // protected static final byte UNUSED_1_6 = BIT << 6;
+  protected static final byte PREFIX_COMPRESSION_ENABLED = (byte) (BIT << 7);
 
   // Prefix compression (second byte)
-  private static final byte ROW_COMMON_PREFIX = BIT << 0;
-  private static final byte CF_COMMON_PREFIX = BIT << 1;
-  private static final byte CQ_COMMON_PREFIX = BIT << 2;
-  private static final byte CV_COMMON_PREFIX = BIT << 3;
-  private static final byte TS_DIFF = BIT << 4;
+  protected static final byte ROW_COMMON_PREFIX = BIT << 0;
+  protected static final byte CF_COMMON_PREFIX = BIT << 1;
+  protected static final byte CQ_COMMON_PREFIX = BIT << 2;
+  protected static final byte CV_COMMON_PREFIX = BIT << 3;
+  protected static final byte TS_DIFF = BIT << 4;
 
-  // private static final byte UNUSED_2_5 = BIT << 5;
-  // private static final byte UNUSED_2_6 = BIT << 6;
-  // private static final byte UNUSED_2_7 = (byte) (BIT << 7);
+  // protected static final byte UNUSED_2_5 = BIT << 5;
+  // protected static final byte UNUSED_2_6 = BIT << 6;
+  // protected static final byte UNUSED_2_7 = (byte) (BIT << 7);
 
   // Values for prefix compression
   int rowCommonPrefixLen;
@@ -120,7 +120,7 @@ public class RelativeKey implements Writable {
     }
   }
 
-  private int getCommonPrefixLen(ByteSequence prevKeyScratch, ByteSequence keyScratch,
+  protected int getCommonPrefixLen(ByteSequence prevKeyScratch, ByteSequence keyScratch,
       byte fieldBit, byte commonPrefix) {
     int commonPrefixLen = getCommonPrefix(prevKeyScratch, keyScratch);
     if (commonPrefixLen == -1) {
@@ -192,7 +192,7 @@ public class RelativeKey implements Writable {
     this.prevKey = this.key;
   }
 
-  private byte[] getData(DataInput in, byte fieldBit, byte commonPrefix,
+  protected byte[] getData(DataInput in, byte fieldBit, byte commonPrefix,
       Supplier<ByteSequence> data) throws IOException {
     if ((fieldsSame & fieldBit) == fieldBit) {
       return data.get().toArray();
@@ -432,17 +432,17 @@ public class RelativeKey implements Writable {
     return new SkippR(result, count, newPrevKey);
   }
 
-  private static void read(DataInput in, MutableByteSequence mbseq) throws IOException {
+  protected static void read(DataInput in, MutableByteSequence mbseq) throws IOException {
     int len = WritableUtils.readVInt(in);
     read(in, mbseq, len);
   }
 
-  private static void readValue(DataInput in, MutableByteSequence mbseq) throws IOException {
+  protected static void readValue(DataInput in, MutableByteSequence mbseq) throws IOException {
     int len = in.readInt();
     read(in, mbseq, len);
   }
 
-  private static void read(DataInput in, MutableByteSequence mbseqDestination, int len)
+  protected static void read(DataInput in, MutableByteSequence mbseqDestination, int len)
       throws IOException {
     if (mbseqDestination.getBackingArray().length < len) {
       mbseqDestination.setArray(new byte[UnsynchronizedBuffer.nextArraySize(len)], 0, 0);
@@ -452,7 +452,7 @@ public class RelativeKey implements Writable {
     mbseqDestination.setLength(len);
   }
 
-  private static byte[] readPrefix(DataInput in, ByteSequence prefixSource) throws IOException {
+  protected static byte[] readPrefix(DataInput in, ByteSequence prefixSource) throws IOException {
     int prefixLen = WritableUtils.readVInt(in);
     int remainingLen = WritableUtils.readVInt(in);
     byte[] data = new byte[prefixLen + remainingLen];
@@ -467,8 +467,8 @@ public class RelativeKey implements Writable {
     return data;
   }
 
-  private static void readPrefix(DataInput in, MutableByteSequence dest, ByteSequence prefixSource)
-      throws IOException {
+  protected static void readPrefix(DataInput in, MutableByteSequence dest,
+      ByteSequence prefixSource) throws IOException {
     int prefixLen = WritableUtils.readVInt(in);
     int remainingLen = WritableUtils.readVInt(in);
     int len = prefixLen + remainingLen;
@@ -487,7 +487,7 @@ public class RelativeKey implements Writable {
     dest.setLength(len);
   }
 
-  private static byte[] read(DataInput in) throws IOException {
+  protected static byte[] read(DataInput in) throws IOException {
     int len = WritableUtils.readVInt(in);
     byte[] data = new byte[len];
     in.readFully(data);
@@ -498,12 +498,12 @@ public class RelativeKey implements Writable {
     return key;
   }
 
-  private static void write(DataOutput out, ByteSequence bs) throws IOException {
+  protected static void write(DataOutput out, ByteSequence bs) throws IOException {
     WritableUtils.writeVInt(out, bs.length());
     out.write(bs.getBackingArray(), bs.offset(), bs.length());
   }
 
-  private static void writePrefix(DataOutput out, ByteSequence bs, int commonPrefixLength)
+  protected static void writePrefix(DataOutput out, ByteSequence bs, int commonPrefixLength)
       throws IOException {
     WritableUtils.writeVInt(out, commonPrefixLength);
     WritableUtils.writeVInt(out, bs.length() - commonPrefixLength);

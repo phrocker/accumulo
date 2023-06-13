@@ -34,7 +34,6 @@ import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.file.FileSKVIterator;
 import org.apache.accumulo.core.file.blockfile.impl.CachableBlockFile.CachableBuilder;
-import org.apache.accumulo.core.file.rfile.RFile.Reader;
 import org.apache.accumulo.core.file.rfile.bcfile.PrintBCInfo;
 import org.apache.accumulo.core.file.rfile.bcfile.Utils;
 import org.apache.accumulo.core.spi.crypto.CryptoEnvironment;
@@ -198,7 +197,7 @@ public class PrintInfo implements KeywordExecutable {
       CryptoService cs = CryptoFactoryLoader.getServiceForClient(CryptoEnvironment.Scope.TABLE,
           siteConfig.getAllCryptoProperties());
       CachableBuilder cb = new CachableBuilder().fsPath(fs, path).conf(conf).cryptoService(cs);
-      Reader iter = new RFile.Reader(cb);
+      RFileReader iter = new RFileReader(cb);
       MetricsGatherer<Map<String,ArrayList<VisibilityMetric>>> vmg = new VisMetricsGatherer();
 
       if (opts.vis || opts.hash) {

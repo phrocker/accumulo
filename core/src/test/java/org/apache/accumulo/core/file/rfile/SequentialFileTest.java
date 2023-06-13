@@ -18,12 +18,7 @@
  */
 package org.apache.accumulo.core.file.rfile;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -102,7 +97,7 @@ import com.google.common.primitives.Bytes;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 @SuppressFBWarnings(value = "PATH_TRAVERSAL_IN", justification = "paths not set by user input")
-public class RFileTest {
+public class SequentialFileTest {
 
   private static final SecureRandom random = new SecureRandom();
 
@@ -133,7 +128,7 @@ public class RFileTest {
 
   @BeforeAll
   public static void setupCryptoKeyFile() throws Exception {
-    CryptoTest.setupKeyFiles(RFileTest.class);
+    CryptoTest.setupKeyFiles(SequentialFileTest.class);
   }
 
   static class SeekableByteArrayInputStream extends ByteArrayInputStream

@@ -40,9 +40,9 @@ import org.apache.accumulo.core.sample.impl.SamplerConfigurationImpl;
 
 class MultiIndexIterator extends HeapIterator implements FileSKVIterator {
 
-  private RFile.Reader source;
+  private RFileReader source;
 
-  MultiIndexIterator(RFile.Reader source, List<Iterator<IndexEntry>> indexes) {
+  MultiIndexIterator(RFileReader source, List<Iterator<IndexEntry>> indexes) {
     super(indexes.size());
 
     this.source = source;

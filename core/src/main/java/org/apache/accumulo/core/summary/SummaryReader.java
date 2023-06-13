@@ -34,7 +34,7 @@ import org.apache.accumulo.core.client.summary.SummarizerConfiguration;
 import org.apache.accumulo.core.file.blockfile.impl.BasicCacheProvider;
 import org.apache.accumulo.core.file.blockfile.impl.CachableBlockFile;
 import org.apache.accumulo.core.file.blockfile.impl.CachableBlockFile.CachableBuilder;
-import org.apache.accumulo.core.file.rfile.RFile.Reader;
+import org.apache.accumulo.core.file.rfile.RFileReader;
 import org.apache.accumulo.core.file.rfile.bcfile.MetaBlockDoesNotExist;
 import org.apache.accumulo.core.spi.cache.BlockCache;
 import org.apache.accumulo.core.spi.cache.CacheEntry;
@@ -224,7 +224,7 @@ public class SummaryReader {
     return sr;
   }
 
-  public static void print(Reader iter, PrintStream out) throws IOException {
+  public static void print(RFileReader iter, PrintStream out) throws IOException {
     String indent = "   ";
     out.print("Summary data : \n");
 

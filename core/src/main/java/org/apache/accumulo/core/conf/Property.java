@@ -1242,6 +1242,19 @@ public enum Property {
   @ReplacedBy(property = TABLE_CLASSLOADER_CONTEXT)
   TABLE_CLASSPATH("table.classpath.context", "", PropertyType.STRING, "Per table classpath context",
       "1.5.0"),
+  TABLE_READER_PREFIX("table.file.reader.", null, PropertyType.PREFIX,
+      "Properties in this category specify rfile iterators that are applied at"
+          + " various stages (scopes) of interaction with a table.",
+      "2.1.0"),
+  TABLE_READER_SCAN_PREFIX(TABLE_READER_PREFIX.getKey() + IteratorScope.scan.name() + ".", null,
+      PropertyType.PREFIX, "Convenience prefix to find options for the scan iterator scope",
+      "2.1.0"),
+  TABLE_READER_MINC_PREFIX(TABLE_READER_PREFIX.getKey() + IteratorScope.minc.name() + ".", null,
+      PropertyType.PREFIX, "Convenience prefix to find options for the minc iterator scope",
+      "2.1.0"),
+  TABLE_READER_MAJC_PREFIX(TABLE_READER_PREFIX.getKey() + IteratorScope.majc.name() + ".", null,
+      PropertyType.PREFIX, "Convenience prefix to find options for the majc iterator scope",
+      "2.1.0"),
   @Deprecated(since = "2.1.0")
   TABLE_REPLICATION("table.replication", "false", PropertyType.BOOLEAN,
       "Is replication enabled for the given table", "1.7.0"),
