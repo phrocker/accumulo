@@ -247,7 +247,8 @@ public class FileManager {
   }
 
   private Map<FileSKVIterator,String> reserveReaders(KeyExtent tablet, Collection<String> files,
-      boolean continueOnFailure, CacheProvider cacheProvider, IteratorUtil.IteratorScope iteratorScope) throws IOException {
+      boolean continueOnFailure, CacheProvider cacheProvider,
+      IteratorUtil.IteratorScope iteratorScope) throws IOException {
 
     if (!tablet.isMeta() && files.size() >= maxOpen) {
       throw new IllegalArgumentException("requested files exceeds max open");
@@ -310,8 +311,8 @@ public class FileManager {
         var tableConf = context.getTableConfiguration(tablet.tableId());
         FileSKVIterator reader = FileOperations.getInstance().newReaderBuilder()
             .forFile(path.toString(), ns, ns.getConf(), tableConf.getCryptoService())
-            .withTableConfiguration(tableConf).withCacheProvider(cacheProvider).withIteratorScope(iteratorScope)
-            .withFileLenCache(fileLenCache).build();
+            .withTableConfiguration(tableConf).withCacheProvider(cacheProvider)
+            .withIteratorScope(iteratorScope).withFileLenCache(fileLenCache).build();
         readersReserved.put(reader, file);
       } catch (Exception e) {
 
@@ -483,8 +484,8 @@ public class FileManager {
       }
     }
 
-    private Map<FileSKVIterator,String> openFiles(List<String> files, IteratorUtil.IteratorScope iteratorScope)
-        throws TooManyFilesException, IOException {
+    private Map<FileSKVIterator,String> openFiles(List<String> files,
+        IteratorUtil.IteratorScope iteratorScope) throws TooManyFilesException, IOException {
       // one tablet can not open more than maxOpen files, otherwise it could get stuck
       // forever waiting on itself to release files
 
@@ -503,10 +504,13 @@ public class FileManager {
     }
 
     public synchronized List<InterruptibleIterator> openFiles(Map<TabletFile,DataFileValue> files,
-        boolean detachable, SamplerConfigurationImpl samplerConfig, IteratorUtil.IteratorScope iteratorScope) throws IOException {
+        boolean detachable, SamplerConfigurationImpl samplerConfig,
+        IteratorUtil.IteratorScope iteratorScope) throws IOException {
 
-      Map<FileSKVIterator,String> newlyReservedReaders = openFiles(
-          files.keySet().stream().map(TabletFile::getPathStr).collect(Collectors.toList()),iteratorScope);
+      Map<FileSKVIterator,
+          String> newlyReservedReaders = openFiles(
+              files.keySet().stream().map(TabletFile::getPathStr).collect(Collectors.toList()),
+              iteratorScope);
 
       ArrayList<InterruptibleIterator> iters = new ArrayList<>();
 
@@ -563,7 +567,8 @@ public class FileManager {
       }
 
       List<String> files = dataSources.stream().map(x -> x.file).collect(Collectors.toList());
-      Map<FileSKVIterator,String> newlyReservedReaders = openFiles(files);
+      Map<FileSKVIterator,String> newlyReservedReaders =
+          openFiles(files, IteratorUtil.IteratorScope.scan);
       Map<String,List<FileSKVIterator>> map = new HashMap<>();
       newlyReservedReaders.forEach(
           (reader, fileName) -> map.computeIfAbsent(fileName, k -> new LinkedList<>()).add(reader));
@@ -590,8 +595,9 @@ public class FileManager {
       return tabletReservedReaders.size();
     }
 
-    public Collection<InterruptibleIterator> openFiles(Map<TabletFile, DataFileValue> files, boolean isolated, SamplerConfigurationImpl samplerConfig) throws IOException {
-      return openFiles(files,isolated,samplerConfig,null);
+    public List<InterruptibleIterator> openFiles(Map<TabletFile,DataFileValue> files,
+        boolean isolated, SamplerConfigurationImpl samplerConfig) throws IOException {
+      return openFiles(files, isolated, samplerConfig, null);
     }
   }
 

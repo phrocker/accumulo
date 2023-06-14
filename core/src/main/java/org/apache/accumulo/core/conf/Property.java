@@ -1242,11 +1242,11 @@ public enum Property {
   @ReplacedBy(property = TABLE_CLASSLOADER_CONTEXT)
   TABLE_CLASSPATH("table.classpath.context", "", PropertyType.STRING, "Per table classpath context",
       "1.5.0"),
-  TABLE_READER_SCAN("table.file.reader." + IteratorScope.scan.name(), null, PropertyType.CLASSNAME,
+  TABLE_READER_SCAN("table.file.reader." + IteratorScope.scan.name(), "", PropertyType.CLASSNAME,
       "Convenience prefix to find options for the scan iterator scope", "2.1.1"),
-  TABLE_READER_MINC("table.file.reader." + IteratorScope.minc.name(), null, PropertyType.CLASSNAME,
+  TABLE_READER_MINC("table.file.reader." + IteratorScope.minc.name(), "", PropertyType.CLASSNAME,
       "Convenience prefix to find options for the minc iterator scope", "2.1.1"),
-  TABLE_READER_MAJC("table.file.reader." + IteratorScope.majc.name(), null, PropertyType.CLASSNAME,
+  TABLE_READER_MAJC("table.file.reader." + IteratorScope.majc.name(), "", PropertyType.CLASSNAME,
       "Convenience prefix to find options for the majc iterator scope", "2.1.1"),
   @Deprecated(since = "2.1.0")
   TABLE_REPLICATION("table.replication", "false", PropertyType.BOOLEAN,
