@@ -18,8 +18,6 @@
  */
 package org.apache.accumulo.core.file.rfile;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -85,6 +83,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.PositionedReadable;
 import org.apache.hadoop.fs.Seekable;
 import org.apache.hadoop.io.Text;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -366,9 +365,9 @@ public class SequentialRFileTest {
 
     trf.openReader();
     trf.iter.seek(new Range((Key) null, null), EMPTY_COL_FAMS, false);
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
-    assertNull(trf.reader.getLastKey());
+    Assertions.assertNull(trf.reader.getLastKey());
 
     trf.closeReader();
   }
@@ -387,25 +386,25 @@ public class SequentialRFileTest {
     trf.openReader();
     // seek before everything
     trf.seek(null);
-    assertTrue(trf.iter.hasTop());
-    assertEquals(trf.iter.getTopKey(), newKey("r1", "cf1", "cq1", "L1", 55));
-    assertEquals(trf.iter.getTopValue(), newValue("foo"));
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(trf.iter.getTopKey(), newKey("r1", "cf1", "cq1", "L1", 55));
+    Assertions.assertEquals(trf.iter.getTopValue(), newValue("foo"));
     trf.iter.next();
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
     // seek after the key
     trf.seek(newKey("r2", "cf1", "cq1", "L1", 55));
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
     // seek exactly to the key
     trf.seek(newKey("r1", "cf1", "cq1", "L1", 55));
-    assertTrue(trf.iter.hasTop());
-    assertEquals(trf.iter.getTopKey(), newKey("r1", "cf1", "cq1", "L1", 55));
-    assertEquals(trf.iter.getTopValue(), newValue("foo"));
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(trf.iter.getTopKey(), newKey("r1", "cf1", "cq1", "L1", 55));
+    Assertions.assertEquals(trf.iter.getTopValue(), newValue("foo"));
     trf.iter.next();
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
-    assertEquals(newKey("r1", "cf1", "cq1", "L1", 55), trf.reader.getLastKey());
+    Assertions.assertEquals(newKey("r1", "cf1", "cq1", "L1", 55), trf.reader.getLastKey());
 
     trf.closeReader();
   }
@@ -436,7 +435,7 @@ public class SequentialRFileTest {
               Key k = newKey(rowS, cfS, cqS, cvS, ts);
               // check below ensures when all key sizes are same more than one index block is
               // created
-              assertEquals(27, k.getSize());
+              Assertions.assertEquals(27, k.getSize());
               k.setDeleted(true);
               Value v = newValue("" + val);
               trf.writer.append(k, v);
@@ -444,7 +443,7 @@ public class SequentialRFileTest {
               expectedValues.add(v);
 
               k = newKey(rowS, cfS, cqS, cvS, ts);
-              assertEquals(27, k.getSize());
+              Assertions.assertEquals(27, k.getSize());
               v = newValue("" + val);
               trf.writer.append(k, v);
               expectedKeys.add(k);
@@ -492,29 +491,29 @@ public class SequentialRFileTest {
     // test seeking to the current location
     index = expectedKeys.size() / 2;
     trf.seek(expectedKeys.get(index));
-    assertTrue(trf.iter.hasTop());
-    assertEquals(expectedKeys.get(index), trf.iter.getTopKey());
-    assertEquals(expectedValues.get(index), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(expectedKeys.get(index), trf.iter.getTopKey());
+    Assertions.assertEquals(expectedValues.get(index), trf.iter.getTopValue());
 
     trf.iter.next();
     index++;
-    assertTrue(trf.iter.hasTop());
-    assertEquals(expectedKeys.get(index), trf.iter.getTopKey());
-    assertEquals(expectedValues.get(index), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(expectedKeys.get(index), trf.iter.getTopKey());
+    Assertions.assertEquals(expectedValues.get(index), trf.iter.getTopValue());
 
     trf.seek(expectedKeys.get(index));
 
-    assertTrue(trf.iter.hasTop());
-    assertEquals(expectedKeys.get(index), trf.iter.getTopKey());
-    assertEquals(expectedValues.get(index), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(expectedKeys.get(index), trf.iter.getTopKey());
+    Assertions.assertEquals(expectedValues.get(index), trf.iter.getTopValue());
 
     // test seeking to each location in the file
     index = 0;
     for (Key key : expectedKeys) {
       trf.seek(key);
-      assertTrue(trf.iter.hasTop());
-      assertEquals(key, trf.iter.getTopKey());
-      assertEquals(expectedValues.get(index), trf.iter.getTopValue());
+      Assertions.assertTrue(trf.iter.hasTop());
+      Assertions.assertEquals(key, trf.iter.getTopKey());
+      Assertions.assertEquals(expectedValues.get(index), trf.iter.getTopValue());
 
       if (index > 0) {
         // Key pkey =
@@ -530,9 +529,9 @@ public class SequentialRFileTest {
       Key key = expectedKeys.get(i);
 
       trf.seek(key);
-      assertTrue(trf.iter.hasTop());
-      assertEquals(key, trf.iter.getTopKey());
-      assertEquals(expectedValues.get(i), trf.iter.getTopValue());
+      Assertions.assertTrue(trf.iter.hasTop());
+      Assertions.assertEquals(key, trf.iter.getTopKey());
+      Assertions.assertEquals(expectedValues.get(i), trf.iter.getTopValue());
 
       if (i - 1 > 0) {
         // Key pkey =
@@ -541,7 +540,7 @@ public class SequentialRFileTest {
       }
     }
 
-    assertEquals(expectedKeys.get(expectedKeys.size() - 1), trf.reader.getLastKey());
+    Assertions.assertEquals(expectedKeys.get(expectedKeys.size() - 1), trf.reader.getLastKey());
 
     // test seeking to random location and reading all data from that point
     // there was an off by one bug with this in the transient index
@@ -549,9 +548,9 @@ public class SequentialRFileTest {
       index = random.nextInt(expectedKeys.size());
       trf.seek(expectedKeys.get(index));
       for (; index < expectedKeys.size(); index++) {
-        assertTrue(trf.iter.hasTop());
-        assertEquals(expectedKeys.get(index), trf.iter.getTopKey());
-        assertEquals(expectedValues.get(index), trf.iter.getTopValue());
+        Assertions.assertTrue(trf.iter.hasTop());
+        Assertions.assertEquals(expectedKeys.get(index), trf.iter.getTopKey());
+        Assertions.assertEquals(expectedValues.get(index), trf.iter.getTopValue());
         trf.iter.next();
       }
     }
@@ -563,7 +562,7 @@ public class SequentialRFileTest {
       count++;
       iiter.next();
     }
-    assertEquals(20, count);
+    Assertions.assertEquals(20, count);
 
     trf.closeReader();
   }
@@ -574,14 +573,14 @@ public class SequentialRFileTest {
       Key ek = eki.next();
       Value ev = evi.next();
 
-      assertEquals(ek, trf.iter.getTopKey());
-      assertEquals(ev, trf.iter.getTopValue());
+      Assertions.assertEquals(ek, trf.iter.getTopKey());
+      Assertions.assertEquals(ev, trf.iter.getTopValue());
 
       trf.iter.next();
     }
 
-    assertFalse(eki.hasNext());
-    assertFalse(evi.hasNext());
+    Assertions.assertFalse(eki.hasNext());
+    Assertions.assertFalse(evi.hasNext());
   }
 
   @Test
@@ -605,8 +604,8 @@ public class SequentialRFileTest {
     );
     // @formatter:on
 
-    badKeys.forEach(
-        key -> assertThrows(IllegalArgumentException.class, () -> writer.append(key, foo1)));
+    badKeys.forEach(key -> Assertions.assertThrows(IllegalArgumentException.class,
+        () -> writer.append(key, foo1)));
   }
 
   @Test
@@ -623,17 +622,17 @@ public class SequentialRFileTest {
 
     // test seeking between keys
     trf.seek(newKey("r1", "cf1", "cq3", "L1", 55));
-    assertTrue(trf.iter.hasTop());
-    assertEquals(newKey("r1", "cf1", "cq4", "L1", 56), trf.iter.getTopKey());
-    assertEquals(newValue("foo2"), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(newKey("r1", "cf1", "cq4", "L1", 56), trf.iter.getTopKey());
+    Assertions.assertEquals(newValue("foo2"), trf.iter.getTopValue());
 
     // test seeking right before previous seek
     trf.seek(newKey("r1", "cf1", "cq0", "L1", 55));
-    assertTrue(trf.iter.hasTop());
-    assertEquals(newKey("r1", "cf1", "cq1", "L1", 55), trf.iter.getTopKey());
-    assertEquals(newValue("foo1"), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(newKey("r1", "cf1", "cq1", "L1", 55), trf.iter.getTopKey());
+    Assertions.assertEquals(newValue("foo1"), trf.iter.getTopValue());
 
-    assertEquals(newKey("r1", "cf1", "cq4", "L1", 56), trf.reader.getLastKey());
+    Assertions.assertEquals(newKey("r1", "cf1", "cq4", "L1", 56), trf.reader.getLastKey());
 
     trf.closeReader();
   }
@@ -655,18 +654,20 @@ public class SequentialRFileTest {
     // repeatedly seek to locations before the first key in the file
     for (int i = 0; i < 10; i++) {
       trf.seek(newKey(formatString("q_", i), "cf1", "cq1", "L1", 55));
-      assertTrue(trf.iter.hasTop());
-      assertEquals(newKey(formatString("r_", 0), "cf1", "cq1", "L1", 55), trf.iter.getTopKey());
-      assertEquals(newValue("foo1"), trf.iter.getTopValue());
+      Assertions.assertTrue(trf.iter.hasTop());
+      Assertions.assertEquals(newKey(formatString("r_", 0), "cf1", "cq1", "L1", 55),
+          trf.iter.getTopKey());
+      Assertions.assertEquals(newValue("foo1"), trf.iter.getTopValue());
     }
 
     // repeatedly seek to locations after the last key in the file
     for (int i = 0; i < 10; i++) {
       trf.seek(newKey(formatString("s_", i), "cf1", "cq1", "L1", 55));
-      assertFalse(trf.iter.hasTop());
+      Assertions.assertFalse(trf.iter.hasTop());
     }
 
-    assertEquals(newKey(formatString("r_", 499), "cf1", "cq1", "L1", 55), trf.reader.getLastKey());
+    Assertions.assertEquals(newKey(formatString("r_", 499), "cf1", "cq1", "L1", 55),
+        trf.reader.getLastKey());
 
     trf.closeReader();
   }
@@ -689,18 +690,19 @@ public class SequentialRFileTest {
     // test that has top returns false when end of range reached
     trf.iter.seek(new Range(newKey(formatString("r_", 3), "cf1", "cq1", "L1", 55), true,
         newKey(formatString("r_", 4), "cf1", "cq1", "L1", 55), false), EMPTY_COL_FAMS, false);
-    assertTrue(trf.iter.hasTop());
-    assertEquals(trf.iter.getTopKey(), newKey(formatString("r_", 3), "cf1", "cq1", "L1", 55));
-    assertEquals(newValue("foo" + 3), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(trf.iter.getTopKey(),
+        newKey(formatString("r_", 3), "cf1", "cq1", "L1", 55));
+    Assertions.assertEquals(newValue("foo" + 3), trf.iter.getTopValue());
     trf.iter.next();
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
     // test seeking to a range that is between two keys, should not return anything
     trf.iter.seek(
         new Range(newKey(formatString("r_", 4) + "a", "cf1", "cq1", "L1", 55), true,
             newKey(formatString("r_", 4) + "b", "cf1", "cq1", "L1", 55), true),
         EMPTY_COL_FAMS, false);
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
     // test seeking to another range after the previously seeked range, that is between the same two
     // keys in the file
@@ -709,30 +711,32 @@ public class SequentialRFileTest {
         new Range(newKey(formatString("r_", 4) + "c", "cf1", "cq1", "L1", 55), true,
             newKey(formatString("r_", 4) + "d", "cf1", "cq1", "L1", 55), true),
         EMPTY_COL_FAMS, false);
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
     trf.iter.seek(
         new Range(newKey(formatString("r_", 4) + "e", "cf1", "cq1", "L1", 55), true,
             newKey(formatString("r_", 4) + "f", "cf1", "cq1", "L1", 55), true),
         EMPTY_COL_FAMS, false);
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
     // now ensure we can seek somewhere, that triggering the optimization does not cause any
     // problems
     trf.iter.seek(new Range(newKey(formatString("r_", 5), "cf1", "cq1", "L1", 55), true,
         newKey(formatString("r_", 6), "cf1", "cq1", "L1", 55), false), EMPTY_COL_FAMS, false);
-    assertTrue(trf.iter.hasTop());
-    assertEquals(trf.iter.getTopKey(), newKey(formatString("r_", 5), "cf1", "cq1", "L1", 55));
-    assertEquals(newValue("foo" + 5), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(trf.iter.getTopKey(),
+        newKey(formatString("r_", 5), "cf1", "cq1", "L1", 55));
+    Assertions.assertEquals(newValue("foo" + 5), trf.iter.getTopValue());
     trf.iter.next();
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
     // test seeking to range that is before the beginning of the file
     trf.iter.seek(new Range(newKey(formatString("r_", 0), "cf1", "cq1", "L1", 55), true,
         newKey(formatString("r_", 2), "cf1", "cq1", "L1", 55), false), EMPTY_COL_FAMS, false);
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
-    assertEquals(newKey(formatString("r_", 49), "cf1", "cq1", "L1", 55), trf.reader.getLastKey());
+    Assertions.assertEquals(newKey(formatString("r_", 49), "cf1", "cq1", "L1", 55),
+        trf.reader.getLastKey());
 
     trf.reader.close();
   }
@@ -753,22 +757,25 @@ public class SequentialRFileTest {
     // test seeking between each key forward
     for (int i = 0; i < 2499; i++) {
       trf.seek(newKey(formatString("r_", i), "cf1", "cq1", "L1", 42).followingKey(PartialKey.ROW));
-      assertTrue(trf.iter.hasTop());
-      assertEquals(newKey(formatString("r_", i + 1), "cf1", "cq1", "L1", 42), trf.iter.getTopKey());
+      Assertions.assertTrue(trf.iter.hasTop());
+      Assertions.assertEquals(newKey(formatString("r_", i + 1), "cf1", "cq1", "L1", 42),
+          trf.iter.getTopKey());
     }
 
     // test seeking between each key forward
     for (int i = 0; i < 2499; i += 2) {
       trf.seek(newKey(formatString("r_", i), "cf1", "cq1", "L1", 42).followingKey(PartialKey.ROW));
-      assertTrue(trf.iter.hasTop());
-      assertEquals(newKey(formatString("r_", i + 1), "cf1", "cq1", "L1", 42), trf.iter.getTopKey());
+      Assertions.assertTrue(trf.iter.hasTop());
+      Assertions.assertEquals(newKey(formatString("r_", i + 1), "cf1", "cq1", "L1", 42),
+          trf.iter.getTopKey());
     }
 
     // test seeking backwards between each key
     for (int i = 2498; i >= 0; i--) {
       trf.seek(newKey(formatString("r_", i), "cf1", "cq1", "L1", 42).followingKey(PartialKey.ROW));
-      assertTrue(trf.iter.hasTop());
-      assertEquals(newKey(formatString("r_", i + 1), "cf1", "cq1", "L1", 42), trf.iter.getTopKey());
+      Assertions.assertTrue(trf.iter.hasTop());
+      Assertions.assertEquals(newKey(formatString("r_", i + 1), "cf1", "cq1", "L1", 42),
+          trf.iter.getTopKey());
     }
 
     trf.closeReader();
@@ -790,8 +797,9 @@ public class SequentialRFileTest {
     for (int i = 0; i < 2499; i++) {
       trf.seek(newKey(formatString("r_", 0), formatString("cf_", i), "cq1", "L1", 42)
           .followingKey(PartialKey.ROW_COLFAM));
-      assertTrue(trf.iter.hasTop());
-      assertEquals(newKey(formatString("r_", 0), formatString("cf_", i + 1), "cq1", "L1", 42),
+      Assertions.assertTrue(trf.iter.hasTop());
+      Assertions.assertEquals(
+          newKey(formatString("r_", 0), formatString("cf_", i + 1), "cq1", "L1", 42),
           trf.iter.getTopKey());
     }
 
@@ -799,8 +807,9 @@ public class SequentialRFileTest {
     for (int i = 0; i < 2499; i += 2) {
       trf.seek(newKey(formatString("r_", 0), formatString("cf_", i), "cq1", "L1", 42)
           .followingKey(PartialKey.ROW_COLFAM));
-      assertTrue(trf.iter.hasTop());
-      assertEquals(newKey(formatString("r_", 0), formatString("cf_", i + 1), "cq1", "L1", 42),
+      Assertions.assertTrue(trf.iter.hasTop());
+      Assertions.assertEquals(
+          newKey(formatString("r_", 0), formatString("cf_", i + 1), "cq1", "L1", 42),
           trf.iter.getTopKey());
     }
 
@@ -808,8 +817,9 @@ public class SequentialRFileTest {
     for (int i = 2498; i >= 0; i--) {
       trf.seek(newKey(formatString("r_", 0), formatString("cf_", i), "cq1", "L1", 42)
           .followingKey(PartialKey.ROW_COLFAM));
-      assertTrue(trf.iter.hasTop());
-      assertEquals(newKey(formatString("r_", 0), formatString("cf_", i + 1), "cq1", "L1", 42),
+      Assertions.assertTrue(trf.iter.hasTop());
+      Assertions.assertEquals(
+          newKey(formatString("r_", 0), formatString("cf_", i + 1), "cq1", "L1", 42),
           trf.iter.getTopKey());
     }
 
@@ -834,9 +844,9 @@ public class SequentialRFileTest {
       trf.seek(
           newKey(formatString("r_", 0), formatString("cf_", 0), formatString("cq_", i), "L1", 42)
               .followingKey(PartialKey.ROW_COLFAM_COLQUAL));
-      assertTrue(trf.iter.hasTop());
-      assertEquals(newKey(formatString("r_", 0), formatString("cf_", 0), formatString("cq_", i + 1),
-          "L1", 42), trf.iter.getTopKey());
+      Assertions.assertTrue(trf.iter.hasTop());
+      Assertions.assertEquals(newKey(formatString("r_", 0), formatString("cf_", 0),
+          formatString("cq_", i + 1), "L1", 42), trf.iter.getTopKey());
     }
 
     // test seeking between each key forward
@@ -844,9 +854,9 @@ public class SequentialRFileTest {
       trf.seek(
           newKey(formatString("r_", 0), formatString("cf_", 0), formatString("cq_", i), "L1", 42)
               .followingKey(PartialKey.ROW_COLFAM_COLQUAL));
-      assertTrue(trf.iter.hasTop());
-      assertEquals(newKey(formatString("r_", 0), formatString("cf_", 0), formatString("cq_", i + 1),
-          "L1", 42), trf.iter.getTopKey());
+      Assertions.assertTrue(trf.iter.hasTop());
+      Assertions.assertEquals(newKey(formatString("r_", 0), formatString("cf_", 0),
+          formatString("cq_", i + 1), "L1", 42), trf.iter.getTopKey());
     }
 
     // test seeking backwards between each key
@@ -854,9 +864,9 @@ public class SequentialRFileTest {
       trf.seek(
           newKey(formatString("r_", 0), formatString("cf_", 0), formatString("cq_", i), "L1", 42)
               .followingKey(PartialKey.ROW_COLFAM_COLQUAL));
-      assertTrue(trf.iter.hasTop());
-      assertEquals(newKey(formatString("r_", 0), formatString("cf_", 0), formatString("cq_", i + 1),
-          "L1", 42), trf.iter.getTopKey());
+      Assertions.assertTrue(trf.iter.hasTop());
+      Assertions.assertEquals(newKey(formatString("r_", 0), formatString("cf_", 0),
+          formatString("cq_", i + 1), "L1", 42), trf.iter.getTopKey());
     }
 
     trf.closeReader();
@@ -896,128 +906,128 @@ public class SequentialRFileTest {
     Range r = new Range(newKey("0000", "cf1", "doe,john", "", 4), true,
         newKey("0003", "cf4", "buck,jane", "", 5), true);
     trf.iter.seek(r, newColFamByteSequence("cf1", "cf2"), true);
-    assertEquals(1, trf.reader.getNumLocalityGroupsSeeked());
+    Assertions.assertEquals(1, trf.reader.getNumLocalityGroupsSeeked());
 
-    assertTrue(trf.iter.hasTop());
-    assertEquals(trf.iter.getTopKey(), newKey("0000", "cf1", "doe,john", "", 4));
-    assertEquals(newValue("1123 West Left st"), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(trf.iter.getTopKey(), newKey("0000", "cf1", "doe,john", "", 4));
+    Assertions.assertEquals(newValue("1123 West Left st"), trf.iter.getTopValue());
     trf.iter.next();
-    assertTrue(trf.iter.hasTop());
-    assertEquals(trf.iter.getTopKey(), newKey("0002", "cf2", "doe,jane", "", 5));
-    assertEquals(newValue("1124 East Right st"), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(trf.iter.getTopKey(), newKey("0002", "cf2", "doe,jane", "", 5));
+    Assertions.assertEquals(newValue("1124 East Right st"), trf.iter.getTopValue());
     trf.iter.next();
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
     // scan second loc group
     r = new Range(newKey("0000", "cf1", "doe,john", "", 4), true,
         newKey("0003", "cf4", "buck,jane", "", 5), true);
     trf.iter.seek(r, newColFamByteSequence("cf3", "cf4"), true);
-    assertEquals(1, trf.reader.getNumLocalityGroupsSeeked());
+    Assertions.assertEquals(1, trf.reader.getNumLocalityGroupsSeeked());
 
-    assertTrue(trf.iter.hasTop());
-    assertEquals(trf.iter.getTopKey(), newKey("0001", "cf3", "buck,john", "", 4));
-    assertEquals(newValue("90 Slum st"), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(trf.iter.getTopKey(), newKey("0001", "cf3", "buck,john", "", 4));
+    Assertions.assertEquals(newValue("90 Slum st"), trf.iter.getTopValue());
     trf.iter.next();
-    assertTrue(trf.iter.hasTop());
-    assertEquals(trf.iter.getTopKey(), newKey("0003", "cf4", "buck,jane", "", 5));
-    assertEquals(newValue("09 Slum st"), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(trf.iter.getTopKey(), newKey("0003", "cf4", "buck,jane", "", 5));
+    Assertions.assertEquals(newValue("09 Slum st"), trf.iter.getTopValue());
     trf.iter.next();
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
     // scan all loc groups
     r = new Range(newKey("0000", "cf1", "doe,john", "", 4), true,
         newKey("0003", "cf4", "buck,jane", "", 5), true);
     trf.iter.seek(r, EMPTY_COL_FAMS, false);
-    assertEquals(2, trf.reader.getNumLocalityGroupsSeeked());
+    Assertions.assertEquals(2, trf.reader.getNumLocalityGroupsSeeked());
 
-    assertTrue(trf.iter.hasTop());
-    assertEquals(trf.iter.getTopKey(), newKey("0000", "cf1", "doe,john", "", 4));
-    assertEquals(newValue("1123 West Left st"), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(trf.iter.getTopKey(), newKey("0000", "cf1", "doe,john", "", 4));
+    Assertions.assertEquals(newValue("1123 West Left st"), trf.iter.getTopValue());
     trf.iter.next();
-    assertTrue(trf.iter.hasTop());
-    assertEquals(trf.iter.getTopKey(), newKey("0001", "cf3", "buck,john", "", 4));
-    assertEquals(newValue("90 Slum st"), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(trf.iter.getTopKey(), newKey("0001", "cf3", "buck,john", "", 4));
+    Assertions.assertEquals(newValue("90 Slum st"), trf.iter.getTopValue());
     trf.iter.next();
-    assertTrue(trf.iter.hasTop());
-    assertEquals(trf.iter.getTopKey(), newKey("0002", "cf2", "doe,jane", "", 5));
-    assertEquals(newValue("1124 East Right st"), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(trf.iter.getTopKey(), newKey("0002", "cf2", "doe,jane", "", 5));
+    Assertions.assertEquals(newValue("1124 East Right st"), trf.iter.getTopValue());
     trf.iter.next();
-    assertTrue(trf.iter.hasTop());
-    assertEquals(trf.iter.getTopKey(), newKey("0003", "cf4", "buck,jane", "", 5));
-    assertEquals(newValue("09 Slum st"), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(trf.iter.getTopKey(), newKey("0003", "cf4", "buck,jane", "", 5));
+    Assertions.assertEquals(newValue("09 Slum st"), trf.iter.getTopValue());
     trf.iter.next();
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
     // scan no loc groups
     r = new Range(newKey("0000", "cf1", "doe,john", "", 4), true,
         newKey("0003", "cf4", "buck,jane", "", 5), true);
     trf.iter.seek(r, newColFamByteSequence("saint", "dogooder"), true);
-    assertEquals(0, trf.reader.getNumLocalityGroupsSeeked());
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertEquals(0, trf.reader.getNumLocalityGroupsSeeked());
+    Assertions.assertFalse(trf.iter.hasTop());
 
     // scan a subset of second locality group
     r = new Range(newKey("0000", "cf1", "doe,john", "", 4), true,
         newKey("0003", "cf4", "buck,jane", "", 5), true);
     trf.iter.seek(r, newColFamByteSequence("cf4"), true);
-    assertEquals(1, trf.reader.getNumLocalityGroupsSeeked());
+    Assertions.assertEquals(1, trf.reader.getNumLocalityGroupsSeeked());
 
-    assertTrue(trf.iter.hasTop());
-    assertEquals(trf.iter.getTopKey(), newKey("0003", "cf4", "buck,jane", "", 5));
-    assertEquals(newValue("09 Slum st"), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(trf.iter.getTopKey(), newKey("0003", "cf4", "buck,jane", "", 5));
+    Assertions.assertEquals(newValue("09 Slum st"), trf.iter.getTopValue());
     trf.iter.next();
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
     // scan a subset of second locality group
     r = new Range(newKey("0000", "cf1", "doe,john", "", 4), true,
         newKey("0003", "cf4", "buck,jane", "", 5), true);
     trf.iter.seek(r, newColFamByteSequence("cf3"), true);
-    assertEquals(1, trf.reader.getNumLocalityGroupsSeeked());
+    Assertions.assertEquals(1, trf.reader.getNumLocalityGroupsSeeked());
 
-    assertTrue(trf.iter.hasTop());
-    assertEquals(trf.iter.getTopKey(), newKey("0001", "cf3", "buck,john", "", 4));
-    assertEquals(newValue("90 Slum st"), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(trf.iter.getTopKey(), newKey("0001", "cf3", "buck,john", "", 4));
+    Assertions.assertEquals(newValue("90 Slum st"), trf.iter.getTopValue());
     trf.iter.next();
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
     // scan subset of first loc group
     r = new Range(newKey("0000", "cf1", "doe,john", "", 4), true,
         newKey("0003", "cf4", "buck,jane", "", 5), true);
     trf.iter.seek(r, newColFamByteSequence("cf1"), true);
-    assertEquals(1, trf.reader.getNumLocalityGroupsSeeked());
+    Assertions.assertEquals(1, trf.reader.getNumLocalityGroupsSeeked());
 
-    assertTrue(trf.iter.hasTop());
-    assertEquals(trf.iter.getTopKey(), newKey("0000", "cf1", "doe,john", "", 4));
-    assertEquals(newValue("1123 West Left st"), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(trf.iter.getTopKey(), newKey("0000", "cf1", "doe,john", "", 4));
+    Assertions.assertEquals(newValue("1123 West Left st"), trf.iter.getTopValue());
     trf.iter.next();
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
     // scan subset of first loc group
     r = new Range(newKey("0000", "cf1", "doe,john", "", 4), true,
         newKey("0003", "cf4", "buck,jane", "", 5), true);
     trf.iter.seek(r, newColFamByteSequence("cf2"), true);
-    assertEquals(1, trf.reader.getNumLocalityGroupsSeeked());
+    Assertions.assertEquals(1, trf.reader.getNumLocalityGroupsSeeked());
 
-    assertTrue(trf.iter.hasTop());
-    assertEquals(trf.iter.getTopKey(), newKey("0002", "cf2", "doe,jane", "", 5));
-    assertEquals(newValue("1124 East Right st"), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(trf.iter.getTopKey(), newKey("0002", "cf2", "doe,jane", "", 5));
+    Assertions.assertEquals(newValue("1124 East Right st"), trf.iter.getTopValue());
     trf.iter.next();
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
     // scan subset of all loc groups
     r = new Range(newKey("0000", "cf1", "doe,john", "", 4), true,
         newKey("0003", "cf4", "buck,jane", "", 5), true);
     trf.iter.seek(r, newColFamByteSequence("cf1", "cf4"), true);
-    assertEquals(2, trf.reader.getNumLocalityGroupsSeeked());
+    Assertions.assertEquals(2, trf.reader.getNumLocalityGroupsSeeked());
 
-    assertTrue(trf.iter.hasTop());
-    assertEquals(trf.iter.getTopKey(), newKey("0000", "cf1", "doe,john", "", 4));
-    assertEquals(newValue("1123 West Left st"), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(trf.iter.getTopKey(), newKey("0000", "cf1", "doe,john", "", 4));
+    Assertions.assertEquals(newValue("1123 West Left st"), trf.iter.getTopValue());
     trf.iter.next();
-    assertTrue(trf.iter.hasTop());
-    assertEquals(trf.iter.getTopKey(), newKey("0003", "cf4", "buck,jane", "", 5));
-    assertEquals(newValue("09 Slum st"), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(trf.iter.getTopKey(), newKey("0003", "cf4", "buck,jane", "", 5));
+    Assertions.assertEquals(newValue("09 Slum st"), trf.iter.getTopValue());
     trf.iter.next();
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
     trf.closeReader();
 
@@ -1037,7 +1047,7 @@ public class SequentialRFileTest {
 
     trf.openReader();
     trf.iter.seek(new Range(new Text(""), null), EMPTY_COL_FAMS, false);
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
     trf.closeReader();
 
@@ -1054,15 +1064,15 @@ public class SequentialRFileTest {
 
     trf.openReader();
     trf.iter.seek(new Range(new Text(""), null), EMPTY_COL_FAMS, false);
-    assertTrue(trf.iter.hasTop());
-    assertEquals(trf.iter.getTopKey(), newKey("0000", "cf1", "doe,john", "", 4));
-    assertEquals(newValue("1123 West Left st"), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(trf.iter.getTopKey(), newKey("0000", "cf1", "doe,john", "", 4));
+    Assertions.assertEquals(newValue("1123 West Left st"), trf.iter.getTopValue());
     trf.iter.next();
-    assertTrue(trf.iter.hasTop());
-    assertEquals(trf.iter.getTopKey(), newKey("0002", "cf2", "doe,jane", "", 5));
-    assertEquals(newValue("1124 East Right st"), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(trf.iter.getTopKey(), newKey("0002", "cf2", "doe,jane", "", 5));
+    Assertions.assertEquals(newValue("1124 East Right st"), trf.iter.getTopValue());
     trf.iter.next();
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
     trf.closeReader();
 
@@ -1079,15 +1089,15 @@ public class SequentialRFileTest {
 
     trf.openReader();
     trf.iter.seek(new Range(new Text(""), null), EMPTY_COL_FAMS, false);
-    assertTrue(trf.iter.hasTop());
-    assertEquals(trf.iter.getTopKey(), newKey("0001", "cf3", "buck,john", "", 4));
-    assertEquals(newValue("90 Slum st"), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(trf.iter.getTopKey(), newKey("0001", "cf3", "buck,john", "", 4));
+    Assertions.assertEquals(newValue("90 Slum st"), trf.iter.getTopValue());
     trf.iter.next();
-    assertTrue(trf.iter.hasTop());
-    assertEquals(trf.iter.getTopKey(), newKey("0003", "cf4", "buck,jane", "", 5));
-    assertEquals(newValue("09 Slum st"), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(trf.iter.getTopKey(), newKey("0003", "cf4", "buck,jane", "", 5));
+    Assertions.assertEquals(newValue("09 Slum st"), trf.iter.getTopValue());
     trf.iter.next();
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
     trf.closeReader();
 
@@ -1104,15 +1114,15 @@ public class SequentialRFileTest {
 
     trf.openReader();
     trf.iter.seek(new Range(new Text(""), null), EMPTY_COL_FAMS, false);
-    assertTrue(trf.iter.hasTop());
-    assertEquals(trf.iter.getTopKey(), newKey("0007", "good citizen", "q,john", "", 4));
-    assertEquals(newValue("70 Apple st"), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(trf.iter.getTopKey(), newKey("0007", "good citizen", "q,john", "", 4));
+    Assertions.assertEquals(newValue("70 Apple st"), trf.iter.getTopValue());
     trf.iter.next();
-    assertTrue(trf.iter.hasTop());
-    assertEquals(trf.iter.getTopKey(), newKey("0008", "model citizen", "q,jane", "", 5));
-    assertEquals(newValue("81 Plum st"), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(trf.iter.getTopKey(), newKey("0008", "model citizen", "q,jane", "", 5));
+    Assertions.assertEquals(newValue("81 Plum st"), trf.iter.getTopValue());
     trf.iter.next();
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
     trf.closeReader();
 
@@ -1131,23 +1141,23 @@ public class SequentialRFileTest {
 
     trf.openReader();
     trf.iter.seek(new Range(new Text(""), null), EMPTY_COL_FAMS, false);
-    assertTrue(trf.iter.hasTop());
-    assertEquals(trf.iter.getTopKey(), newKey("0000", "cf1", "doe,john", "", 4));
-    assertEquals(newValue("1123 West Left st"), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(trf.iter.getTopKey(), newKey("0000", "cf1", "doe,john", "", 4));
+    Assertions.assertEquals(newValue("1123 West Left st"), trf.iter.getTopValue());
     trf.iter.next();
-    assertTrue(trf.iter.hasTop());
-    assertEquals(trf.iter.getTopKey(), newKey("0002", "cf2", "doe,jane", "", 5));
-    assertEquals(newValue("1124 East Right st"), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(trf.iter.getTopKey(), newKey("0002", "cf2", "doe,jane", "", 5));
+    Assertions.assertEquals(newValue("1124 East Right st"), trf.iter.getTopValue());
     trf.iter.next();
-    assertTrue(trf.iter.hasTop());
-    assertEquals(trf.iter.getTopKey(), newKey("0007", "good citizen", "q,john", "", 4));
-    assertEquals(newValue("70 Apple st"), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(trf.iter.getTopKey(), newKey("0007", "good citizen", "q,john", "", 4));
+    Assertions.assertEquals(newValue("70 Apple st"), trf.iter.getTopValue());
     trf.iter.next();
-    assertTrue(trf.iter.hasTop());
-    assertEquals(trf.iter.getTopKey(), newKey("0008", "model citizen", "q,jane", "", 5));
-    assertEquals(newValue("81 Plum st"), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(trf.iter.getTopKey(), newKey("0008", "model citizen", "q,jane", "", 5));
+    Assertions.assertEquals(newValue("81 Plum st"), trf.iter.getTopValue());
     trf.iter.next();
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
     trf.closeReader();
   }
@@ -1190,37 +1200,37 @@ public class SequentialRFileTest {
     // test a merged read of all column families
     trf.openReader();
     trf.iter.seek(new Range(new Text(""), null), EMPTY_COL_FAMS, false);
-    assertEquals(3, trf.reader.getNumLocalityGroupsSeeked());
+    Assertions.assertEquals(3, trf.reader.getNumLocalityGroupsSeeked());
     for (int i = 0; i < 1024; i++) {
-      assertTrue(trf.iter.hasTop());
-      assertEquals(newKey(formatString("i", i), (i % 10) + "mod10", "", "", i + 2),
+      Assertions.assertTrue(trf.iter.hasTop());
+      Assertions.assertEquals(newKey(formatString("i", i), (i % 10) + "mod10", "", "", i + 2),
           trf.iter.getTopKey());
-      assertEquals(newValue("" + i), trf.iter.getTopValue());
+      Assertions.assertEquals(newValue("" + i), trf.iter.getTopValue());
       trf.iter.next();
     }
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
     // try reading each of the 10 column families separately
     for (int m = 0; m < 10; m++) {
       trf.iter.seek(new Range(new Key(), true, null, true), newColFamByteSequence(m + "mod10"),
           true);
-      assertEquals(1, trf.reader.getNumLocalityGroupsSeeked());
+      Assertions.assertEquals(1, trf.reader.getNumLocalityGroupsSeeked());
       for (int i = m; i < 1024; i += 10) {
-        assertTrue(trf.iter.hasTop());
-        assertEquals(newKey(formatString("i", i), (i % 10) + "mod10", "", "", i + 2),
+        Assertions.assertTrue(trf.iter.hasTop());
+        Assertions.assertEquals(newKey(formatString("i", i), (i % 10) + "mod10", "", "", i + 2),
             trf.iter.getTopKey());
-        assertEquals(newValue("" + i), trf.iter.getTopValue());
+        Assertions.assertEquals(newValue("" + i), trf.iter.getTopValue());
         trf.iter.next();
       }
-      assertFalse(trf.iter.hasTop());
+      Assertions.assertFalse(trf.iter.hasTop());
 
       // test excluding an individual column family
       trf.iter.seek(new Range(new Key(), true, null, true), newColFamByteSequence(m + "mod10"),
           false);
       if (m == 3) {
-        assertEquals(2, trf.reader.getNumLocalityGroupsSeeked());
+        Assertions.assertEquals(2, trf.reader.getNumLocalityGroupsSeeked());
       } else {
-        assertEquals(3, trf.reader.getNumLocalityGroupsSeeked());
+        Assertions.assertEquals(3, trf.reader.getNumLocalityGroupsSeeked());
       }
       for (int i = 0; i < 1024; i++) {
 
@@ -1228,13 +1238,13 @@ public class SequentialRFileTest {
           continue;
         }
 
-        assertTrue(trf.iter.hasTop());
-        assertEquals(newKey(formatString("i", i), (i % 10) + "mod10", "", "", i + 2),
+        Assertions.assertTrue(trf.iter.hasTop());
+        Assertions.assertEquals(newKey(formatString("i", i), (i % 10) + "mod10", "", "", i + 2),
             trf.iter.getTopKey());
-        assertEquals(newValue("" + i), trf.iter.getTopValue());
+        Assertions.assertEquals(newValue("" + i), trf.iter.getTopValue());
         trf.iter.next();
       }
-      assertFalse(trf.iter.hasTop());
+      Assertions.assertFalse(trf.iter.hasTop());
     }
 
     // test Rfile deepcopy
@@ -1244,27 +1254,28 @@ public class SequentialRFileTest {
     for (int m = 0; m < 9; m++) {
       trf.iter.seek(new Range(new Key(), true, null, true), newColFamByteSequence(m + "mod10"),
           true);
-      assertEquals(1, trf.reader.getNumLocalityGroupsSeeked());
+      Assertions.assertEquals(1, trf.reader.getNumLocalityGroupsSeeked());
       reader2.seek(new Range(new Key(), true, null, true), newColFamByteSequence((m + 1) + "mod10"),
           true);
       // assertEquals(1, reader2.getNumLocalityGroupsSeeked());
       for (int i = m; i < 1024; i += 10) {
         // System.out.println(m+","+i);
-        assertTrue(trf.iter.hasTop());
-        assertEquals(newKey(formatString("i", i), (i % 10) + "mod10", "", "", i + 2),
+        Assertions.assertTrue(trf.iter.hasTop());
+        Assertions.assertEquals(newKey(formatString("i", i), (i % 10) + "mod10", "", "", i + 2),
             trf.iter.getTopKey());
-        assertEquals(newValue("" + i), trf.iter.getTopValue());
+        Assertions.assertEquals(newValue("" + i), trf.iter.getTopValue());
         trf.iter.next();
         if (i + 1 < 1024) {
-          assertTrue(reader2.hasTop());
-          assertEquals(newKey(formatString("i", (i + 1)), ((i + 1) % 10) + "mod10", "", "", i + 3),
+          Assertions.assertTrue(reader2.hasTop());
+          Assertions.assertEquals(
+              newKey(formatString("i", (i + 1)), ((i + 1) % 10) + "mod10", "", "", i + 3),
               reader2.getTopKey());
-          assertEquals(newValue("" + (i + 1)), reader2.getTopValue());
+          Assertions.assertEquals(newValue("" + (i + 1)), reader2.getTopValue());
           reader2.next();
         }
       }
-      assertFalse(trf.iter.hasTop());
-      assertFalse(reader2.hasTop());
+      Assertions.assertFalse(trf.iter.hasTop());
+      Assertions.assertFalse(reader2.hasTop());
     }
 
     trf.closeReader();
@@ -1282,7 +1293,7 @@ public class SequentialRFileTest {
 
     trf.writer.append(newKey("0007", "a", "cq1", "", 4), newValue("1"));
 
-    assertThrows(IllegalArgumentException.class,
+    Assertions.assertThrows(IllegalArgumentException.class,
         () -> trf.writer.append(newKey("0009", "c", "cq1", "", 4), newValue("1")));
 
     trf.closeWriter();
@@ -1290,11 +1301,11 @@ public class SequentialRFileTest {
     trf.openReader();
 
     trf.iter.seek(new Range(), EMPTY_COL_FAMS, false);
-    assertTrue(trf.iter.hasTop());
-    assertEquals(newKey("0007", "a", "cq1", "", 4), trf.iter.getTopKey());
-    assertEquals(newValue("1"), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(newKey("0007", "a", "cq1", "", 4), trf.iter.getTopKey());
+    Assertions.assertEquals(newValue("1"), trf.iter.getTopValue());
     trf.iter.next();
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
   }
 
@@ -1315,10 +1326,10 @@ public class SequentialRFileTest {
 
     trf.writer.startDefaultLocalityGroup();
 
-    assertThrows(IllegalArgumentException.class,
+    Assertions.assertThrows(IllegalArgumentException.class,
         () -> trf.writer.append(newKey("0008", "a", "cq1", "", 4), valueOf1));
 
-    assertThrows(IllegalArgumentException.class,
+    Assertions.assertThrows(IllegalArgumentException.class,
         () -> trf.writer.append(newKey("0009", "b", "cq1", "", 4), valueOf1));
 
     trf.closeWriter();
@@ -1326,11 +1337,11 @@ public class SequentialRFileTest {
     trf.openReader();
 
     trf.iter.seek(new Range(), EMPTY_COL_FAMS, false);
-    assertTrue(trf.iter.hasTop());
-    assertEquals(newKey("0007", "a", "cq1", "", 4), trf.iter.getTopKey());
-    assertEquals(valueOf1, trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(newKey("0007", "a", "cq1", "", 4), trf.iter.getTopKey());
+    Assertions.assertEquals(valueOf1, trf.iter.getTopValue());
     trf.iter.next();
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
   }
 
@@ -1344,10 +1355,11 @@ public class SequentialRFileTest {
     trf.writer.startDefaultLocalityGroup();
 
     Set<ByteSequence> columnFamilies = newColFamByteSequence("a", "b");
-    assertThrows(IllegalStateException.class,
+    Assertions.assertThrows(IllegalStateException.class,
         () -> trf.writer.startNewLocalityGroup("lg1", columnFamilies));
 
-    assertThrows(IllegalStateException.class, () -> trf.writer.startDefaultLocalityGroup());
+    Assertions.assertThrows(IllegalStateException.class,
+        () -> trf.writer.startDefaultLocalityGroup());
 
     trf.writer.close();
   }
@@ -1363,7 +1375,7 @@ public class SequentialRFileTest {
     trf.writer.append(newKey("0007", "a", "cq1", "", 4), newValue("1"));
 
     Set<ByteSequence> columnFamilies = newColFamByteSequence("b", "c");
-    assertThrows(IllegalArgumentException.class,
+    Assertions.assertThrows(IllegalArgumentException.class,
         () -> trf.writer.startNewLocalityGroup("lg1", columnFamilies));
 
     trf.closeWriter();
@@ -1399,65 +1411,65 @@ public class SequentialRFileTest {
       indexIter.next();
     }
 
-    assertTrue(count > 4);
+    Assertions.assertTrue(count > 4);
 
     trf.iter.seek(new Range(newKey("r0000", "cf1", "cq1", "", 1), true,
         newKey("r0001", "cf1", "cq1", "", 1), false), EMPTY_COL_FAMS, false);
 
     for (int i = 0; i < 2048; i++) {
-      assertTrue(trf.iter.hasTop());
-      assertEquals(newKey("r0000", "cf1", "cq1", "", 1), trf.iter.getTopKey());
-      assertEquals(newValue("" + i), trf.iter.getTopValue());
+      Assertions.assertTrue(trf.iter.hasTop());
+      Assertions.assertEquals(newKey("r0000", "cf1", "cq1", "", 1), trf.iter.getTopKey());
+      Assertions.assertEquals(newValue("" + i), trf.iter.getTopValue());
       trf.iter.next();
     }
 
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
     trf.iter.seek(new Range(newKey("r0000", "cf1", "cq1", "", 1), false,
         newKey("r0001", "cf1", "cq1", "", 1), true), EMPTY_COL_FAMS, false);
 
     for (int i = 2048; i < 4096; i++) {
-      assertTrue(trf.iter.hasTop());
-      assertEquals(newKey("r0001", "cf1", "cq1", "", 1), trf.iter.getTopKey());
-      assertEquals(newValue("" + i), trf.iter.getTopValue());
+      Assertions.assertTrue(trf.iter.hasTop());
+      Assertions.assertEquals(newKey("r0001", "cf1", "cq1", "", 1), trf.iter.getTopKey());
+      Assertions.assertEquals(newValue("" + i), trf.iter.getTopValue());
       trf.iter.next();
     }
 
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
     trf.iter.seek(new Range(newKey("r0001", "cf1", "cq1", "", 1), true,
         newKey("r0001", "cf1", "cq1", "", 1), true), EMPTY_COL_FAMS, false);
 
     for (int i = 2048; i < 4096; i++) {
-      assertTrue(trf.iter.hasTop());
-      assertEquals(newKey("r0001", "cf1", "cq1", "", 1), trf.iter.getTopKey());
-      assertEquals(newValue("" + i), trf.iter.getTopValue());
+      Assertions.assertTrue(trf.iter.hasTop());
+      Assertions.assertEquals(newKey("r0001", "cf1", "cq1", "", 1), trf.iter.getTopKey());
+      Assertions.assertEquals(newValue("" + i), trf.iter.getTopValue());
       trf.iter.next();
     }
 
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
     trf.iter.seek(new Range(newKey("r0002", "cf1", "cq1", "", 1), true,
         newKey("r0002", "cf1", "cq1", "", 1), true), EMPTY_COL_FAMS, false);
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
     trf.iter.seek(new Range((Key) null, null), EMPTY_COL_FAMS, false);
 
     for (int i = 0; i < 2048; i++) {
-      assertTrue(trf.iter.hasTop());
-      assertEquals(newKey("r0000", "cf1", "cq1", "", 1), trf.iter.getTopKey());
-      assertEquals(newValue("" + i), trf.iter.getTopValue());
+      Assertions.assertTrue(trf.iter.hasTop());
+      Assertions.assertEquals(newKey("r0000", "cf1", "cq1", "", 1), trf.iter.getTopKey());
+      Assertions.assertEquals(newValue("" + i), trf.iter.getTopValue());
       trf.iter.next();
     }
 
     for (int i = 2048; i < 4096; i++) {
-      assertTrue(trf.iter.hasTop());
-      assertEquals(newKey("r0001", "cf1", "cq1", "", 1), trf.iter.getTopKey());
-      assertEquals(newValue("" + i), trf.iter.getTopValue());
+      Assertions.assertTrue(trf.iter.hasTop());
+      Assertions.assertEquals(newKey("r0001", "cf1", "cq1", "", 1), trf.iter.getTopKey());
+      Assertions.assertEquals(newValue("" + i), trf.iter.getTopValue());
       trf.iter.next();
     }
 
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
     trf.closeReader();
   }
@@ -1487,7 +1499,7 @@ public class SequentialRFileTest {
     HashSet<ByteSequence> colFamsSeen = new HashSet<>();
 
     iter.seek(new Range(), cfs, true);
-    assertEquals(eialg, reader.getNumLocalityGroupsSeeked());
+    Assertions.assertEquals(eialg, reader.getNumLocalityGroupsSeeked());
 
     while (iter.hasTop()) {
       colFamsSeen.add(iter.getTopKey().getColumnFamilyData());
@@ -1496,10 +1508,10 @@ public class SequentialRFileTest {
 
     HashSet<ByteSequence> expected = new HashSet<>(allCf);
     expected.retainAll(cfs);
-    assertEquals(expected, colFamsSeen);
+    Assertions.assertEquals(expected, colFamsSeen);
 
     iter.seek(new Range(), cfs, false);
-    assertEquals(eealg, reader.getNumLocalityGroupsSeeked());
+    Assertions.assertEquals(eealg, reader.getNumLocalityGroupsSeeked());
 
     colFamsSeen.clear();
     while (iter.hasTop()) {
@@ -1509,7 +1521,7 @@ public class SequentialRFileTest {
 
     HashSet<ByteSequence> nonExcluded = new HashSet<>(allCf);
     nonExcluded.removeAll(cfs);
-    assertEquals(nonExcluded, colFamsSeen);
+    Assertions.assertEquals(nonExcluded, colFamsSeen);
   }
 
   @Test
@@ -1598,26 +1610,26 @@ public class SequentialRFileTest {
 
     trf.iter.seek(new Range(), EMPTY_COL_FAMS, false);
 
-    assertTrue(trf.iter.hasTop());
-    assertEquals(trf.iter.getTopKey(), newKey("0000", "cf1", "doe,john", "", 4));
-    assertEquals(newValue("1123 West Left st"), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(trf.iter.getTopKey(), newKey("0000", "cf1", "doe,john", "", 4));
+    Assertions.assertEquals(newValue("1123 West Left st"), trf.iter.getTopValue());
     trf.iter.next();
 
     DataInputStream in = trf.reader.getMetaStore("count");
 
-    assertEquals(2, in.readInt());
-    assertEquals("data1", in.readUTF());
-    assertEquals(1, in.readInt());
-    assertEquals("data2", in.readUTF());
-    assertEquals(1, in.readInt());
+    Assertions.assertEquals(2, in.readInt());
+    Assertions.assertEquals("data1", in.readUTF());
+    Assertions.assertEquals(1, in.readInt());
+    Assertions.assertEquals("data2", in.readUTF());
+    Assertions.assertEquals(1, in.readInt());
 
     in.close();
 
-    assertTrue(trf.iter.hasTop());
-    assertEquals(trf.iter.getTopKey(), newKey("0002", "cf2", "doe,jane", "", 5));
-    assertEquals(newValue("1124 East Right st"), trf.iter.getTopValue());
+    Assertions.assertTrue(trf.iter.hasTop());
+    Assertions.assertEquals(trf.iter.getTopKey(), newKey("0002", "cf2", "doe,jane", "", 5));
+    Assertions.assertEquals(newValue("1124 East Right st"), trf.iter.getTopValue());
     trf.iter.next();
-    assertFalse(trf.iter.hasTop());
+    Assertions.assertFalse(trf.iter.hasTop());
 
     trf.closeReader();
   }
@@ -1648,14 +1660,14 @@ public class SequentialRFileTest {
       int numToScan = random.nextInt(100);
 
       for (int j = 0; j < numToScan; j++) {
-        assertTrue(trf.reader.hasTop());
-        assertEquals(newKey(formatString("r_", start + j), "cf1", "cq1", "L1", 42),
+        Assertions.assertTrue(trf.reader.hasTop());
+        Assertions.assertEquals(newKey(formatString("r_", start + j), "cf1", "cq1", "L1", 42),
             trf.reader.getTopKey());
         trf.reader.next();
       }
 
-      assertTrue(trf.reader.hasTop());
-      assertEquals(newKey(formatString("r_", start + numToScan), "cf1", "cq1", "L1", 42),
+      Assertions.assertTrue(trf.reader.hasTop());
+      Assertions.assertEquals(newKey(formatString("r_", start + numToScan), "cf1", "cq1", "L1", 42),
           trf.reader.getTopKey());
 
       // seek a little forward from the last range and read a few keys within the unconsumed portion
@@ -1669,12 +1681,13 @@ public class SequentialRFileTest {
       trf.reader.seek(range, cfs, false);
 
       for (int j = start2; j <= end2; j++) {
-        assertTrue(trf.reader.hasTop());
-        assertEquals(newKey(formatString("r_", j), "cf1", "cq1", "L1", 42), trf.reader.getTopKey());
+        Assertions.assertTrue(trf.reader.hasTop());
+        Assertions.assertEquals(newKey(formatString("r_", j), "cf1", "cq1", "L1", 42),
+            trf.reader.getTopKey());
         trf.reader.next();
       }
 
-      assertFalse(trf.reader.hasTop());
+      Assertions.assertFalse(trf.reader.hasTop());
 
     }
 
@@ -1683,7 +1696,7 @@ public class SequentialRFileTest {
 
   @Test
   public void testMissingUnreleasedVersions() {
-    assertThrows(NullPointerException.class,
+    Assertions.assertThrows(NullPointerException.class,
         () -> runVersionTest(5, getAccumuloConfig(ConfigMode.CRYPTO_OFF)));
   }
 
@@ -1744,14 +1757,14 @@ public class SequentialRFileTest {
         }
 
         for (int i = start; i < 1000; i++) {
-          assertTrue(iter.hasTop());
-          assertEquals(newKey(formatString("r_", i), formatString("cf_", cf),
+          Assertions.assertTrue(iter.hasTop());
+          Assertions.assertEquals(newKey(formatString("r_", i), formatString("cf_", cf),
               formatString("cq_", 0), "", 1000 - i), iter.getTopKey());
-          assertEquals(newValue(i + ""), iter.getTopValue());
+          Assertions.assertEquals(newValue(i + ""), iter.getTopValue());
           iter.next();
         }
 
-        assertFalse(iter.hasTop());
+        Assertions.assertFalse(iter.hasTop());
       }
 
       if (start == 0) {
@@ -1762,15 +1775,15 @@ public class SequentialRFileTest {
 
       for (int i = start; i < 1000; i++) {
         for (int cf = 1; cf <= 4; cf++) {
-          assertTrue(iter.hasTop());
-          assertEquals(newKey(formatString("r_", i), formatString("cf_", cf),
+          Assertions.assertTrue(iter.hasTop());
+          Assertions.assertEquals(newKey(formatString("r_", i), formatString("cf_", cf),
               formatString("cq_", 0), "", 1000 - i), iter.getTopKey());
-          assertEquals(newValue(i + ""), iter.getTopValue());
+          Assertions.assertEquals(newValue(i + ""), iter.getTopValue());
           iter.next();
         }
       }
 
-      assertFalse(iter.hasTop());
+      Assertions.assertFalse(iter.hasTop());
     }
 
     manager.stop();
@@ -1986,7 +1999,7 @@ public class SequentialRFileTest {
       throws IOException {
 
     sample.seek(new Range(), columnFamilies, inclusive);
-    assertEquals(sampleData, toList(sample));
+    Assertions.assertEquals(sampleData, toList(sample));
 
     // randomly seek sample iterator and verify
     for (int i = 0; i < 33; i++) {
@@ -2020,7 +2033,7 @@ public class SequentialRFileTest {
 
       sample.seek(new Range(startKey, startInclusive, endKey, endInclusive), columnFamilies,
           inclusive);
-      assertEquals(sampleData.subList(startIndex, endIndex), toList(sample));
+      Assertions.assertEquals(sampleData.subList(startIndex, endIndex), toList(sample));
     }
   }
 
@@ -2066,7 +2079,7 @@ public class SequentialRFileTest {
 
         checkSample(sample, sampleData);
 
-        assertEquals(expectedDataHash, hash(trf.reader));
+        Assertions.assertEquals(expectedDataHash, hash(trf.reader));
 
         SampleIE ie = new SampleIE(
             SamplerConfigurationImpl.newSamplerConfig(sampleConf).toSamplerConfiguration());
@@ -2082,8 +2095,8 @@ public class SequentialRFileTest {
           SortedKeyValueIterator<Key,Value> allDC1 = sampleDC1.deepCopy(new SampleIE(null));
           SortedKeyValueIterator<Key,Value> allDC2 = sample.deepCopy(new SampleIE(null));
 
-          assertEquals(expectedDataHash, hash(allDC1));
-          assertEquals(expectedDataHash, hash(allDC2));
+          Assertions.assertEquals(expectedDataHash, hash(allDC1));
+          Assertions.assertEquals(expectedDataHash, hash(allDC2));
 
           checkSample(sample, sampleData);
           checkSample(sampleDC1, sampleData);
@@ -2174,8 +2187,8 @@ public class SequentialRFileTest {
 
         trf.closeWriter();
 
-        assertTrue(!sampleDataLG1.isEmpty());
-        assertTrue(!sampleDataLG2.isEmpty());
+        Assertions.assertTrue(!sampleDataLG1.isEmpty());
+        Assertions.assertTrue(!sampleDataLG2.isEmpty());
 
         trf.openReader(false);
         FileSKVIterator sample =
@@ -2247,7 +2260,7 @@ public class SequentialRFileTest {
     FileSKVIterator iiter = trf.reader.getIndex();
     while (iiter.hasTop()) {
       Key k = iiter.getTopKey();
-      assertTrue(k.getSize() < 20, k + " " + k.getSize() + " >= 20");
+      Assertions.assertTrue(k.getSize() < 20, k + " " + k.getSize() + " >= 20");
       iiter.next();
     }
 
@@ -2255,9 +2268,9 @@ public class SequentialRFileTest {
 
     for (Key key : keys) {
       trf.reader.seek(new Range(key, null), EMPTY_COL_FAMS, false);
-      assertTrue(trf.reader.hasTop());
-      assertEquals(key, trf.reader.getTopKey());
-      assertEquals(new Value(key.hashCode() + ""), trf.reader.getTopValue());
+      Assertions.assertTrue(trf.reader.hasTop());
+      Assertions.assertEquals(key, trf.reader.getTopKey());
+      Assertions.assertEquals(new Value(key.hashCode() + ""), trf.reader.getTopValue());
     }
   }
 
@@ -2277,7 +2290,7 @@ public class SequentialRFileTest {
     for (Property prop : Property.values()) {
       if (prop.isSensitive()) {
         byte[] toCheck = prop.getKey().getBytes();
-        assertEquals(-1, Bytes.indexOf(rfBytes, toCheck));
+        Assertions.assertEquals(-1, Bytes.indexOf(rfBytes, toCheck));
       }
     }
   }
@@ -2348,9 +2361,9 @@ public class SequentialRFileTest {
 
     testRfile.openReader();
     testRfile.iter.seek(new Range((Key) null, null), EMPTY_COL_FAMS, false);
-    assertTrue(testRfile.iter.hasTop());
+    Assertions.assertTrue(testRfile.iter.hasTop());
 
-    assertNotNull(testRfile.reader.getLastKey());
+    Assertions.assertNotNull(testRfile.reader.getLastKey());
 
     testRfile.closeReader();
 

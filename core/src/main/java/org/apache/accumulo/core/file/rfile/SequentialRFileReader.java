@@ -18,8 +18,6 @@
  */
 package org.apache.accumulo.core.file.rfile;
 
-import static org.apache.accumulo.core.file.rfile.RFile.*;
-
 import java.io.IOException;
 
 import org.apache.accumulo.core.file.blockfile.impl.CachableBlockFile;

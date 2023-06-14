@@ -62,16 +62,14 @@ public class RFileOperations extends FileOperations {
         .cryptoService(options.getCryptoService());
     if (options.getIteratorScope() != null
         && IteratorUtil.IteratorScope.scan == options.getIteratorScope()) {
-       var opt = options.getTableConfiguration().get(Property.TABLE_READER_SCAN);
-       if (null != opt){
-         if (opt.contains("SequentialRFileReader")){
-           return new SequentialRFileReader(cb);
-         }
-       }
+      var opt = options.getTableConfiguration().get(Property.TABLE_READER_SCAN);
+      if (null != opt) {
+        if (opt.contains("SequentialRFileReader")) {
+          return new SequentialRFileReader(cb);
+        }
+      }
     }
     return new RFileReader(cb);
-
-
 
   }
 

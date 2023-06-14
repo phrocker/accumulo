@@ -18,7 +18,10 @@
  */
 package org.apache.accumulo.core.file.rfile;
 
-import static org.apache.accumulo.core.file.rfile.RFile.*;
+import static org.apache.accumulo.core.file.rfile.RFile.RINDEX_VER_3;
+import static org.apache.accumulo.core.file.rfile.RFile.RINDEX_VER_4;
+import static org.apache.accumulo.core.file.rfile.RFile.RINDEX_VER_6;
+import static org.apache.accumulo.core.file.rfile.RFile.RINDEX_VER_7;
 
 import java.io.DataInput;
 import java.io.DataOutput;
