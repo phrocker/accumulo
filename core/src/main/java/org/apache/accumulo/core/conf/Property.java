@@ -1242,19 +1242,12 @@ public enum Property {
   @ReplacedBy(property = TABLE_CLASSLOADER_CONTEXT)
   TABLE_CLASSPATH("table.classpath.context", "", PropertyType.STRING, "Per table classpath context",
       "1.5.0"),
-  TABLE_READER_PREFIX("table.file.reader.", null, PropertyType.PREFIX,
-      "Properties in this category specify rfile iterators that are applied at"
-          + " various stages (scopes) of interaction with a table.",
-      "2.1.0"),
-  TABLE_READER_SCAN_PREFIX(TABLE_READER_PREFIX.getKey() + IteratorScope.scan.name() + ".", null,
-      PropertyType.PREFIX, "Convenience prefix to find options for the scan iterator scope",
-      "2.1.0"),
-  TABLE_READER_MINC_PREFIX(TABLE_READER_PREFIX.getKey() + IteratorScope.minc.name() + ".", null,
-      PropertyType.PREFIX, "Convenience prefix to find options for the minc iterator scope",
-      "2.1.0"),
-  TABLE_READER_MAJC_PREFIX(TABLE_READER_PREFIX.getKey() + IteratorScope.majc.name() + ".", null,
-      PropertyType.PREFIX, "Convenience prefix to find options for the majc iterator scope",
-      "2.1.0"),
+  TABLE_READER_SCAN("table.file.reader." + IteratorScope.scan.name(), null, PropertyType.CLASSNAME,
+      "Convenience prefix to find options for the scan iterator scope", "2.1.1"),
+  TABLE_READER_MINC("table.file.reader." + IteratorScope.minc.name(), null, PropertyType.CLASSNAME,
+      "Convenience prefix to find options for the minc iterator scope", "2.1.1"),
+  TABLE_READER_MAJC("table.file.reader." + IteratorScope.majc.name(), null, PropertyType.CLASSNAME,
+      "Convenience prefix to find options for the majc iterator scope", "2.1.1"),
   @Deprecated(since = "2.1.0")
   TABLE_REPLICATION("table.replication", "false", PropertyType.BOOLEAN,
       "Is replication enabled for the given table", "1.7.0"),
@@ -1804,7 +1797,8 @@ public enum Property {
             || key.startsWith(TABLE_COMPACTION_DISPATCHER_OPTS.getKey())
             || key.startsWith(TABLE_COMPACTION_CONFIGURER_OPTS.getKey())
             || key.startsWith(TABLE_COMPACTION_SELECTOR_OPTS.getKey()))
-        || key.startsWith(TABLE_CRYPTO_PREFIX.getKey()));
+        || key.equals(TABLE_READER_SCAN.getKey()) || key.equals(TABLE_READER_MAJC.getKey())
+        || key.equals(TABLE_READER_MINC.getKey()) || key.startsWith(TABLE_CRYPTO_PREFIX.getKey()));
   }
 
   public static final EnumSet<Property> fixedProperties = EnumSet.of(

@@ -31,6 +31,7 @@ import org.apache.accumulo.core.data.ByteSequence;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.file.blockfile.impl.CacheProvider;
 import org.apache.accumulo.core.file.rfile.RFile;
+import org.apache.accumulo.core.iterators.IteratorUtil;
 import org.apache.accumulo.core.spi.crypto.CryptoService;
 import org.apache.accumulo.core.util.ratelimit.RateLimiter;
 import org.apache.hadoop.conf.Configuration;
@@ -184,14 +185,17 @@ public abstract class FileOperations {
     public final Set<ByteSequence> columnFamilies;
     public final boolean inclusive;
     public final boolean dropCacheBehind;
+    private final IteratorUtil.IteratorScope iteratorScope;
 
     public FileOptions(AccumuloConfiguration tableConfiguration, String filename, FileSystem fs,
         Configuration fsConf, RateLimiter rateLimiter, String compression,
         FSDataOutputStream outputStream, boolean enableAccumuloStart, CacheProvider cacheProvider,
         Cache<String,Long> fileLenCache, boolean seekToBeginning, CryptoService cryptoService,
-        Range range, Set<ByteSequence> columnFamilies, boolean inclusive, boolean dropCacheBehind) {
+        Range range, Set<ByteSequence> columnFamilies, boolean inclusive, boolean dropCacheBehind,
+        IteratorUtil.IteratorScope iteratorScope) {
       this.tableConfiguration = tableConfiguration;
       this.filename = filename;
+      this.iteratorScope = iteratorScope;
       this.fs = fs;
       this.fsConf = fsConf;
       this.rateLimiter = rateLimiter;
@@ -267,12 +271,17 @@ public abstract class FileOperations {
     public boolean isRangeInclusive() {
       return inclusive;
     }
+
+    public IteratorUtil.IteratorScope getIteratorScope() {
+      return this.iteratorScope;
+    }
   }
 
   /**
    * Helper class extended by both writers and readers.
    */
   public static class FileHelper {
+    protected IteratorUtil.IteratorScope iteratorScope;
     private AccumuloConfiguration tableConfiguration;
     private String filename;
     private FileSystem fs;
@@ -320,27 +329,27 @@ public abstract class FileOperations {
         FSDataOutputStream outputStream, boolean startEnabled) {
       return new FileOptions(tableConfiguration, filename, fs, fsConf, rateLimiter, compression,
           outputStream, startEnabled, NULL_PROVIDER, null, false, cryptoService, null, null, true,
-          dropCacheBehind);
+          dropCacheBehind, this.iteratorScope);
     }
 
     protected FileOptions toReaderBuilderOptions(CacheProvider cacheProvider,
         Cache<String,Long> fileLenCache, boolean seekToBeginning) {
       return new FileOptions(tableConfiguration, filename, fs, fsConf, rateLimiter, null, null,
           false, cacheProvider == null ? NULL_PROVIDER : cacheProvider, fileLenCache,
-          seekToBeginning, cryptoService, null, null, true, dropCacheBehind);
+          seekToBeginning, cryptoService, null, null, true, dropCacheBehind, this.iteratorScope);
     }
 
     protected FileOptions toIndexReaderBuilderOptions(Cache<String,Long> fileLenCache) {
       return new FileOptions(tableConfiguration, filename, fs, fsConf, rateLimiter, null, null,
           false, NULL_PROVIDER, fileLenCache, false, cryptoService, null, null, true,
-          dropCacheBehind);
+          dropCacheBehind, this.iteratorScope);
     }
 
     protected FileOptions toScanReaderBuilderOptions(Range range, Set<ByteSequence> columnFamilies,
         boolean inclusive) {
       return new FileOptions(tableConfiguration, filename, fs, fsConf, rateLimiter, null, null,
           false, NULL_PROVIDER, null, false, cryptoService, range, columnFamilies, inclusive,
-          dropCacheBehind);
+          dropCacheBehind, this.iteratorScope);
     }
 
     protected AccumuloConfiguration getTableConfiguration() {
@@ -466,6 +475,11 @@ public abstract class FileOperations {
     /** Execute the operation, constructing the specified file reader. */
     public FileSKVIterator build() throws IOException {
       return openReader(toReaderBuilderOptions(cacheProvider, fileLenCache, seekToBeginning));
+    }
+
+    public ReaderBuilder withIteratorScope(IteratorUtil.IteratorScope iteratorScope) {
+      this.iteratorScope = iteratorScope;
+      return this;
     }
   }
 

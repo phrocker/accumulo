@@ -167,7 +167,7 @@ class ScanDataSource implements DataSource {
     }
 
     Collection<InterruptibleIterator> mapfiles =
-        fileManager.openFiles(files, scanParams.isIsolated(), samplerConfig);
+        fileManager.openFiles(files, scanParams.isIsolated(), samplerConfig, IteratorScope.scan);
 
     List.of(mapfiles, memIters).forEach(c -> c.forEach(ii -> ii.setInterruptFlag(interruptFlag)));
 

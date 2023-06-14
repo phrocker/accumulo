@@ -97,7 +97,7 @@ import com.google.common.primitives.Bytes;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 @SuppressFBWarnings(value = "PATH_TRAVERSAL_IN", justification = "paths not set by user input")
-public class SequentialFileTest {
+public class SequentialRFileTest {
 
   private static final SecureRandom random = new SecureRandom();
 
@@ -128,7 +128,7 @@ public class SequentialFileTest {
 
   @BeforeAll
   public static void setupCryptoKeyFile() throws Exception {
-    CryptoTest.setupKeyFiles(SequentialFileTest.class);
+    CryptoTest.setupKeyFiles(SequentialRFileTest.class);
   }
 
   static class SeekableByteArrayInputStream extends ByteArrayInputStream

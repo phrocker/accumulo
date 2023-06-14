@@ -34,6 +34,7 @@ import org.apache.accumulo.core.file.FileSKVIterator;
 import org.apache.accumulo.core.file.FileSKVWriter;
 import org.apache.accumulo.core.file.blockfile.impl.CachableBlockFile.CachableBuilder;
 import org.apache.accumulo.core.file.rfile.bcfile.BCFile;
+import org.apache.accumulo.core.iterators.IteratorUtil;
 import org.apache.accumulo.core.sample.impl.SamplerConfigurationImpl;
 import org.apache.accumulo.core.sample.impl.SamplerFactory;
 import org.apache.hadoop.conf.Configuration;
@@ -59,8 +60,13 @@ public class RFileOperations extends FileOperations {
         .conf(options.getConfiguration()).fileLen(options.getFileLenCache())
         .cacheProvider(options.cacheProvider).readLimiter(options.getRateLimiter())
         .cryptoService(options.getCryptoService());
-    // options.getTableConfiguration().get(Property.TABLE_READER_PREFIX)
-    return new RFileReader(cb);
+    if (options.getIteratorScope() != null
+        && IteratorUtil.IteratorScope.scan == options.getIteratorScope()) {
+      // options.getTableConfiguration().get(Property.TABLE_READER_PREFIX)
+      return new RFileReader(cb);
+    } else {
+      return new SequentialRFileReader(cb);
+    }
   }
 
   @Override
