@@ -67,10 +67,10 @@ public class RFileReader extends HeapIterator implements FileSKVIterator {
   protected final ArrayList<LocalityGroupMetadata> localityGroups = new ArrayList<>();
   protected final ArrayList<LocalityGroupMetadata> sampleGroups = new ArrayList<>();
 
-  protected final LocalityGroupReader[] currentReaders;
-  protected final LocalityGroupReader[] readers;
-  protected final LocalityGroupReader[] sampleReaders;
-  protected final LocalityGroupIterator.LocalityGroupContext lgContext;
+  protected BaseLocalityGroupReader<?>[] currentReaders;
+  protected BaseLocalityGroupReader<?>[] readers;
+  protected BaseLocalityGroupReader<?>[] sampleReaders;
+  protected LocalityGroupIterator.LocalityGroupContext lgContext;
   protected LocalityGroupIterator.LocalityGroupSeekCache lgCache;
 
   protected List<RFileReader> deepCopies;
@@ -83,8 +83,17 @@ public class RFileReader extends HeapIterator implements FileSKVIterator {
   protected int rfileVersion;
 
   public RFileReader(CachableBlockFile.Reader rdr) throws IOException {
-    this.reader = rdr;
+    this(rdr, true);
+  }
 
+  public RFileReader(CachableBlockFile.Reader rdr, boolean init) throws IOException {
+    this.reader = rdr;
+    if (init) {
+      init();
+    }
+  }
+
+  protected void init() throws IOException {
     try (CachableBlockFile.CachedBlockRead mb = reader.getMetaBlock("RFile.index")) {
       int magic = mb.readInt();
       int ver = mb.readInt();
@@ -99,12 +108,12 @@ public class RFileReader extends HeapIterator implements FileSKVIterator {
       }
 
       int size = mb.readInt();
-      currentReaders = new LocalityGroupReader[size];
+      currentReaders = createArray(size);
 
       deepCopies = new LinkedList<>();
 
       for (int i = 0; i < size; i++) {
-        LocalityGroupMetadata lgm = new LocalityGroupMetadata(ver, rdr);
+        LocalityGroupMetadata lgm = new LocalityGroupMetadata(ver, this.reader);
         lgm.readFields(mb);
         localityGroups.add(lgm);
 
@@ -114,10 +123,10 @@ public class RFileReader extends HeapIterator implements FileSKVIterator {
       readers = currentReaders;
 
       if (ver == RINDEX_VER_8 && mb.readBoolean()) {
-        sampleReaders = new LocalityGroupReader[size];
+        sampleReaders = createArray(size);
 
         for (int i = 0; i < size; i++) {
-          LocalityGroupMetadata lgm = new LocalityGroupMetadata(ver, rdr);
+          LocalityGroupMetadata lgm = new LocalityGroupMetadata(ver, this.reader);
           lgm.readFields(mb);
           sampleGroups.add(lgm);
 
@@ -137,7 +146,7 @@ public class RFileReader extends HeapIterator implements FileSKVIterator {
     createHeap(currentReaders.length);
   }
 
-  protected RFileReader(RFileReader r, LocalityGroupReader[] sampleReaders) {
+  protected RFileReader(RFileReader r, BaseLocalityGroupReader<?>[] sampleReaders) {
     super(sampleReaders.length);
     this.reader = r.reader;
     this.currentReaders = new LocalityGroupReader[sampleReaders.length];
@@ -157,7 +166,7 @@ public class RFileReader extends HeapIterator implements FileSKVIterator {
   protected RFileReader(RFileReader r, boolean useSample) {
     super(r.currentReaders.length);
     this.reader = r.reader;
-    this.currentReaders = new LocalityGroupReader[r.currentReaders.length];
+    this.currentReaders = createArray(r.currentReaders.length);
     this.deepCopies = r.deepCopies;
     this.deepCopy = true;
     this.samplerConfig = r.samplerConfig;
@@ -183,7 +192,7 @@ public class RFileReader extends HeapIterator implements FileSKVIterator {
   }
 
   protected void closeLocalityGroupReaders() {
-    for (LocalityGroupReader lgr : currentReaders) {
+    for (BaseLocalityGroupReader<?> lgr : currentReaders) {
       try {
         lgr.close();
       } catch (IOException e) {
@@ -215,7 +224,7 @@ public class RFileReader extends HeapIterator implements FileSKVIterator {
     closeLocalityGroupReaders();
 
     if (sampleReaders != null) {
-      for (LocalityGroupReader lgr : sampleReaders) {
+      for (BaseLocalityGroupReader<?> lgr : sampleReaders) {
         try {
           lgr.close();
         } catch (IOException e) {
@@ -233,7 +242,11 @@ public class RFileReader extends HeapIterator implements FileSKVIterator {
     }
   }
 
-  protected LocalityGroupReader getReaderInstance(CachableBlockFile.Reader reader,
+  protected BaseLocalityGroupReader<?>[] createArray(int size) {
+    return new LocalityGroupReader[size];
+  }
+
+  protected BaseLocalityGroupReader<?> getReaderInstance(CachableBlockFile.Reader reader,
       LocalityGroupMetadata metadata, int ver) {
     return new LocalityGroupReader(reader, metadata, ver);
   }
@@ -246,7 +259,7 @@ public class RFileReader extends HeapIterator implements FileSKVIterator {
 
     Key minKey = null;
 
-    for (LocalityGroupReader currentReader : currentReaders) {
+    for (BaseLocalityGroupReader<?> currentReader : currentReaders) {
       if (minKey == null) {
         minKey = currentReader.getFirstKey();
       } else {
@@ -268,7 +281,7 @@ public class RFileReader extends HeapIterator implements FileSKVIterator {
 
     Key maxKey = null;
 
-    for (LocalityGroupReader currentReader : currentReaders) {
+    for (BaseLocalityGroupReader<?> currentReader : currentReaders) {
       if (maxKey == null) {
         maxKey = currentReader.getLastKey();
       } else {
@@ -359,12 +372,12 @@ public class RFileReader extends HeapIterator implements FileSKVIterator {
    */
   public void registerMetrics(MetricsGatherer<?> vmg) {
     vmg.init(getLocalityGroupCF());
-    for (LocalityGroupReader lgr : currentReaders) {
+    for (BaseLocalityGroupReader<?> lgr : currentReaders) {
       lgr.registerMetrics(vmg);
     }
 
     if (sampleReaders != null) {
-      for (LocalityGroupReader lgr : sampleReaders) {
+      for (BaseLocalityGroupReader<?> lgr : sampleReaders) {
         lgr.registerMetrics(vmg);
       }
     }
@@ -385,7 +398,7 @@ public class RFileReader extends HeapIterator implements FileSKVIterator {
 
     ArrayList<Iterator<MultiLevelIndex.IndexEntry>> indexes = new ArrayList<>();
 
-    for (LocalityGroupReader lgr : currentReaders) {
+    for (BaseLocalityGroupReader<?> lgr : currentReaders) {
       indexes.add(lgr.getIndex());
     }
 
@@ -451,7 +464,7 @@ public class RFileReader extends HeapIterator implements FileSKVIterator {
 
   protected void setInterruptFlagInternal(AtomicBoolean flag) {
     this.interruptFlag = flag;
-    for (LocalityGroupReader lgr : currentReaders) {
+    for (BaseLocalityGroupReader<?> lgr : currentReaders) {
       lgr.setInterruptFlag(interruptFlag);
     }
   }

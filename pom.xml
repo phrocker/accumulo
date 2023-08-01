@@ -83,6 +83,7 @@
   <modules>
     <module>assemble</module>
     <module>core</module>
+    <module>datawave-rfile</module>
     <module>hadoop-mapreduce</module>
     <module>iterator-test-harness</module>
     <module>minicluster</module>

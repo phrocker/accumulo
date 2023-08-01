@@ -41,12 +41,12 @@ public class RelativeKey implements Writable {
   protected byte fieldsPrefixed;
 
   // Exact match compression options (first byte) and flag for further
-  protected static final byte ROW_SAME = BIT << 0;
-  protected static final byte CF_SAME = BIT << 1;
-  protected static final byte CQ_SAME = BIT << 2;
-  protected static final byte CV_SAME = BIT << 3;
-  protected static final byte TS_SAME = BIT << 4;
-  protected static final byte DELETED = BIT << 5;
+  static final byte ROW_SAME = BIT << 0;
+  static final byte CF_SAME = BIT << 1;
+  static final byte CQ_SAME = BIT << 2;
+  static final byte CV_SAME = BIT << 3;
+  static final byte TS_SAME = BIT << 4;
+  static final byte DELETED = BIT << 5;
   // protected static final byte UNUSED_1_6 = BIT << 6;
   protected static final byte PREFIX_COMPRESSION_ENABLED = (byte) (BIT << 7);
 
@@ -203,20 +203,8 @@ public class RelativeKey implements Writable {
     }
   }
 
-  public static class SkippR {
-    RelativeKey rk;
-    int skipped;
-    Key prevKey;
-
-    SkippR(RelativeKey rk, int skipped, Key prevKey) {
-      this.rk = rk;
-      this.skipped = skipped;
-      this.prevKey = prevKey;
-    }
-  }
-
-  public static SkippR fastSkip(DataInput in, Key seekKey, MutableByteSequence value, Key prevKey,
-      Key currKey, int entriesLeft) throws IOException {
+  public static SkippedRelativeKey<RelativeKey> fastSkip(DataInput in, Key seekKey,
+      MutableByteSequence value, Key prevKey, Key currKey, int entriesLeft) throws IOException {
     // this method mostly avoids object allocation and only does compares when the row changes
 
     MutableByteSequence row, cf, cq, cv;
@@ -254,20 +242,20 @@ public class RelativeKey implements Writable {
         if (rowCmp > 0) {
           RelativeKey rk = new RelativeKey();
           rk.key = rk.prevKey = new Key(currKey);
-          return new SkippR(rk, 0, prevKey);
+          return new SkippedRelativeKey(rk, 0, prevKey, null);
         }
 
         if (cfCmp >= 0) {
           if (cfCmp > 0) {
             RelativeKey rk = new RelativeKey();
             rk.key = rk.prevKey = new Key(currKey);
-            return new SkippR(rk, 0, prevKey);
+            return new SkippedRelativeKey(rk, 0, prevKey, null);
           }
 
           if (cqCmp >= 0) {
             RelativeKey rk = new RelativeKey();
             rk.key = rk.prevKey = new Key(currKey);
-            return new SkippR(rk, 0, prevKey);
+            return new SkippedRelativeKey(rk, 0, prevKey, null);
           }
         }
       }
@@ -429,7 +417,7 @@ public class RelativeKey implements Writable {
     result.key.setDeleted((fieldsSame & DELETED) != 0);
     result.prevKey = result.key;
 
-    return new SkippR(result, count, newPrevKey);
+    return new SkippedRelativeKey(result, count, newPrevKey, null);
   }
 
   protected static void read(DataInput in, MutableByteSequence mbseq) throws IOException {

@@ -20,39 +20,40 @@ package org.apache.accumulo.core.file.rfile;
 
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
+import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.file.blockfile.impl.CachableBlockFile;
+import org.apache.accumulo.core.file.rfile.readahead.BaseReadAhead;
+import org.apache.accumulo.core.file.rfile.readahead.BlockReadAhead;
+import org.apache.accumulo.core.file.rfile.readahead.BlockedRheadAhead;
+import org.apache.accumulo.core.file.rfile.readahead.MultiReadAhead;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ReadAheadLocalityGroupReader extends LocalityGroupReader {
 
-  static BlockReadAhead readAheadExecutor = new BlockReadAhead(25);
-  Future<BlockReadAhead.BlockedRheadAhead> readAhead;
+  BaseReadAhead blockreadAhead;
+  BlockedRheadAhead readAheadResult;
   private static final Logger log = LoggerFactory.getLogger(ReadAheadLocalityGroupReader.class);
   private double threshhold;
 
   public ReadAheadLocalityGroupReader(CachableBlockFile.Reader reader, LocalityGroupMetadata lgm,
       int version) {
     super(reader, lgm, version);
+    blockreadAhead =
+        new MultiReadAhead(new BlockReadAhead(10), (MultiLevelIndex.IndexEntry entry) -> {
+          try {
+            return super.getDataBlock(entry);
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        }, 3);
   }
 
-  Future<BlockReadAhead.BlockedRheadAhead>
-      initiateReadAhead(MultiLevelIndex.IndexEntry indexEntry) {
-    return readAheadExecutor.submitReadAheadRequest(() -> {
-      try {
-        BlockReadAhead.BlockedRheadAhead readAhead = new BlockReadAhead.BlockedRheadAhead();
-        readAhead.entriesLeft = indexEntry.getNumEntries();
-        readAhead.currBlock = super.getDataBlock(indexEntry);
-        readAhead.numEntries = indexEntry.getNumEntries();
-        readAhead.threshhold = (int) (Math.ceil(numEntries * .10));
-        readAhead.topKey = indexEntry.getKey();
-        return readAhead;
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    });
+  @Override
+  protected void _seek(Range range) throws IOException {
+    super._seek(range);
+    blockreadAhead.setIterator(iiter);
   }
 
   @Override
@@ -67,39 +68,22 @@ public class ReadAheadLocalityGroupReader extends LocalityGroupReader {
       if (metricsGatherer != null) {
         metricsGatherer.startBlock();
       }
-      if (readAhead != null) {
-        BlockReadAhead.BlockedRheadAhead readAheadResult = null;
+      if (blockreadAhead.hasNextRead()) {
         try {
-          readAheadResult = readAhead.get();
-        } catch (InterruptedException e) {
-          throw new RuntimeException(e);
+          readAheadResult = blockreadAhead.getNextBlock();
         } catch (ExecutionException e) {
+          throw new RuntimeException(e);
+        } catch (InterruptedException e) {
           throw new RuntimeException(e);
         }
         entriesLeft = readAheadResult.entriesLeft;
         currBlock = readAheadResult.currBlock;
         numEntries = readAheadResult.numEntries;
-        threshhold = readAheadResult.threshhold;
+        threshhold = readAheadResult.threshHold;
         checkRange = range.afterEndKey(readAheadResult.topKey);
-        readAhead = null;
-      } else if (iiter.hasNext()) {
-        MultiLevelIndex.IndexEntry indexEntry = iiter.next();
-        entriesLeft = indexEntry.getNumEntries();
-        currBlock = getDataBlock(indexEntry);
-        numEntries = indexEntry.getNumEntries();
-        // if we have arbitrarily small number of entries don't
-        // do the work
-        if (numEntries < 1000) {
-          threshhold = 0;
-        } else {
-          threshhold = numEntries * .10;
-        }
-
-        checkRange = range.afterEndKey(indexEntry.getKey());
         if (!checkRange) {
           hasTop = true;
         }
-
       } else {
         rk = null;
         val = null;
@@ -120,11 +104,59 @@ public class ReadAheadLocalityGroupReader extends LocalityGroupReader {
     if (checkRange) {
       hasTop = !range.afterEndKey(rk.getKey());
     }
-    if (hasTop && threshhold > 0 && entriesLeft <= threshhold) {
-      if (iiter.hasNext()) {
-        MultiLevelIndex.IndexEntry indexEntry = iiter.next();
-        readAhead = initiateReadAhead(indexEntry);
+  }
+
+  /**
+   * Filtered next
+   *
+   * @throws IOException
+   */
+  protected void _f_next() throws IOException {
+
+    if (!hasTop) {
+      throw new IllegalStateException();
+    }
+
+    if (entriesLeft == 0) {
+      currBlock.close();
+      if (metricsGatherer != null) {
+        metricsGatherer.startBlock();
       }
+      if (blockreadAhead.hasNextRead()) {
+        try {
+          readAheadResult = blockreadAhead.getNextBlock();
+        } catch (ExecutionException e) {
+          throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+          throw new RuntimeException(e);
+        }
+        entriesLeft = readAheadResult.entriesLeft;
+        currBlock = readAheadResult.currBlock;
+        numEntries = readAheadResult.numEntries;
+        threshhold = readAheadResult.threshHold;
+        checkRange = range.afterEndKey(readAheadResult.topKey);
+        if (!checkRange) {
+          hasTop = true;
+        }
+      } else {
+        rk = null;
+        val = null;
+        hasTop = false;
+        return;
+      }
+    }
+
+    prevKey = rk.getKey();
+    rk.readFields(currBlock);
+    val.readFields(currBlock);
+
+    if (metricsGatherer != null) {
+      metricsGatherer.addMetric(rk.getKey(), val);
+    }
+
+    entriesLeft--;
+    if (checkRange) {
+      hasTop = !range.afterEndKey(rk.getKey());
     }
   }
 }

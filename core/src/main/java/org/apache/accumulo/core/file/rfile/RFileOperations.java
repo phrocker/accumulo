@@ -65,7 +65,8 @@ public class RFileOperations extends FileOperations {
       var opt = options.getTableConfiguration().get(Property.TABLE_READER_SCAN);
       if (null != opt) {
         if (opt.contains("SequentialRFileReader")) {
-          return new SequentialRFileReader(cb);
+          throw new IllegalArgumentException("class can't be loaded");
+          // return new SequentialRFileReader(cb);
         }
       }
     }

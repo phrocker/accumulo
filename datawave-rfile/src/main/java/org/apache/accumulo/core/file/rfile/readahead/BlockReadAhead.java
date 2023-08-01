@@ -16,16 +16,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.accumulo.core.file.rfile;
+package org.apache.accumulo.core.file.rfile.readahead;
 
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
-
-import org.apache.accumulo.core.data.Key;
-import org.apache.accumulo.core.file.blockfile.impl.CachableBlockFile;
 
 /**
  * Supports read ahead on a block read.
@@ -35,7 +32,7 @@ public class BlockReadAhead {
   ThreadPoolExecutor executor;
 
   public BlockReadAhead(final int maxThreads) {
-    executor = new ThreadPoolExecutor(0, maxThreads, 0L, TimeUnit.MILLISECONDS,
+    executor = new ThreadPoolExecutor(maxThreads / 2, maxThreads, 60L, TimeUnit.SECONDS,
         new LinkedBlockingQueue<Runnable>());
   }
 
@@ -43,11 +40,7 @@ public class BlockReadAhead {
     return executor.submit(() -> onRun.get());
   }
 
-  public static final class BlockedRheadAhead {
-    public CachableBlockFile.CachedBlockRead currBlock;
-    public int entriesLeft;
-    public int numEntries;
-    public int threshhold;
-    public Key topKey;
+  public void drain() {
+    //executor.awa
   }
 }

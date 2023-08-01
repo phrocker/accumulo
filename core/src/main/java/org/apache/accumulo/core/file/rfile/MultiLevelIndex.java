@@ -275,8 +275,6 @@ public class MultiLevelIndex {
     private boolean newFormat;
 
     public IndexBlock(int level, int totalAdded) {
-      // System.out.println("IndexBlock("+level+","+levelCount+","+totalAdded+")");
-
       this.level = level;
       this.offset = totalAdded;
 
@@ -687,8 +685,23 @@ public class MultiLevelIndex {
 
       }
 
+      private Node peekNext() throws IOException {
+        if (currentPos == indexBlock.getIndex().size() - 1) {
+          return parent.peekNext();
+        }
+
+        IndexEntry ie = indexBlock.getIndex().get(currentPos + 1);
+        Node child = new Node(this, getIndexBlock(ie));
+        return child.getFirst();
+
+      }
+
       Node getNextNode() throws IOException {
         return parent.getNext();
+      }
+
+      Node peekNextNode() throws IOException {
+        return parent.peekNext();
       }
 
       Node getPreviousNode() throws IOException {
@@ -712,6 +725,14 @@ public class MultiLevelIndex {
       private Node getNextNode() {
         try {
           return node.getNextNode();
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+
+      private Node peekNextNode() {
+        try {
+          return node.peekNextNode();
         } catch (IOException e) {
           throw new RuntimeException(e);
         }

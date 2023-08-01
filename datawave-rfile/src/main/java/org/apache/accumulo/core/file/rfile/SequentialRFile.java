@@ -52,7 +52,6 @@ import org.apache.accumulo.core.file.blockfile.impl.CacheProvider;
 import org.apache.accumulo.core.file.rfile.BlockIndex.BlockIndexEntry;
 import org.apache.accumulo.core.file.rfile.MultiLevelIndex.IndexEntry;
 import org.apache.accumulo.core.file.rfile.MultiLevelIndex.Reader.IndexIterator;
-import org.apache.accumulo.core.file.rfile.RelativeKey.SkippR;
 import org.apache.accumulo.core.file.rfile.bcfile.BCFile;
 import org.apache.accumulo.core.file.rfile.bcfile.BCFile.Writer.BlockAppender;
 import org.apache.accumulo.core.iterators.IteratorEnvironment;
@@ -970,7 +969,7 @@ public class SequentialRFile {
           // and speed up others.
 
           MutableByteSequence valbs = new MutableByteSequence(new byte[64], 0, 0);
-          SkippR skippr =
+          SkippedRelativeKey skippr =
               RelativeKey.fastSkip(currBlock, startKey, valbs, prevKey, getTopKey(), entriesLeft);
           if (skippr.skipped > 0) {
             entriesLeft -= skippr.skipped;
@@ -1025,7 +1024,7 @@ public class SequentialRFile {
           IndexEntry indexEntry = iiter.next();
           entriesLeft = indexEntry.getNumEntries();
           currBlock = getDataBlock(indexEntry);
-
+          System.out.println("Got next blocvk * " + entriesLeft + " "  + indexEntry.getKey() + " " + System.identityHashCode(currBlock));
           checkRange = range.afterEndKey(indexEntry.getKey());
           if (!checkRange) {
             hasTop = true;
@@ -1058,7 +1057,7 @@ public class SequentialRFile {
             }
           }
 
-          SkippR skippr =
+          SkippedRelativeKey skippr =
               RelativeKey.fastSkip(currBlock, startKey, valbs, prevKey, currKey, entriesLeft);
           prevKey = skippr.prevKey;
           entriesLeft -= skippr.skipped;

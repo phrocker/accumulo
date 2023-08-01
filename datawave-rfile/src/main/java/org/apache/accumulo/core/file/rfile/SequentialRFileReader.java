@@ -21,8 +21,15 @@ package org.apache.accumulo.core.file.rfile;
 import java.io.IOException;
 
 import org.apache.accumulo.core.file.blockfile.impl.CachableBlockFile;
+import org.apache.accumulo.core.file.rfile.predicate.ColumnFamilyPredicate;
+import org.apache.accumulo.core.file.rfile.predicate.KeyPredicate;
+import org.apache.accumulo.core.file.rfile.predicate.RowPredicate;
 
 public class SequentialRFileReader extends RFileReader {
+
+  String auths = null;
+
+  KeyPredicate keyPredicate = null;
 
   public SequentialRFileReader(CachableBlockFile.Reader rdr) throws IOException {
     super(rdr);
@@ -40,10 +47,28 @@ public class SequentialRFileReader extends RFileReader {
     this(new CachableBlockFile.Reader(b));
   }
 
+  public SequentialRFileReader(CachableBlockFile.CachableBuilder cb, String auths, KeyPredicate keyPredicate)
+      throws IOException {
+    super(new CachableBlockFile.Reader(cb), false);
+    this.auths = auths;
+    this.keyPredicate=keyPredicate;
+    init();
+  }
+
+
+  void setAuths(String auths) {
+    this.auths = auths;
+  }
+
   @Override
-  protected LocalityGroupReader getReaderInstance(CachableBlockFile.Reader reader,
+  protected BaseLocalityGroupReader<?> getReaderInstance(CachableBlockFile.Reader reader,
       LocalityGroupMetadata metadata, int ver) {
-    return new ReadAheadLocalityGroupReader(reader, metadata, ver);
+    return new FilteredLocalityGroupReader(reader, metadata, ver, auths).withKeyPredicate(keyPredicate);
+  }
+
+  @Override
+  protected BaseLocalityGroupReader<?>[] createArray(int size) {
+    return new FilteredLocalityGroupReader[size];
   }
 
 }
