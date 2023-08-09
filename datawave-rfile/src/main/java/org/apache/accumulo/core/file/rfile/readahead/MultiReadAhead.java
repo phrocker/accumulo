@@ -25,6 +25,18 @@ public class MultiReadAhead extends BaseReadAhead {
     this.readAheadCount = readAheadCount;
   }
 
+
+  @Override
+  public BlockedRheadAhead peek() throws ExecutionException, InterruptedException {
+    var block = nextRead == null ? null : nextRead.get();
+    if (!readAheads.isEmpty() || iiter.hasNext()) {
+      if (!readAheads.isEmpty()) {
+        block = readAheads.peek().get();
+      }
+    }
+
+    return block;
+  }
   @Override
   public BlockedRheadAhead getNextBlock() throws ExecutionException, InterruptedException {
     var block = nextRead == null ? null : nextRead.get();

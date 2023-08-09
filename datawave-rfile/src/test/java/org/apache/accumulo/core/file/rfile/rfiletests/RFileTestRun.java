@@ -67,7 +67,7 @@ public abstract class RFileTestRun{
 
     public long consumeAllKeys(Range range, Writer outstream) throws IOException {
 
-     //   rfileTest.reader.seek(range,EMPTY_COL_FAMS, false);
+        //rfileTest.reader.seek(range,EMPTY_COL_FAMS, false);
         topIter.seek(range,EMPTY_COL_FAMS, false);
 
         while (topIter.hasTop()) {

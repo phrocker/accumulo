@@ -13,6 +13,10 @@ public class UniqueFieldPredicate extends KeyPredicate {
 
     protected static final byte BIT = 0x01;
 
+    boolean lastRowFiltered = false;
+    boolean lastRowCfFiltered = false;
+
+
 
     static final byte ROW_SAME = BIT << 0;
     static final byte CF_SAME = BIT << 1;
@@ -24,26 +28,42 @@ public class UniqueFieldPredicate extends KeyPredicate {
     public boolean accept(Key key, int fieldSame) {
         var rowIsSame = (fieldSame& ROW_SAME) == ROW_SAME;
         var cfIsSame = (fieldSame& CF_SAME) == CF_SAME;
-        return acceptColumn(key.getRowData().getBackingArray(),rowIsSame,key.getColumnFamilyData().getBackingArray(),cfIsSame);
+        return acceptColumn(key.getRowData().getBackingArray(),rowIsSame,key.getColumnFamilyData().getBackingArray(),cfIsSame, false);
     }
 
 
+
     @Override
-    public boolean acceptColumn(byte [] row,boolean rowIsSame,  byte [] cf, boolean cfIsSame){
+    public boolean acceptColumn(byte [] row,boolean rowIsSame,  byte [] cf, boolean cfIsSame, boolean set){
         // in this edition let's assume the row matches our terms
         if (rowIsSame && cfIsSame){
-            prevRow = row;
-            prevCf = cf;
+            if (set) {
+                prevRow = row;
+                prevCf = cf;
+            }
+            lastRowFiltered = true;
+            lastRowCfFiltered  = true;
             return false;
         }
         else {
             if (null != prevRow && null != prevCf){
+                //System.out.println("Comparing " + new String(row) + " to " + new String(prevRow));
+                //System.out.println("Comparing " + new String(cf) + " to " + new String(prevCf));
                 if (Arrays.equals(row, prevRow) && Arrays.equals(cf, prevCf)){
+                    lastRowFiltered = true;
+                    lastRowCfFiltered  = true;
                     return false;
                 }
             }
-            prevRow = row;
-            prevCf = cf;
+            else{
+                //System.out.println("Comparing " + new String(cf) + " to null");
+            }
+            if (set) {
+                prevRow = row;
+                prevCf = cf;
+            }
+            lastRowFiltered = false;
+            lastRowCfFiltered  = false;
             return true;
         }
     }
@@ -53,18 +73,41 @@ public class UniqueFieldPredicate extends KeyPredicate {
         // in this edition let's assume the row matches our terms
         if (isSame){
             prevRow = row;
+            lastRowFiltered = true;
             return false;
         }
         else {
             if (null != prevRow){
+                //System.out.println("Comparing " + new String(row) + " to " + new String(prevRow));
                 if (Arrays.equals(row,prevRow)){
+                    lastRowFiltered = true;
                     return false;
                 }
             }
+            else{
+                //System.out.println("Comparing " + new String(row) + " to null");
+            }
             prevRow = row;
+            lastRowFiltered = false;
             return true;
         }
     }
 
+
+    @Override
+    public boolean getLastKeyRowFiltered() {
+        return lastRowFiltered;
+    }
+
+    @Override
+    public boolean getLastRowCfFiltered() {
+        return lastRowCfFiltered;
+    }
+
+
+    @Override
+    public boolean endKeyComparison(){
+        return false;
+    }
 
 }

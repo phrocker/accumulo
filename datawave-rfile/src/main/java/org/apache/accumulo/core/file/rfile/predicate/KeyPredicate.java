@@ -17,10 +17,10 @@ public abstract class KeyPredicate {
     }
 
     public boolean acceptColumn(ByteSequence row, boolean rowIsSame, ByteSequence cf, boolean cfIsSame){
-        return acceptColumn(row.getBackingArray(),rowIsSame,cf.getBackingArray(),cfIsSame);
+        return acceptColumn(row.getBackingArray(),rowIsSame,cf.getBackingArray(),cfIsSame, true);
     }
 
-    public boolean acceptColumn(byte [] row,boolean rowIsSame, byte [] cf, boolean cfIsSame){
+    public boolean acceptColumn(byte [] row,boolean rowIsSame, byte [] cf, boolean cfIsSame, boolean set){
         return true;
     }
 
@@ -29,6 +29,14 @@ public abstract class KeyPredicate {
     }
 
     public boolean acceptRow(byte [] row, boolean isSame){
+        return true;
+    }
+
+    public abstract boolean getLastKeyRowFiltered();
+
+    public abstract boolean getLastRowCfFiltered();
+
+    public boolean endKeyComparison(){
         return true;
     }
 }

@@ -25,6 +25,11 @@ public abstract class BaseReadAhead implements ReadAheadRequestor {
   public abstract boolean hasNextRead();
 
   @Override
+  public BlockedRheadAhead peek() throws ExecutionException, InterruptedException {
+    return null;
+  }
+
+  @Override
   public void checkpoint(long entriesRemaining) {
 
   }

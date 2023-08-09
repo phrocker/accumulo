@@ -106,9 +106,12 @@ public class FilteredLocalityGroupReader extends BaseLocalityGroupReader<Pushdow
     if (!hasTop) {
       throw new IllegalStateException();
     }
+    int keysFiltered=0;
+    boolean isKeyFiltered = false;
     do {
 
       if (entriesLeft == 0) {
+        //System.out.println("Queueing another");
         currBlock.close();
         if (metricsGatherer != null) {
           metricsGatherer.startBlock();
@@ -132,6 +135,7 @@ public class FilteredLocalityGroupReader extends BaseLocalityGroupReader<Pushdow
           if (!checkRange) {
             hasTop = true;
           }
+          keysFiltered =0;
         } else {
           rk = null;
           val = null;
@@ -140,7 +144,8 @@ public class FilteredLocalityGroupReader extends BaseLocalityGroupReader<Pushdow
         }
       }
 
-      prevKey = rk.getKey();
+      if (null != rk.getKey())
+        prevKey = rk.getKey();
       rk.readFields(currBlock);
       val.readFields(currBlock);
 
@@ -149,23 +154,46 @@ public class FilteredLocalityGroupReader extends BaseLocalityGroupReader<Pushdow
       }
 
       entriesLeft--;
-      if (rk.isLastKeyFiltered()) {
-        // was it filtered b/c of the predicate?
-        if (null != readAheadResult && readAheadResult.nextBlockKey != null){
-          //System.out.println("checking...");
-          if (!keyPredicate.accept(readAheadResult.nextBlockKey,0)) {
-            System.out.println("yep");
-            // we can actually check the next block.
-            entriesLeft = 0;
-          }
-        }
-        continue;
-      }
-      if (checkRange) {
-        hasTop = !range.afterEndKey(rk.getKey());
+      //
+      isKeyFiltered = rk.isLastKeyFiltered();
+      if ( isKeyFiltered) {
+        if (++keysFiltered > 10) {
+          BlockedRheadAhead myreadAheadResult = readAheadResult;
+          if (null == myreadAheadResult){
 
+            try {
+              //System.out.println("Peeking");
+              myreadAheadResult = blockreadAhead.peek();
+            } catch (ExecutionException e) {
+              throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+              throw new RuntimeException(e);
+            }
+          }
+          //System.out.println("key is filtered " + (null != myreadAheadResult) + " " + ((null != myreadAheadResult) ?  (myreadAheadResult.nextBlockKey != null) : "false2"));
+          // was it filtered b/c of the predicate?
+          if (null != myreadAheadResult && myreadAheadResult.nextBlockKey != null) {
+            //System.out.println("checking... " + myreadAheadResult.nextBlockKey);
+            if (!keyPredicate.accept(myreadAheadResult.nextBlockKey, 0)) {
+              //System.out.println("yep");
+              // we can actually check the next block.
+              //entriesLeft = 0;
+            }
+          }
+          keysFiltered=0;
+        }
       }
-    } while ((rk.isLastKeyFiltered())  && hasTop);
+      else {
+        if (checkRange) {
+          hasTop = !range.afterEndKey(rk.getKey());
+
+        }
+      }
+
+    } while (isKeyFiltered  && hasTop);
+    if (null != rk.getKey()){
+      //System.out.println("got key " + rk.getKey());
+    }
   }
 
   public FilteredLocalityGroupReader withRowPredicate(RowPredicate predicate) {

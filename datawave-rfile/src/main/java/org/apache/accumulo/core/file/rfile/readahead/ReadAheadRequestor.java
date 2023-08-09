@@ -8,10 +8,12 @@ public interface ReadAheadRequestor {
 
   boolean hasNextRead();
 
+  BlockedRheadAhead peek() throws ExecutionException, InterruptedException;
   /**
    * Identifies that we've reached a checkpoint.
    */
   void checkpoint(long entriesRemaining);
 
   void reset();
+
 }
