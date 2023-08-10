@@ -229,7 +229,6 @@ public class MultiLevelIndex {
       }
     }
 
-
     @Override
     protected IndexEntry newValue() throws IOException {
       IndexEntry ie = new IndexEntry(newFormat);
@@ -691,7 +690,7 @@ public class MultiLevelIndex {
           return parent.peekNext();
         }
 
-        IndexEntry ie = indexBlock.getIndex().get(currentPos+1);
+        IndexEntry ie = indexBlock.getIndex().get(currentPos + 1);
         Node child = new Node(this, getIndexBlock(ie));
         return child.getFirst();
 
@@ -739,7 +738,6 @@ public class MultiLevelIndex {
         }
       }
 
-
       public IndexIterator() {
         node = null;
       }
@@ -784,8 +782,6 @@ public class MultiLevelIndex {
 
         return liter.next();
       }
-
-
 
       @Override
       public boolean hasPrevious() {

@@ -242,20 +242,20 @@ public class RelativeKey implements Writable {
         if (rowCmp > 0) {
           RelativeKey rk = new RelativeKey();
           rk.key = rk.prevKey = new Key(currKey);
-          return new SkippedRelativeKey(rk, 0, prevKey, null);
+          return new SkippedRelativeKey<>(rk, 0, prevKey, null);
         }
 
         if (cfCmp >= 0) {
           if (cfCmp > 0) {
             RelativeKey rk = new RelativeKey();
             rk.key = rk.prevKey = new Key(currKey);
-            return new SkippedRelativeKey(rk, 0, prevKey, null);
+            return new SkippedRelativeKey<>(rk, 0, prevKey, null);
           }
 
           if (cqCmp >= 0) {
             RelativeKey rk = new RelativeKey();
             rk.key = rk.prevKey = new Key(currKey);
-            return new SkippedRelativeKey(rk, 0, prevKey, null);
+            return new SkippedRelativeKey<>(rk, 0, prevKey, null);
           }
         }
       }
@@ -417,7 +417,7 @@ public class RelativeKey implements Writable {
     result.key.setDeleted((fieldsSame & DELETED) != 0);
     result.prevKey = result.key;
 
-    return new SkippedRelativeKey(result, count, newPrevKey, null);
+    return new SkippedRelativeKey<>(result, count, newPrevKey, null);
   }
 
   protected static void read(DataInput in, MutableByteSequence mbseq) throws IOException {

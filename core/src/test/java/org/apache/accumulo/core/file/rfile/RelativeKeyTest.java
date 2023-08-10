@@ -159,7 +159,7 @@ public class RelativeKeyTest {
     Key currKey = null;
     MutableByteSequence value = new MutableByteSequence(new byte[64], 0, 0);
 
-    SkippedRelativeKey skippr =
+    SkippedRelativeKey<RelativeKey> skippr =
         RelativeKey.fastSkip(in, seekKey, value, prevKey, currKey, expectedKeys.size());
     assertEquals(1, skippr.skipped);
     assertEquals(new Key(), skippr.prevKey);
@@ -202,7 +202,7 @@ public class RelativeKeyTest {
     Key currKey = null;
     MutableByteSequence value = new MutableByteSequence(new byte[64], 0, 0);
 
-    SkippedRelativeKey skippr =
+    SkippedRelativeKey<RelativeKey> skippr =
         RelativeKey.fastSkip(in, seekKey, value, prevKey, currKey, expectedKeys.size());
     assertEquals(expectedKeys.size(), skippr.skipped);
   }
@@ -215,7 +215,7 @@ public class RelativeKeyTest {
     Key currKey = null;
     MutableByteSequence value = new MutableByteSequence(new byte[64], 0, 0);
 
-    SkippedRelativeKey skippr =
+    SkippedRelativeKey<RelativeKey> skippr =
         RelativeKey.fastSkip(in, seekKey, value, prevKey, currKey, expectedKeys.size());
 
     assertEquals(seekIndex + 1, skippr.skipped);

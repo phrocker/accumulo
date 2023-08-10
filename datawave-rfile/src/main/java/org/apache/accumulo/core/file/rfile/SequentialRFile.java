@@ -969,7 +969,7 @@ public class SequentialRFile {
           // and speed up others.
 
           MutableByteSequence valbs = new MutableByteSequence(new byte[64], 0, 0);
-          SkippedRelativeKey skippr =
+          SkippedRelativeKey<RelativeKey> skippr =
               RelativeKey.fastSkip(currBlock, startKey, valbs, prevKey, getTopKey(), entriesLeft);
           if (skippr.skipped > 0) {
             entriesLeft -= skippr.skipped;
@@ -1024,7 +1024,8 @@ public class SequentialRFile {
           IndexEntry indexEntry = iiter.next();
           entriesLeft = indexEntry.getNumEntries();
           currBlock = getDataBlock(indexEntry);
-          System.out.println("Got next blocvk * " + entriesLeft + " "  + indexEntry.getKey() + " " + System.identityHashCode(currBlock));
+          System.out.println("Got next blocvk * " + entriesLeft + " " + indexEntry.getKey() + " "
+              + System.identityHashCode(currBlock));
           checkRange = range.afterEndKey(indexEntry.getKey());
           if (!checkRange) {
             hasTop = true;
@@ -1057,7 +1058,7 @@ public class SequentialRFile {
             }
           }
 
-          SkippedRelativeKey skippr =
+          SkippedRelativeKey<RelativeKey> skippr =
               RelativeKey.fastSkip(currBlock, startKey, valbs, prevKey, currKey, entriesLeft);
           prevKey = skippr.prevKey;
           entriesLeft -= skippr.skipped;

@@ -21,9 +21,7 @@ package org.apache.accumulo.core.file.rfile;
 import java.io.IOException;
 
 import org.apache.accumulo.core.file.blockfile.impl.CachableBlockFile;
-import org.apache.accumulo.core.file.rfile.predicate.ColumnFamilyPredicate;
 import org.apache.accumulo.core.file.rfile.predicate.KeyPredicate;
-import org.apache.accumulo.core.file.rfile.predicate.RowPredicate;
 
 public class SequentialRFileReader extends RFileReader {
 
@@ -47,14 +45,13 @@ public class SequentialRFileReader extends RFileReader {
     this(new CachableBlockFile.Reader(b));
   }
 
-  public SequentialRFileReader(CachableBlockFile.CachableBuilder cb, String auths, KeyPredicate keyPredicate)
-      throws IOException {
+  public SequentialRFileReader(CachableBlockFile.CachableBuilder cb, String auths,
+      KeyPredicate keyPredicate) throws IOException {
     super(new CachableBlockFile.Reader(cb), false);
     this.auths = auths;
-    this.keyPredicate=keyPredicate;
+    this.keyPredicate = keyPredicate;
     init();
   }
-
 
   void setAuths(String auths) {
     this.auths = auths;
@@ -63,7 +60,8 @@ public class SequentialRFileReader extends RFileReader {
   @Override
   protected BaseLocalityGroupReader<?> getReaderInstance(CachableBlockFile.Reader reader,
       LocalityGroupMetadata metadata, int ver) {
-    return new FilteredLocalityGroupReader(reader, metadata, ver, auths).withKeyPredicate(keyPredicate);
+    return new FilteredLocalityGroupReader(reader, metadata, ver, auths)
+        .withKeyPredicate(keyPredicate);
   }
 
   @Override

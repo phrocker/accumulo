@@ -46,20 +46,16 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import com.beust.jcommander.Parameter;
-import com.google.common.collect.Sets;
 import org.apache.accumulo.core.cli.ConfigOpts;
 import org.apache.accumulo.core.client.lexicoder.UIntegerLexicoder;
 import org.apache.accumulo.core.client.sample.SamplerConfiguration;
 import org.apache.accumulo.core.conf.AccumuloConfiguration;
-import org.apache.accumulo.core.crypto.CryptoTest;
 import org.apache.accumulo.core.data.ByteSequence;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.file.FileSKVIterator;
 import org.apache.accumulo.core.file.rfile.predicate.UniqueFieldPredicate;
-import org.apache.accumulo.core.file.rfile.predicate.UniqueRowPredicate;
 import org.apache.accumulo.core.file.rfile.rfiletests.TestNormalRFile;
 import org.apache.accumulo.core.file.rfile.rfiletests.TestRFile;
 import org.apache.accumulo.core.file.rfile.rfiletests.TestRuntime;
@@ -68,9 +64,6 @@ import org.apache.accumulo.core.file.rfile.rfiletests.keycreator.CreatorConfigur
 import org.apache.accumulo.core.file.rfile.rfiletests.keycreator.GlobalIndexStrategy;
 import org.apache.accumulo.core.file.rfile.rfiletests.keycreator.ShardIndexGenerator;
 import org.apache.accumulo.core.iterators.IteratorEnvironment;
-import org.apache.accumulo.core.iterators.SortedKeyValueIterator;
-import org.apache.accumulo.core.iteratorsImpl.system.VisibilityFilter;
-import org.apache.accumulo.core.security.Authorizations;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.PositionedReadable;
 import org.apache.hadoop.fs.Seekable;
@@ -79,9 +72,10 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import com.beust.jcommander.Parameter;
+import com.google.common.collect.Sets;
 
-@SuppressFBWarnings(value = "PATH_TRAVERSAL_IN", justification = "paths not set by user input")
+@SuppressWarnings({"unchecked", "deprecation", "static-method", "static"})
 public class RFileTester {
 
   private static final SecureRandom random = new SecureRandom();
@@ -113,7 +107,7 @@ public class RFileTester {
 
   @BeforeAll
   public static void setupCryptoKeyFile() throws Exception {
-    //CryptoTest.setupKeyFiles(RFileTester.class);
+    // CryptoTest.setupKeyFiles(RFileTester.class);
   }
 
   static class SeekableByteArrayInputStream extends ByteArrayInputStream
@@ -206,6 +200,7 @@ public class RFileTester {
       }
     }
   }
+
   static Key newKey(String row, String cf, String cq, String cv, long ts) {
     return new Key(row.getBytes(), cf.getBytes(), cq.getBytes(), cv.getBytes(), ts);
   }
@@ -276,7 +271,6 @@ public class RFileTester {
     }
   }
 
-
   @Test
   public void test2() throws IOException {
 
@@ -321,26 +315,30 @@ public class RFileTester {
      */
   }
 
-
   static ZoneId defaultZoneId = ZoneId.systemDefault();
 
-  static DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd", Locale.ENGLISH).withZone( ZoneId.systemDefault() );
-  public static byte [] shardToBitstream_v0(String shards, int shardsPerDay){
-    String date = shards.substring(0,shards.indexOf("_"));
-    String shard = shards.substring(shards.indexOf("_")+1);
+  static DateTimeFormatter formatter =
+      DateTimeFormatter.ofPattern("yyyyMMdd", Locale.ENGLISH).withZone(ZoneId.systemDefault());
+
+  public static byte[] shardToBitstream_v0(String shards, int shardsPerDay) {
+    String date = shards.substring(0, shards.indexOf("_"));
+    String shard = shards.substring(shards.indexOf("_") + 1);
     LocalDate dateTime = LocalDate.parse(date, formatter);
-    return shardToBitstream_v0(Date.from(dateTime.atStartOfDay(defaultZoneId).toInstant()),shard,shardsPerDay);
+    return shardToBitstream_v0(Date.from(dateTime.atStartOfDay(defaultZoneId).toInstant()), shard,
+        shardsPerDay);
   }
-  public static byte [] shardToBitstream_v0(Date date, String shardIdentifier, int shardsPerDay){
+
+  public static byte[] shardToBitstream_v0(Date date, String shardIdentifier, int shardsPerDay) {
     // 20160101_01 is 11*16 = 176 bits or 44 bytes.
     // we can condense this to 4 bytes
     // start date for this function is 20160101 or 0
-    Date baseDate = Date.from(LocalDate.parse("2016-01-01").atStartOfDay(defaultZoneId).toInstant());
-    long daysSince = ChronoUnit.DAYS.between(baseDate.toInstant(),date.toInstant());
-    //System.out.println(daysSince);
+    Date baseDate =
+        Date.from(LocalDate.parse("2016-01-01").atStartOfDay(defaultZoneId).toInstant());
+    long daysSince = ChronoUnit.DAYS.between(baseDate.toInstant(), date.toInstant());
+    // System.out.println(daysSince);
     var shardNumber = Integer.valueOf(shardIdentifier);
-    var shardsSince = shardsPerDay*daysSince;
-    int myDate = (int) ((int)daysSince + shardsSince + (shardNumber));
+    var shardsSince = shardsPerDay * daysSince;
+    int myDate = (int) ((int) daysSince + shardsSince + (shardNumber));
 
     System.out.println("got " + myDate + " " + new UIntegerLexicoder().encode(myDate).length);
     ByteBuffer bb = ByteBuffer.allocate(4);
@@ -348,54 +346,44 @@ public class RFileTester {
     return bb.array();
   }
 
-
   static class Opts extends ConfigOpts {
     @Parameter(names = {"-w", "--write"}, description = "write the rfiles")
     boolean writeFiles = false;
 
-    @Parameter(names = {"--numvalues"},
-            description = "Specify the number of values to produce")
+    @Parameter(names = {"--numvalues"}, description = "Specify the number of values to produce")
     int numValues = 5000;
 
     @Parameter(names = {"--numdocs"},
-            description = "Specify the number of unique doc ids to produce")
+        description = "Specify the number of unique doc ids to produce")
     int numDocs = 50000;
 
-    @Parameter(names = {"--auths"},
-            description = "AUTHS")
+    @Parameter(names = {"--auths"}, description = "AUTHS")
     String auths = "ABC";
 
-    @Parameter(names = {"--beginRow"},
-            description = "begin row")
+    @Parameter(names = {"--beginRow"}, description = "begin row")
     String beginRow = "catinthehat";
 
-    @Parameter(names = {"--endRow"},
-            description = "end row")
+    @Parameter(names = {"--endRow"}, description = "end row")
     String endRow = "catinthehat\uffff";
 
-    @Parameter(names = {"--shards"},
-            description = "number of shards per day")
+    @Parameter(names = {"--shards"}, description = "number of shards per day")
     int numberShardsPerDay = 5;
 
-    @Parameter(names = {"--days"},
-            description = "number of days")
+    @Parameter(names = {"--days"}, description = "number of days")
     int numberofDays = 5;
 
-    @Parameter(names = {"--start"},
-            description = "startDate in format YYYYMMdd")
+    @Parameter(names = {"--start"}, description = "startDate in format YYYYMMdd")
     String startDate = "20190606";
 
-    @Parameter(names = {"--runs"},
-            description = "number of query runs")
+    @Parameter(names = {"--runs"}, description = "number of query runs")
     int numberRuns = 1;
 
-    @Parameter(names = {"--exclude"},
-            description = "Exclude top N")
+    @Parameter(names = {"--exclude"}, description = "Exclude top N")
     int exclusions = 0;
 
-  };
+  }
 
-  RFileTester(){
+  RFileTester() {
 
   }
 
@@ -408,16 +396,17 @@ public class RFileTester {
     return new PrintWriter(fos);
   }
 
-  void runWith(Set<String> filenames, Range range, String auth, int numberRuns, int exclusions) throws IOException {
+  void runWith(Set<String> filenames, Range range, String auth, int numberRuns, int exclusions)
+      throws IOException {
 
     SortedSet<TestRuntime> runs = new TreeSet<>();
 
     filenames.forEach(System.out::println);
-    for(String filename : filenames){
+    for (String filename : filenames) {
       try {
         System.out.println("Running test against " + filename);
         var stringwriter = getWriter(filename, "normal");
-        stringwriter.write("Running test against " + filename+ "\n");
+        stringwriter.write("Running test against " + filename + "\n");
         TestRFile tester = new TestRFile(null);
         Set<String> auths = new HashSet<>();
         auths.add(auth);
@@ -426,17 +415,17 @@ public class RFileTester {
         runner.configurebaseLayer();
         // configure any iterators to test
         runner.configureIterators();
-        long lastCount=0;
+        long lastCount = 0;
         runner.setStartTime();
-        for(int i=0; i< numberRuns; i++) {
+        for (int i = 0; i < numberRuns; i++) {
           runner.resetKeysCounted();
           var myLastCount = runner.consumeAllKeys(range, stringwriter);
-          if (lastCount > 0 ){
-            if ( myLastCount != lastCount){
+          if (lastCount > 0) {
+            if (myLastCount != lastCount) {
               throw new Exception("Invalid counts");
             }
           }
-          lastCount=myLastCount;
+          lastCount = myLastCount;
         }
         runner.setEndTime();
         runner.close();
@@ -444,17 +433,18 @@ public class RFileTester {
         runs.add(desc);
 
         System.out.println("Completed" + desc);
-        stringwriter.write("Completed" + desc+ "\n");
+        stringwriter.write("Completed" + desc + "\n");
         stringwriter.close();
-      }catch(Exception e){
-        e.printStackTrace();;
+      } catch (Exception e) {
+        e.printStackTrace();
+        ;
       }
 
     }
 
     System.out.println("********************************");
     boolean checkCount = false;
-    for(String filename : filenames){
+    for (String filename : filenames) {
       try {
         System.out.println("Running test against " + filename);
         var stringwriter = getWriter(filename, "sequential");
@@ -462,28 +452,30 @@ public class RFileTester {
         Set<String> auths = new HashSet<>();
         auths.add("ABC");
         TestRFile tester = new TestRFile(null);
-        //var runner = TestSequentialRFile.Builder.newBuilder(tester, filename).build();
-        var runnerbld = TestSequentialRFile.Builder.newBuilder(tester, filename).withAuths(auths).withKeyPredicate(new UniqueFieldPredicate());
-        //var runnerbld = TestSequentialRFile.Builder.newBuilder(tester, filename).withAuths(auths);
+        // var runner = TestSequentialRFile.Builder.newBuilder(tester, filename).build();
+        var runnerbld = TestSequentialRFile.Builder.newBuilder(tester, filename).withAuths(auths)
+            .withKeyPredicate(new UniqueFieldPredicate());
+        // var runnerbld = TestSequentialRFile.Builder.newBuilder(tester,
+        // filename).withAuths(auths);
         var runner = runnerbld.build();
         // configure the reader
         runner.configurebaseLayer();
         // configure any iterators to test
         runner.configureIterators();
 
-        long lastCount=0;
+        long lastCount = 0;
         runner.setStartTime();
-        for(int i=0; i< numberRuns; i++) {
+        for (int i = 0; i < numberRuns; i++) {
           stringwriter.println("***** Run  " + i + " ***** ");
           runner.resetKeysCounted();
 
           var myLastCount = runner.consumeAllKeys(range, stringwriter);
-          if (lastCount > 0 ){
-            if ( checkCount && (myLastCount != lastCount)){
+          if (lastCount > 0) {
+            if (checkCount && (myLastCount != lastCount)) {
               throw new Exception("Invalid counts " + myLastCount + " " + lastCount);
             }
           }
-          lastCount=myLastCount;
+          lastCount = myLastCount;
         }
         runner.setEndTime();
 
@@ -493,20 +485,19 @@ public class RFileTester {
         runs.add(desc);
 
         System.out.println("Completed" + desc);
-        stringwriter.write("Completed" + desc+ "\n");
+        stringwriter.write("Completed" + desc + "\n");
         stringwriter.close();
-      }catch(Exception e){
+      } catch (Exception e) {
 
         e.printStackTrace();
       }
-
 
     }
 
     System.out.println("******************************");
     System.out.println("With range " + range);
     System.out.println("******************************");
-    for(var run : runs){
+    for (var run : runs) {
       System.out.println(run.toString());
     }
 
@@ -518,34 +509,34 @@ public class RFileTester {
     SortedSet<File> files = new TreeSet<>(new Comparator<File>() {
       @Override
       public int compare(File file, File t1) {
-        return Long.compare(file.length(),t1.length());
+        return Long.compare(file.length(), t1.length());
       }
     });
 
     filenames.stream().map(x -> new File(x)).forEach(files::add);
 
-    files.forEach(file -> System.out.println(file.getName() + " (" + file.length() + ")" ));
+    files.forEach(file -> System.out.println(file.getName() + " (" + file.length() + ")"));
 
   }
 
-  void execute(String [] args) throws IOException, InterruptedException {
+  void execute(String[] args) throws IOException, InterruptedException {
     Opts opts = new Opts();
     opts.parseArgs("RFileTester", args);
 
-
-//    int multipliers [] = {128, 256, 512, 1024, 128*1024 };
-    int multipliers [] = {128};
-    int fieldValues=opts.numValues;
+    // int multipliers [] = {128, 256, 512, 1024, 128*1024 };
+    int multipliers[] = {128};
+    int fieldValues = opts.numValues;
     final Set<String> filenames = new ConcurrentSkipListSet<>();
 
     HashSet<String> dataTypes = Sets.newHashSet("csv", "json");
     HashSet<String> fieldNames = Sets.newHashSet("source", "destination", "animal");
     HashSet<String> unindexedFields = Sets.newHashSet("other");
 
-    CreatorConfiguration config = new CreatorConfiguration(dataTypes,fieldNames, opts.numberShardsPerDay);
+    CreatorConfiguration config =
+        new CreatorConfiguration(dataTypes, fieldNames, opts.numberShardsPerDay);
     if (opts.writeFiles) {
       LocalDate dateTime = LocalDate.parse(opts.startDate, formatter);
-      for (int i =0; i < opts.numberofDays; i++){
+      for (int i = 0; i < opts.numberofDays; i++) {
 
         var shard = formatter.format(dateTime.atStartOfDay(defaultZoneId).toInstant());
         config.addShard(shard);
@@ -566,11 +557,12 @@ public class RFileTester {
     }
 
     ExecutorService executor = Executors.newFixedThreadPool(32);
-    for(GlobalIndexStrategy.STRATEGY strat : GlobalIndexStrategy.STRATEGY.values()){
+    for (GlobalIndexStrategy.STRATEGY strat : GlobalIndexStrategy.STRATEGY.values()) {
       String name = strat.name().toLowerCase();
-      for(int multiplier : multipliers) {
+      for (int multiplier : multipliers) {
 
-        String fileName = "/mnt/ExtraDrive/data/rfiles/work/shard_index_" + name + "_" + multiplier + "_" + fieldValues + "-fv.rf";
+        String fileName = "/mnt/ExtraDrive/data/rfiles/work/shard_index_" + name + "_" + multiplier
+            + "_" + fieldValues + "-fv.rf";
 
         if (opts.writeFiles) {
 
@@ -578,10 +570,11 @@ public class RFileTester {
             try {
               TestRFile trf = new TestRFile(null);
               Key key = null;
-              try (FileOutputStream fileStream =
-                           new FileOutputStream(fileName)) {
+              try (FileOutputStream fileStream = new FileOutputStream(fileName)) {
 
-                ShardIndexGenerator generator = new ShardIndexGenerator(config, trf.getAccumuloConfiguration(), fileStream, dataTypes, fieldNames, opts.numberShardsPerDay);
+                ShardIndexGenerator generator =
+                    new ShardIndexGenerator(config, trf.getAccumuloConfiguration(), fileStream,
+                        dataTypes, fieldNames, opts.numberShardsPerDay);
 
                 generator.init(multiplier * 1024, true);
                 boolean shouldAdd = true;
@@ -595,13 +588,13 @@ public class RFileTester {
                 }
                 System.out.println("******************************");
               }
-            }catch(Throwable te){
+            } catch (Throwable te) {
               te.printStackTrace();
               throw te;
             }
             return null;
           });
-        }else{
+        } else {
           System.out.println("Adding filename " + fileName);
           filenames.add(fileName);
         }
@@ -609,27 +602,26 @@ public class RFileTester {
     }
 
     executor.shutdown();
-    while(executor.awaitTermination(60, TimeUnit.MINUTES)){
-      if (executor.isShutdown() || executor.isTerminated()){
+    while (executor.awaitTermination(60, TimeUnit.MINUTES)) {
+      if (executor.isShutdown() || executor.isTerminated()) {
         break;
       }
       System.out.println("Still waiting...");
     }
 
-
-
-    HashSet resultingFileNames = new HashSet<>(filenames.stream().filter(fn -> {
+    HashSet<String> resultingFileNames = new HashSet<>(filenames.stream().filter(fn -> {
       return new File(fn).exists();
     }).collect(Collectors.toSet()));
 
-    //runWith(filenames, new Range());
+    // runWith(filenames, new Range());
     Key startKey = new Key(opts.beginRow);
     Key endKey = new Key(opts.endRow);
-    runWith(resultingFileNames, new Range(startKey,true,endKey,true),opts.auths, opts.numberRuns, opts.exclusions);
-    //runWith(filenames, new Range());
+    runWith(resultingFileNames, new Range(startKey, true, endKey, true), opts.auths,
+        opts.numberRuns, opts.exclusions);
+    // runWith(filenames, new Range());
   }
 
-  public static void main(String [] args) throws IOException, InterruptedException {
+  public static void main(String[] args) throws IOException, InterruptedException {
 
     RFileTester tester = new RFileTester();
 
@@ -639,16 +631,14 @@ public class RFileTester {
     System.exit(1);
   }
 
-
-  public static final class RFileTestRun{
+  public static final class RFileTestRun {
 
     long startTime = System.currentTimeMillis();
     long endTime = System.currentTimeMillis();
 
-    long getRuntime(){
+    long getRuntime() {
       return endTime - startTime;
     }
-
 
   }
 

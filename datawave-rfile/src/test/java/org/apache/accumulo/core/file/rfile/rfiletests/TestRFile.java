@@ -1,4 +1,30 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.accumulo.core.file.rfile.rfiletests;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import org.apache.accumulo.core.client.sample.Sampler;
 import org.apache.accumulo.core.conf.AccumuloConfiguration;
@@ -37,262 +63,256 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PositionedReadable;
 import org.apache.hadoop.fs.Seekable;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.Collection;
-
 public class TestRFile {
 
-    private static final SecureRandom random = new SecureRandom();
+  private static final SecureRandom random = new SecureRandom();
 
-    private static final Collection<ByteSequence> EMPTY_COL_FAMS = new ArrayList<>();
-    private static final Configuration hadoopConf = new Configuration();
+  private static final Collection<ByteSequence> EMPTY_COL_FAMS = new ArrayList<>();
+  private static final Configuration hadoopConf = new Configuration();
 
-    protected Configuration conf = new Configuration();
-    public RFile.Writer writer;
-    protected FSDataOutputStream dos;
-    protected SeekableByteArrayInputStream bais;
-    protected FSDataInputStream in;
-    protected AccumuloConfiguration accumuloConfiguration;
-    public RFileReader reader;
-    public SortedKeyValueIterator<Key, Value> iter;
-    private BlockCacheManager manager;
+  protected Configuration conf = new Configuration();
+  public RFile.Writer writer;
+  protected FSDataOutputStream dos;
+  protected SeekableByteArrayInputStream bais;
+  protected FSDataInputStream in;
+  protected AccumuloConfiguration accumuloConfiguration;
+  public RFileReader reader;
+  public SortedKeyValueIterator<Key,Value> iter;
+  private BlockCacheManager manager;
 
-    public TestRFile(AccumuloConfiguration accumuloConfiguration) {
-        this.accumuloConfiguration = accumuloConfiguration;
-        if (this.accumuloConfiguration == null) {
-            this.accumuloConfiguration = DefaultConfiguration.getInstance();
-        }
+  public TestRFile(AccumuloConfiguration accumuloConfiguration) {
+    this.accumuloConfiguration = accumuloConfiguration;
+    if (this.accumuloConfiguration == null) {
+      this.accumuloConfiguration = DefaultConfiguration.getInstance();
+    }
+  }
+
+  public AccumuloConfiguration getAccumuloConfiguration() {
+    return this.accumuloConfiguration;
+  }
+
+  public void openWriter(FileOutputStream fos, boolean startDLG) throws IOException {
+    openWriter(fos, startDLG, 1000);
+  }
+
+  public void openWriter(FileOutputStream fos, boolean startDLG, int blockSize) throws IOException {
+    dos = new FSDataOutputStream(fos, new FileSystem.Statistics("a"));
+    CryptoService cs = CryptoFactoryLoader.getServiceForClient(CryptoEnvironment.Scope.TABLE,
+        accumuloConfiguration.getAllCryptoProperties());
+
+    BCFile.Writer _cbw = new BCFile.Writer(dos, null, "gz", conf, cs);
+
+    SamplerConfigurationImpl samplerConfig =
+        SamplerConfigurationImpl.newSamplerConfig(accumuloConfiguration);
+    Sampler sampler = null;
+
+    if (samplerConfig != null) {
+      // sampler = SamplerFactory.newSampler(samplerConfig, accumuloConfiguration);
     }
 
-    public AccumuloConfiguration getAccumuloConfiguration(){
-        return this.accumuloConfiguration;
+    writer = new RFile.Writer(_cbw, blockSize, 128 * 1024, samplerConfig, sampler);
+
+    if (startDLG) {
+      writer.startDefaultLocalityGroup();
+    }
+  }
+
+  public void openWriter(FileOutputStream fos) throws IOException {
+    openWriter(fos, 100000);
+  }
+
+  public void openWriter(FileOutputStream fos, int blockSize) throws IOException {
+    openWriter(fos, true, blockSize);
+  }
+
+  public void closeWriter() throws IOException {
+    dos.flush();
+    writer.close();
+    dos.close();
+  }
+
+  public void openSequentialReader(File file, long fileLength, boolean cfsi, String auths,
+      KeyPredicate keyPredicate) throws IOException {
+    Path pt = new Path(file.getAbsolutePath());
+    FileSystem fs = FileSystem.get(new Configuration());
+    in = fs.open(pt);
+
+    DefaultConfiguration dc = DefaultConfiguration.getInstance();
+    ConfigurationCopy cc = new ConfigurationCopy(dc);
+    cc.set(Property.TSERV_CACHE_MANAGER_IMPL, LruBlockCacheManager.class.getName());
+    try {
+      manager = BlockCacheManagerFactory.getInstance(cc);
+    } catch (Exception e) {
+      throw new RuntimeException("Error creating BlockCacheManager", e);
+    }
+    cc.set(Property.TSERV_DEFAULT_BLOCKSIZE, Long.toString(1 * 1024 * 1024));
+    cc.set(Property.TSERV_DATACACHE_SIZE, Long.toString(100000000));
+    cc.set(Property.TSERV_INDEXCACHE_SIZE, Long.toString(100000000));
+    manager.start(BlockCacheConfiguration.forTabletServer(cc));
+    LruBlockCache indexCache = (LruBlockCache) manager.getBlockCache(CacheType.INDEX);
+    LruBlockCache dataCache = (LruBlockCache) manager.getBlockCache(CacheType.DATA);
+
+    CryptoService cs = CryptoFactoryLoader.getServiceForClient(CryptoEnvironment.Scope.TABLE,
+        accumuloConfiguration.getAllCryptoProperties());
+
+    CachableBlockFile.CachableBuilder cb =
+        new CachableBlockFile.CachableBuilder().input(in, "source-1").length(fileLength).conf(conf)
+            .cacheProvider(new BasicCacheProvider(indexCache, dataCache)).cryptoService(cs);
+    reader = new SequentialRFileReader(cb, auths, keyPredicate);
+    if (cfsi) {
+      iter = new ColumnFamilySkippingIterator(reader);
     }
 
-    public void openWriter(FileOutputStream fos, boolean startDLG) throws IOException {
-        openWriter(fos, startDLG, 1000);
+    // checkIndex(reader);
+  }
+
+  public void openNormalReader(File file, long fileLength, boolean cfsi) throws IOException {
+
+    Path pt = new Path(file.getAbsolutePath());
+    FileSystem fs = FileSystem.get(new Configuration());
+    in = fs.open(pt);
+
+    DefaultConfiguration dc = DefaultConfiguration.getInstance();
+    ConfigurationCopy cc = new ConfigurationCopy(dc);
+    cc.set(Property.TSERV_CACHE_MANAGER_IMPL, LruBlockCacheManager.class.getName());
+    try {
+      manager = BlockCacheManagerFactory.getInstance(cc);
+    } catch (Exception e) {
+      throw new RuntimeException("Error creating BlockCacheManager", e);
+    }
+    cc.set(Property.TSERV_DEFAULT_BLOCKSIZE, Long.toString(1 * 1024 * 1024));
+    cc.set(Property.TSERV_DATACACHE_SIZE, Long.toString(100000000));
+    cc.set(Property.TSERV_INDEXCACHE_SIZE, Long.toString(100000000));
+    manager.start(BlockCacheConfiguration.forTabletServer(cc));
+    LruBlockCache indexCache = (LruBlockCache) manager.getBlockCache(CacheType.INDEX);
+    LruBlockCache dataCache = (LruBlockCache) manager.getBlockCache(CacheType.DATA);
+
+    CryptoService cs = CryptoFactoryLoader.getServiceForClient(CryptoEnvironment.Scope.TABLE,
+        accumuloConfiguration.getAllCryptoProperties());
+
+    CachableBlockFile.CachableBuilder cb =
+        new CachableBlockFile.CachableBuilder().input(in, "source-1").length(fileLength).conf(conf)
+            .cacheProvider(new BasicCacheProvider(indexCache, dataCache)).cryptoService(cs);
+    reader = new RFileReader(cb);
+    if (cfsi) {
+      iter = new ColumnFamilySkippingIterator(reader);
     }
 
-    public void openWriter(FileOutputStream fos, boolean startDLG, int blockSize)
-            throws IOException {
-        dos = new FSDataOutputStream(fos, new FileSystem.Statistics("a"));
-        CryptoService cs = CryptoFactoryLoader.getServiceForClient(CryptoEnvironment.Scope.TABLE,
-                accumuloConfiguration.getAllCryptoProperties());
+    // checkIndex(reader);
+  }
 
-        BCFile.Writer _cbw = new BCFile.Writer(dos, null, "gz", conf, cs);
+  public void closeReader() throws IOException {
+    reader.close();
+    in.close();
+    if (null != manager) {
+      manager.stop();
+    }
+  }
 
-        SamplerConfigurationImpl samplerConfig =
-                SamplerConfigurationImpl.newSamplerConfig(accumuloConfiguration);
-        Sampler sampler = null;
+  public void seek(Key nk) throws IOException {
+    iter.seek(new Range(nk, null), EMPTY_COL_FAMS, false);
+  }
 
-        if (samplerConfig != null) {
-            // sampler = SamplerFactory.newSampler(samplerConfig, accumuloConfiguration);
+  public void append(Key key, Value value) throws IOException {
+    writer.append(key, value);
+  }
+
+  private static void checkIndex(RFileReader reader) throws IOException {
+    FileSKVIterator indexIter = reader.getIndex();
+
+    if (indexIter.hasTop()) {
+      Key lastKey = new Key(indexIter.getTopKey());
+
+      if (reader.getFirstKey().compareTo(lastKey) > 0) {
+        throw new RuntimeException(
+            "First key out of order " + reader.getFirstKey() + " " + lastKey);
+      }
+
+      indexIter.next();
+
+      while (indexIter.hasTop()) {
+        if (lastKey.compareTo(indexIter.getTopKey()) > 0) {
+          throw new RuntimeException(
+              "Indext out of order " + lastKey + " " + indexIter.getTopKey());
         }
 
-        writer = new RFile.Writer(_cbw, blockSize, 128 * 1024, samplerConfig, sampler);
+        lastKey = new Key(indexIter.getTopKey());
+        indexIter.next();
 
-        if (startDLG) {
-            writer.startDefaultLocalityGroup();
-        }
+      }
+
+      if (!reader.getLastKey().equals(lastKey)) {
+        throw new RuntimeException("Last key out of order " + reader.getLastKey() + " " + lastKey);
+      }
+    }
+  }
+
+  /**
+   *
+   *
+   * CLASSES
+   *
+   *
+   */
+
+  static class SeekableByteArrayInputStream extends ByteArrayInputStream
+      implements Seekable, PositionedReadable {
+
+    public SeekableByteArrayInputStream(byte[] buf) {
+      super(buf);
     }
 
-    public void openWriter(FileOutputStream fos) throws IOException {
-        openWriter(fos, 100000);
+    @Override
+    public long getPos() {
+      return pos;
     }
 
-    public void openWriter(FileOutputStream fos, int blockSize) throws IOException {
-        openWriter(fos, true, blockSize);
+    @Override
+    public void seek(long pos) throws IOException {
+      if (mark != 0) {
+        throw new IllegalStateException();
+      }
+
+      reset();
+      long skipped = skip(pos);
+
+      if (skipped != pos) {
+        throw new IOException();
+      }
     }
 
-    public void closeWriter() throws IOException {
-        dos.flush();
-        writer.close();
-        dos.close();
+    @Override
+    public boolean seekToNewSource(long targetPos) {
+      return false;
     }
 
-    public void  openSequentialReader(File file, long fileLength, boolean cfsi, String auths, KeyPredicate keyPredicate)
-            throws IOException {
-        Path pt = new Path(file.getAbsolutePath());
-        FileSystem fs = FileSystem.get(new Configuration());
-        in = fs.open(pt);
+    @Override
+    public int read(long position, byte[] buffer, int offset, int length) {
 
-        DefaultConfiguration dc = DefaultConfiguration.getInstance();
-        ConfigurationCopy cc = new ConfigurationCopy(dc);
-        cc.set(Property.TSERV_CACHE_MANAGER_IMPL, LruBlockCacheManager.class.getName());
-        try {
-            manager = BlockCacheManagerFactory.getInstance(cc);
-        } catch (Exception e) {
-            throw new RuntimeException("Error creating BlockCacheManager", e);
-        }
-        cc.set(Property.TSERV_DEFAULT_BLOCKSIZE, Long.toString(1 * 1024 * 1024));
-        cc.set(Property.TSERV_DATACACHE_SIZE, Long.toString(100000000));
-        cc.set(Property.TSERV_INDEXCACHE_SIZE, Long.toString(100000000));
-        manager.start(BlockCacheConfiguration.forTabletServer(cc));
-        LruBlockCache indexCache = (LruBlockCache) manager.getBlockCache(CacheType.INDEX);
-        LruBlockCache dataCache = (LruBlockCache) manager.getBlockCache(CacheType.DATA);
+      if (position >= buf.length) {
+        throw new IllegalArgumentException();
+      }
+      if (position + length > buf.length) {
+        throw new IllegalArgumentException();
+      }
+      if (length > buffer.length) {
+        throw new IllegalArgumentException();
+      }
 
-        CryptoService cs = CryptoFactoryLoader.getServiceForClient(CryptoEnvironment.Scope.TABLE,
-                accumuloConfiguration.getAllCryptoProperties());
-
-        CachableBlockFile.CachableBuilder cb = new CachableBlockFile.CachableBuilder().input(in, "source-1").length(fileLength).conf(conf)
-                .cacheProvider(new BasicCacheProvider(indexCache, dataCache)).cryptoService(cs);
-        reader = new SequentialRFileReader(cb, auths, keyPredicate);
-        if (cfsi) {
-            iter = new ColumnFamilySkippingIterator(reader);
-        }
-
-        //checkIndex(reader);
+      System.arraycopy(buf, (int) position, buffer, offset, length);
+      return length;
     }
 
-    public void openNormalReader(File file, long fileLength, boolean cfsi) throws IOException {
-
-        Path pt = new Path(file.getAbsolutePath());
-        FileSystem fs = FileSystem.get(new Configuration());
-        in = fs.open(pt);
-
-        DefaultConfiguration dc = DefaultConfiguration.getInstance();
-        ConfigurationCopy cc = new ConfigurationCopy(dc);
-        cc.set(Property.TSERV_CACHE_MANAGER_IMPL, LruBlockCacheManager.class.getName());
-        try {
-            manager = BlockCacheManagerFactory.getInstance(cc);
-        } catch (Exception e) {
-            throw new RuntimeException("Error creating BlockCacheManager", e);
-        }
-        cc.set(Property.TSERV_DEFAULT_BLOCKSIZE, Long.toString(1 * 1024 * 1024));
-        cc.set(Property.TSERV_DATACACHE_SIZE, Long.toString(100000000));
-        cc.set(Property.TSERV_INDEXCACHE_SIZE, Long.toString(100000000));
-        manager.start(BlockCacheConfiguration.forTabletServer(cc));
-        LruBlockCache indexCache = (LruBlockCache) manager.getBlockCache(CacheType.INDEX);
-        LruBlockCache dataCache = (LruBlockCache) manager.getBlockCache(CacheType.DATA);
-
-        CryptoService cs = CryptoFactoryLoader.getServiceForClient(CryptoEnvironment.Scope.TABLE,
-                accumuloConfiguration.getAllCryptoProperties());
-
-        CachableBlockFile.CachableBuilder cb = new CachableBlockFile.CachableBuilder().input(in, "source-1").length(fileLength).conf(conf)
-                .cacheProvider(new BasicCacheProvider(indexCache, dataCache)).cryptoService(cs);
-        reader = new RFileReader(cb);
-        if (cfsi) {
-            iter = new ColumnFamilySkippingIterator(reader);
-        }
-
-        //checkIndex(reader);
-    }
-
-    public void closeReader() throws IOException {
-        reader.close();
-        in.close();
-        if (null != manager) {
-            manager.stop();
-        }
-    }
-
-    public void seek(Key nk) throws IOException {
-        iter.seek(new Range(nk, null), EMPTY_COL_FAMS, false);
-    }
-
-    public void append(Key key, Value value) throws IOException {
-        writer.append(key, value);
-    }
-
-    private static void checkIndex(RFileReader reader) throws IOException {
-        FileSKVIterator indexIter = reader.getIndex();
-
-        if (indexIter.hasTop()) {
-            Key lastKey = new Key(indexIter.getTopKey());
-
-            if (reader.getFirstKey().compareTo(lastKey) > 0) {
-                throw new RuntimeException(
-                        "First key out of order " + reader.getFirstKey() + " " + lastKey);
-            }
-
-            indexIter.next();
-
-            while (indexIter.hasTop()) {
-                if (lastKey.compareTo(indexIter.getTopKey()) > 0) {
-                    throw new RuntimeException(
-                            "Indext out of order " + lastKey + " " + indexIter.getTopKey());
-                }
-
-                lastKey = new Key(indexIter.getTopKey());
-                indexIter.next();
-
-            }
-
-            if (!reader.getLastKey().equals(lastKey)) {
-                throw new RuntimeException("Last key out of order " + reader.getLastKey() + " " + lastKey);
-            }
-        }
-    }
-    /**
-     *
-     *
-     * CLASSES
-     *
-     *
-     */
-
-    static class SeekableByteArrayInputStream extends ByteArrayInputStream
-            implements Seekable, PositionedReadable {
-
-        public SeekableByteArrayInputStream(byte[] buf) {
-            super(buf);
-        }
-
-        @Override
-        public long getPos() {
-            return pos;
-        }
-
-        @Override
-        public void seek(long pos) throws IOException {
-            if (mark != 0) {
-                throw new IllegalStateException();
-            }
-
-            reset();
-            long skipped = skip(pos);
-
-            if (skipped != pos) {
-                throw new IOException();
-            }
-        }
-
-        @Override
-        public boolean seekToNewSource(long targetPos) {
-            return false;
-        }
-
-        @Override
-        public int read(long position, byte[] buffer, int offset, int length) {
-
-            if (position >= buf.length) {
-                throw new IllegalArgumentException();
-            }
-            if (position + length > buf.length) {
-                throw new IllegalArgumentException();
-            }
-            if (length > buffer.length) {
-                throw new IllegalArgumentException();
-            }
-
-            System.arraycopy(buf, (int) position, buffer, offset, length);
-            return length;
-        }
-
-        @Override
-        public void readFully(long position, byte[] buffer) {
-            read(position, buffer, 0, buffer.length);
-
-        }
-
-        @Override
-        public void readFully(long position, byte[] buffer, int offset, int length) {
-            read(position, buffer, offset, length);
-        }
+    @Override
+    public void readFully(long position, byte[] buffer) {
+      read(position, buffer, 0, buffer.length);
 
     }
+
+    @Override
+    public void readFully(long position, byte[] buffer, int offset, int length) {
+      read(position, buffer, offset, length);
+    }
+
+  }
 }

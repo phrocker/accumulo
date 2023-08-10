@@ -109,7 +109,7 @@ public class ReadAheadLocalityGroupReader extends LocalityGroupReader {
   /**
    * Filtered next
    *
-   * @throws IOException
+   * @throws IOException i/o exception during read
    */
   protected void _f_next() throws IOException {
 

@@ -1,11 +1,27 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *   https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied.  See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ */
 package org.apache.accumulo.core.file.rfile.readahead;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 
-import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.file.rfile.MultiLevelIndex;
 
 public class MultiReadAhead extends BaseReadAhead {
@@ -25,7 +41,6 @@ public class MultiReadAhead extends BaseReadAhead {
     this.readAheadCount = readAheadCount;
   }
 
-
   @Override
   public BlockedRheadAhead peek() throws ExecutionException, InterruptedException {
     var block = nextRead == null ? null : nextRead.get();
@@ -37,6 +52,7 @@ public class MultiReadAhead extends BaseReadAhead {
 
     return block;
   }
+
   @Override
   public BlockedRheadAhead getNextBlock() throws ExecutionException, InterruptedException {
     var block = nextRead == null ? null : nextRead.get();
@@ -52,7 +68,7 @@ public class MultiReadAhead extends BaseReadAhead {
         for (int i = 0; i < thou && iiter.hasNext(); i++) {
           MultiLevelIndex.IndexEntry nxt = iiter.next();
           var nextRH = initiateReadAhead(nxt, dataRetrieval);
-          if (iiter.hasNext()){
+          if (iiter.hasNext()) {
             // store the next key
             MultiLevelIndex.IndexEntry nxtNxt = iiter.peek();
             nextRH.setNextKey(nxtNxt.getKey());
@@ -93,7 +109,7 @@ public class MultiReadAhead extends BaseReadAhead {
 
   private FutureReadAhead initiateReadAhead(MultiLevelIndex.IndexEntry indexEntry,
       BlockSupplier dataRetrieval) {
-    return new FutureReadAhead( readAhead.submitReadAheadRequest(() -> {
+    return new FutureReadAhead(readAhead.submitReadAheadRequest(() -> {
       BlockedRheadAhead readAhead = new BlockedRheadAhead();
       readAhead.entriesLeft = indexEntry.getNumEntries();
       readAhead.currBlock = dataRetrieval.get(indexEntry);
@@ -109,8 +125,6 @@ public class MultiReadAhead extends BaseReadAhead {
     }));
   }
 
-
   @Override
-  public void reset(){
-  }
+  public void reset() {}
 }

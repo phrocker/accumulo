@@ -49,7 +49,7 @@ public class PushdownRelativeKey extends RelativeKey {
   private KeyPredicate keyPredicate;
   private Authorizations authObj;
   private VisibilityEvaluator ve;
-  protected static final Map<ByteSequence,Boolean> cache= new LRUMap<>(1000);;
+  protected static final Map<ByteSequence,Boolean> cache = new LRUMap<>(1000);;
   boolean skipVisibilityFiltering = true;
   boolean lastKeyCvFiltered = false;
 
@@ -65,7 +65,7 @@ public class PushdownRelativeKey extends RelativeKey {
     authObj = null;
   }
 
-  public PushdownRelativeKey(String auths,KeyPredicate keyPredicate) {
+  public PushdownRelativeKey(String auths, KeyPredicate keyPredicate) {
     authObj = auths == null || auths.isEmpty() ? new Authorizations()
         : new Authorizations(auths.getBytes(UTF_8));
     this.ve = new VisibilityEvaluator(authObj);
@@ -78,17 +78,17 @@ public class PushdownRelativeKey extends RelativeKey {
     this.ve = new VisibilityEvaluator(authObj);
   }
 
-
-  public void setkeyPredicate(KeyPredicate keyPredicate){
-    this.keyPredicate =keyPredicate;
+  public void setkeyPredicate(KeyPredicate keyPredicate) {
+    this.keyPredicate = keyPredicate;
   }
+
   /**
    * This constructor is used when constructing a key for writing to an output stream
    */
   public PushdownRelativeKey(Key prevKey, Key key) {
     super(prevKey, key);
     this.ve = null;
-    this.authObj=null;
+    this.authObj = null;
   }
 
   public PushdownRelativeKey(Key prevKey, Key key, String auths) {
@@ -111,10 +111,10 @@ public class PushdownRelativeKey extends RelativeKey {
       fieldsPrefixed = 0;
     }
 
-    byte[] row , cf , cq , cv;
+    byte[] row, cf, cq, cv;
     final long ts;
     // check the auths.
-    if (lastKeyRowFiltered){
+    if (lastKeyRowFiltered) {
       lastKeyRowFiltered = false;
     }
 
@@ -127,50 +127,44 @@ public class PushdownRelativeKey extends RelativeKey {
       }
     }
     /*
-    row = getData(in,ROW_SAME,ROW_COMMON_PREFIX,()-> prevKey.getRowData(),lastKeyCvFiltered);
-
-    cf = getData(in,CF_SAME,CF_COMMON_PREFIX,()-> prevKey.getColumnFamilyData(),lastKeyCvFiltered);*/
-
+     * row = getData(in,ROW_SAME,ROW_COMMON_PREFIX,()-> prevKey.getRowData(),lastKeyCvFiltered);
+     *
+     * cf = getData(in,CF_SAME,CF_COMMON_PREFIX,()->
+     * prevKey.getColumnFamilyData(),lastKeyCvFiltered);
+     */
 
     var rowFil = getRowData(in, () -> prevKey.getRowData(), keyPredicate, lastKeyCvFiltered);
 
-    if (rowFil.filtered && null != keyPredicate){
-      //System.out.println("row is filterd");
-
+    if (rowFil.filtered && null != keyPredicate) {
+      // System.out.println("row is filterd");
 
       row = prevKey.getRowData().toArray();
-    }
-    else{
+    } else {
       row = rowFil.originalSequence;
 
     }
 
     lastKeyRowFiltered = keyPredicate.getLastKeyRowFiltered();
 
-    var cfData = getCfData(in,() -> prevKey.getRowData(), () -> prevKey.getColumnFamilyData(),
-            keyPredicate,
-            lastKeyCvFiltered, lastKeyRowFiltered);
-    if (cfData.filtered && null != keyPredicate){
-      //System.out.println("Skipping " + new String(row) + " " +  " " + prevKey);
+    var cfData = getCfData(in, () -> prevKey.getRowData(), () -> prevKey.getColumnFamilyData(),
+        keyPredicate, lastKeyCvFiltered, lastKeyRowFiltered);
+    if (cfData.filtered && null != keyPredicate) {
       cf = prevKey.getColumnFamilyData().toArray();
-    }
-    else{
+    } else {
       cf = cfData.originalSequence;
 
     }
     lastKeyRowFiltered = keyPredicate.getLastKeyRowFiltered();
     lastRowCfFIltered = keyPredicate.getLastRowCfFiltered();
 
-
     cq = getData(in, CQ_SAME, CQ_COMMON_PREFIX, () -> prevKey.getColumnQualifierData(),
-            lastKeyCvFiltered || lastKeyRowFiltered || lastRowCfFIltered);
-    if (null == authObj || authObj.isEmpty()){
+        lastKeyCvFiltered || lastKeyRowFiltered || lastRowCfFIltered);
+    if (null == authObj || authObj.isEmpty()) {
       cv = getData(in, CV_SAME, CV_COMMON_PREFIX, () -> prevKey.getColumnVisibilityData(),
-              lastKeyCvFiltered || lastKeyRowFiltered || lastRowCfFIltered);
-    }
-    else {
+          lastKeyCvFiltered || lastKeyRowFiltered || lastRowCfFIltered);
+    } else {
       cv = getCvFiltered(in, CV_SAME, CV_COMMON_PREFIX, () -> prevKey.getColumnVisibilityData(),
-              lastKeyCvFiltered || lastKeyRowFiltered || lastRowCfFIltered);
+          lastKeyCvFiltered || lastKeyRowFiltered || lastRowCfFIltered);
     }
 
     if ((fieldsSame & TS_SAME) == TS_SAME) {
@@ -181,43 +175,34 @@ public class PushdownRelativeKey extends RelativeKey {
       ts = WritableUtils.readVLong(in);
     }
 
-
-
     if (!lastKeyCvFiltered && !lastKeyRowFiltered && !lastRowCfFIltered) {
       try {
         this.key = new Key(row, cf, cq, cv, ts, (fieldsSame & DELETED) == DELETED, false);
-        //System.out.println("produced key " + this.key);
-      }
-      catch (NullPointerException npe){
+        // System.out.println("produced key " + this.key);
+      } catch (NullPointerException npe) {
         npe.printStackTrace();
         throw npe;
       }
-      if (null != keyPredicate && keyPredicate.endKeyComparison() && !keyPredicate.accept(this.key,fieldsSame)){
-        //System.out.println(" no returning " + key);
+      if (null != keyPredicate && keyPredicate.endKeyComparison()
+          && !keyPredicate.accept(this.key, fieldsSame)) {
+        // System.out.println(" no returning " + key);
         lastRowCfFIltered = true;
-      }
-      else{
-        //System.out.println("returning " + key);
+      } else {
+        // System.out.println("returning " + key);
         lastRowCfFIltered = false;
       }
       this.prevKey = this.key;
     } else {
-      //System.out.println(lastKeyCvFiltered + " " + lastKeyRowFiltered + " " + lastRowCfFIltered);
-        this.key = null;
-        /*
-      if (row != null)
-        //System.out.println("got " + new String(row));
-      else{
-        //System.out.println("got null");
-      }
-
-      if (cf != null)
-        //System.out.println("got " + new String(cf));
-      else{
-        //System.out.println("got null");
-      }
-      */
-      //this.prevKey = key;
+      // System.out.println(lastKeyCvFiltered + " " + lastKeyRowFiltered + " " + lastRowCfFIltered);
+      this.key = null;
+      /*
+       * if (row != null) //System.out.println("got " + new String(row)); else{
+       * //System.out.println("got null"); }
+       *
+       * if (cf != null) //System.out.println("got " + new String(cf)); else{
+       * //System.out.println("got null"); }
+       */
+      // this.prevKey = key;
 
     }
 
@@ -226,7 +211,6 @@ public class PushdownRelativeKey extends RelativeKey {
   public boolean isLastKeyFiltered() {
     return isLastKeyCvFiltered() || isLastKeyRowFiltered() || lastRowCfFIltered;
   }
-
 
   public boolean isLastKeyCvFiltered() {
     return this.lastKeyCvFiltered;
@@ -262,81 +246,78 @@ public class PushdownRelativeKey extends RelativeKey {
   }
 
   protected FilteredData getRowData(DataInput in, Supplier<ByteSequence> data,
-                                    KeyPredicate predicate, boolean skipCurrentKey) throws IOException {
+      KeyPredicate predicate, boolean skipCurrentKey) throws IOException {
     if ((fieldsSame & ROW_SAME) == ROW_SAME) {
-      //System.out.println("samne "  + skipCurrentKey);
+      // System.out.println("samne " + skipCurrentKey);
       if (skipCurrentKey) {
-        return FilteredData.of(data.get().toArray(),true);
-      }
-      else {
-        if (null == predicate || (null != predicate && predicate.acceptRow(data.get(),true))) {
-          return FilteredData.of(data.get().toArray(),false);
-        }
-        else{
-          return FilteredData.of(data.get().toArray(),true);
+        return FilteredData.of(data.get().toArray(), true);
+      } else {
+        if (null == predicate || (null != predicate && predicate.acceptRow(data.get(), true))) {
+          return FilteredData.of(data.get().toArray(), false);
+        } else {
+          return FilteredData.of(data.get().toArray(), true);
         }
       }
     } else if ((fieldsPrefixed & ROW_COMMON_PREFIX) == ROW_COMMON_PREFIX) {
       var dt = readPrefix(in, data.get(), skipCurrentKey);
-      //System.out.println("got a prefix "  + skipCurrentKey);
-      if (null == predicate || (null != predicate &&predicate.acceptRow(dt,false))) {
-        return FilteredData.of(dt,false);
-      }
-      else{
-        return FilteredData.of(dt,true);
+      // System.out.println("got a prefix " + skipCurrentKey);
+      if (null == predicate || (null != predicate && predicate.acceptRow(dt, false))) {
+        return FilteredData.of(dt, false);
+      } else {
+        return FilteredData.of(dt, true);
       }
     } else {
-      //System.out.println("row not a prefix "  + skipCurrentKey);
+      // System.out.println("row not a prefix " + skipCurrentKey);
       var dt = read(in, skipCurrentKey);
-      if (null == predicate || (null != predicate &&predicate.acceptRow(dt,false))) {
-        return FilteredData.of(dt,false);
-      }
-      else{
-        return FilteredData.of(dt,true);
+      if (null == predicate || (null != predicate && predicate.acceptRow(dt, false))) {
+        return FilteredData.of(dt, false);
+      } else {
+        return FilteredData.of(dt, true);
       }
     }
   }
 
-  protected FilteredData getCfData(DataInput in, Supplier<ByteSequence> rowData, Supplier<ByteSequence> cfData,
-                                   KeyPredicate predicate, boolean skipByCv, boolean skipByRow) throws IOException {
-    //System.out.println("entre");
+  protected FilteredData getCfData(DataInput in, Supplier<ByteSequence> rowData,
+      Supplier<ByteSequence> cfData, KeyPredicate predicate, boolean skipByCv, boolean skipByRow)
+      throws IOException {
+    // System.out.println("entre");
     boolean rowIsSame = (fieldsSame & ROW_SAME) == ROW_SAME;
     if ((fieldsSame & CF_SAME) == CF_SAME) {
-      //System.out.println("samne cf "  + skipByCv);
+      // System.out.println("samne cf " + skipByCv);
       if (skipByCv && skipByRow) {
-        return FilteredData.of(cfData.get().toArray(),true);
-      }
-      else {
-        if (null == predicate || (null != predicate && predicate.acceptColumn(rowData.get(), rowIsSame, cfData.get(),true))) {
-          return FilteredData.of(cfData.get().toArray(),false);
-        }
-        else{
-          return FilteredData.of(cfData.get().toArray(),true);
+        return FilteredData.of(cfData.get().toArray(), true);
+      } else {
+        if (null == predicate || (null != predicate
+            && predicate.acceptColumn(rowData.get(), rowIsSame, cfData.get(), true))) {
+          return FilteredData.of(cfData.get().toArray(), false);
+        } else {
+          return FilteredData.of(cfData.get().toArray(), true);
         }
       }
     } else if ((fieldsPrefixed & CF_COMMON_PREFIX) == CF_COMMON_PREFIX) {
       var dt = readPrefix(in, cfData.get(), skipByCv);
-      //System.out.println("got a cf prefix "  + skipByCv + " - " + (!skipByCv ? new String(dt) : ""));
-      if (null == predicate || (null != predicate && predicate.acceptColumn(rowData.get().getBackingArray(), rowIsSame, dt,false, true))) {
-        return FilteredData.of(dt,false);
-      }
-      else{
-        return FilteredData.of(dt,true);
+      // System.out.println("got a cf prefix " + skipByCv + " - " + (!skipByCv ? new String(dt) :
+      // ""));
+      if (null == predicate || (null != predicate
+          && predicate.acceptColumn(rowData.get().getBackingArray(), rowIsSame, dt, false, true))) {
+        return FilteredData.of(dt, false);
+      } else {
+        return FilteredData.of(dt, true);
       }
     } else {
       var dt = read(in, skipByCv);
-      //System.out.println("not a cf prefix "  + skipByCv + " - " + (!skipByCv ? new String(dt) : ""));
-      if (null == predicate || (null != predicate && predicate.acceptColumn(rowData.get().getBackingArray(), rowIsSame, dt,false, true))) {
-        //System.out.println("not filtered");
-        return FilteredData.of(dt,false);
-      }
-      else{
-        //System.out.println("filtered");
-        return FilteredData.of(dt,true);
+      // System.out.println("not a cf prefix " + skipByCv + " - " + (!skipByCv ? new String(dt) :
+      // ""));
+      if (null == predicate || (null != predicate
+          && predicate.acceptColumn(rowData.get().getBackingArray(), rowIsSame, dt, false, true))) {
+        // System.out.println("not filtered");
+        return FilteredData.of(dt, false);
+      } else {
+        // System.out.println("filtered");
+        return FilteredData.of(dt, true);
       }
     }
   }
-
 
   protected static byte[] readPrefix(DataInput in, ByteSequence prefixSource, boolean skip)
       throws IOException {
@@ -430,13 +411,13 @@ public class PushdownRelativeKey extends RelativeKey {
     if (skip) {
       byte[] data = new byte[len];
       in.readFully(data);
-      //System.out.println("Skipped " + new String(data));
-      //in.skipBytes(len);
+      // System.out.println("Skipped " + new String(data));
+      // in.skipBytes(len);
       return null;
     } else {
       byte[] data = new byte[len];
       in.readFully(data);
-      //System.out.println("Getting " + new String(data));
+      // System.out.println("Getting " + new String(data));
       return data;
     }
   }
@@ -518,7 +499,8 @@ public class PushdownRelativeKey extends RelativeKey {
     }
   }
 
-  private static boolean isAccepted(VisibilityEvaluator ve,Map<ByteSequence,Boolean> cache,byte [] visibility ){
+  private static boolean isAccepted(VisibilityEvaluator ve, Map<ByteSequence,Boolean> cache,
+      byte[] visibility) {
     if (visibility.length == 0) {
       return true;
     }
@@ -537,14 +519,14 @@ public class PushdownRelativeKey extends RelativeKey {
     }
   }
 
-  public static SkippedRelativeKey<PushdownRelativeKey> pushdownFastSkip(String auths, DataInput in, Key seekKey,
-                                                                         MutableByteSequence value, Key prevKey, Key currKey, int entriesLeft, KeyPredicate keyPredicate) throws IOException {
+  public static SkippedRelativeKey<PushdownRelativeKey> pushdownFastSkip(String auths, DataInput in,
+      Key seekKey, MutableByteSequence value, Key prevKey, Key currKey, int entriesLeft,
+      KeyPredicate keyPredicate) throws IOException {
     // this method mostly avoids object allocation and only does compares when the row changes
 
     Authorizations authObj = auths == null || auths.isEmpty() ? new Authorizations()
-            : new Authorizations(auths.getBytes(UTF_8));
+        : new Authorizations(auths.getBytes(UTF_8));
     VisibilityEvaluator ve = new VisibilityEvaluator(authObj);
-
 
     MutableByteSequence row, cf, cq, cv;
     MutableByteSequence prow, pcf, pcq, pcv;
@@ -560,11 +542,11 @@ public class PushdownRelativeKey extends RelativeKey {
     int rowCmp = -1, cfCmp = -1, cqCmp = -1;
 
     boolean lastKeyFiltered;
-    if (authObj.isEmpty()){
+    if (authObj.isEmpty()) {
       lastKeyFiltered = false;
-    }
-    else{
-      lastKeyFiltered = currKey != null ? !isAccepted(ve,cache,currKey.getColumnVisibilityData().toArray()) : false;
+    } else {
+      lastKeyFiltered = currKey != null
+          ? !isAccepted(ve, cache, currKey.getColumnVisibilityData().toArray()) : false;
     }
 
     if (currKey != null && !lastKeyFiltered) {
@@ -590,7 +572,7 @@ public class PushdownRelativeKey extends RelativeKey {
           PushdownRelativeKey rk = new PushdownRelativeKey(auths, keyPredicate);
           rk.key = rk.prevKey = new Key(currKey);
           int skipped = rk.isLastKeyFiltered() ? 0 : 1;
-          return new SkippedRelativeKey(rk, skipped, prevKey, keyPredicate);
+          return new SkippedRelativeKey<>(rk, skipped, prevKey, keyPredicate);
         }
 
         if (cfCmp >= 0) {
@@ -598,14 +580,14 @@ public class PushdownRelativeKey extends RelativeKey {
             PushdownRelativeKey rk = new PushdownRelativeKey(auths, keyPredicate);
             rk.key = rk.prevKey = new Key(currKey);
             int skipped = rk.isLastKeyFiltered() ? 0 : 1;
-            return new SkippedRelativeKey(rk, skipped, prevKey, keyPredicate);
+            return new SkippedRelativeKey<>(rk, skipped, prevKey, keyPredicate);
           }
 
           if (cqCmp >= 0) {
             PushdownRelativeKey rk = new PushdownRelativeKey(auths, keyPredicate);
             rk.key = rk.prevKey = new Key(currKey);
             int skipped = rk.isLastKeyFiltered() ? 0 : 1;
-            return new SkippedRelativeKey(rk, skipped, prevKey, keyPredicate);
+            return new SkippedRelativeKey<>(rk, skipped, prevKey, keyPredicate);
           }
         }
       }
@@ -642,7 +624,6 @@ public class PushdownRelativeKey extends RelativeKey {
         }
       }
 
-
       if ((fieldsSame & PREFIX_COMPRESSION_ENABLED) == PREFIX_COMPRESSION_ENABLED) {
         fieldsPrefixed = in.readByte();
       } else {
@@ -668,17 +649,16 @@ public class PushdownRelativeKey extends RelativeKey {
           rowCmp = row.compareTo(stopRow);
         }
 
-/*        if (null != rowPredicate && !rowPredicate.acceptRow(row,true)){
-          lastKeyFiltered = true;
-        }
-
- */
+        /*
+         * if (null != rowPredicate && !rowPredicate.acceptRow(row,true)){ lastKeyFiltered = true; }
+         *
+         */
         changed = true;
-      } // else the row is the same as the last, so no need to compare
-      else{
-        /*if (null != rowPredicate && !rowPredicate.acceptRow(row,true)){
-          lastKeyFiltered = true;
-        }*/
+      } else {
+        // else the row is the same as the last, so no need to compare
+        /*
+         * if (null != rowPredicate && !rowPredicate.acceptRow(row,true)){ lastKeyFiltered = true; }
+         */
       }
 
       if ((fieldsSame & CF_SAME) != CF_SAME) {
@@ -799,11 +779,11 @@ public class PushdownRelativeKey extends RelativeKey {
     result.key.setDeleted((fieldsSame & DELETED) != 0);
     result.prevKey = result.key;
 
-    return new SkippedRelativeKey(result, count, newPrevKey, keyPredicate);
+    return new SkippedRelativeKey<>(result, count, newPrevKey, keyPredicate);
   }
 
   protected static void readPrefix(DataInput in, MutableByteSequence dest,
-                                   ByteSequence prefixSource, boolean skipKey) throws IOException {
+      ByteSequence prefixSource, boolean skipKey) throws IOException {
     int prefixLen = WritableUtils.readVInt(in);
     int remainingLen = WritableUtils.readVInt(in);
     if (skipKey) {
@@ -816,7 +796,7 @@ public class PushdownRelativeKey extends RelativeKey {
     }
     if (prefixSource.isBackedByArray()) {
       System.arraycopy(prefixSource.getBackingArray(), prefixSource.offset(),
-              dest.getBackingArray(), 0, prefixLen);
+          dest.getBackingArray(), 0, prefixLen);
     } else {
       byte[] prefixArray = prefixSource.toArray();
       System.arraycopy(prefixArray, 0, dest.getBackingArray(), 0, prefixLen);
@@ -826,9 +806,10 @@ public class PushdownRelativeKey extends RelativeKey {
     dest.setLength(len);
   }
 
-  protected static void read(DataInput in, MutableByteSequence mbseq, boolean skip) throws IOException {
+  protected static void read(DataInput in, MutableByteSequence mbseq, boolean skip)
+      throws IOException {
     int len = WritableUtils.readVInt(in);
-    if (skip){
+    if (skip) {
       in.skipBytes(len);
       return;
     }
@@ -836,8 +817,8 @@ public class PushdownRelativeKey extends RelativeKey {
   }
 
   public void resetFilters() {
-    this.lastRowCfFIltered=false;
-    this.lastKeyCvFiltered=false;
-    this.lastKeyRowFiltered=false;
+    this.lastRowCfFIltered = false;
+    this.lastKeyCvFiltered = false;
+    this.lastKeyRowFiltered = false;
   }
 }
