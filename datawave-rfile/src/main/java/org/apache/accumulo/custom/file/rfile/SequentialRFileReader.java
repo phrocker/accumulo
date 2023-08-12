@@ -23,7 +23,6 @@ import java.io.IOException;
 import org.apache.accumulo.core.file.blockfile.impl.CachableBlockFile;
 import org.apache.accumulo.core.file.rfile.BaseLocalityGroupReader;
 import org.apache.accumulo.core.file.rfile.LocalityGroupMetadata;
-import org.apache.accumulo.core.file.rfile.LocalityGroupReader;
 import org.apache.accumulo.core.file.rfile.RFileReader;
 import org.apache.accumulo.file.rfile.predicate.KeyPredicate;
 
@@ -37,7 +36,8 @@ public class SequentialRFileReader extends RFileReader {
     super(rdr);
   }
 
-  protected SequentialRFileReader(SequentialRFileReader r, LocalityGroupReader[] sampleReaders) {
+  protected SequentialRFileReader(SequentialRFileReader r,
+      BaseLocalityGroupReader<PushdownRelativeKey>[] sampleReaders) {
     super(r, sampleReaders);
   }
 
@@ -73,4 +73,12 @@ public class SequentialRFileReader extends RFileReader {
     return new FilteredLocalityGroupReader[size];
   }
 
+  @SuppressWarnings("unchecked")
+  @Override
+  protected RFileReader createCopy() {
+    SequentialRFileReader copy = new SequentialRFileReader(this,
+        (BaseLocalityGroupReader<PushdownRelativeKey>[]) sampleReaders);
+    copy.setInterruptFlagInternal(interruptFlag);
+    return copy;
+  }
 }

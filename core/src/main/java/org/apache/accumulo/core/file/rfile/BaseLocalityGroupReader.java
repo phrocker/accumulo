@@ -265,9 +265,6 @@ public abstract class BaseLocalityGroupReader<R extends RelativeKey>
     }
 
     if (rk != null) {
-      if (null == prevKey) {
-        System.out.println("ohhh");
-      }
       if (range.beforeStartKey(prevKey) && range.afterEndKey(getTopKey())) {
         // range is between the two keys in the file where the last range seeked to stopped, so
         // there is
@@ -322,7 +319,6 @@ public abstract class BaseLocalityGroupReader<R extends RelativeKey>
         reseek = false;
       }
     }
-
     if (reseek) {
 
       iiter = index.lookup(startKey);
@@ -395,8 +391,9 @@ public abstract class BaseLocalityGroupReader<R extends RelativeKey>
     }
 
     hasTop = rk != null && !range.afterEndKey(rk.getKey());
-
-    resetInternals();
+    if (reseek) {
+      resetInternals();
+    }
     while (hasTop() && range.beforeStartKey(getTopKey())) {
       next();
     }

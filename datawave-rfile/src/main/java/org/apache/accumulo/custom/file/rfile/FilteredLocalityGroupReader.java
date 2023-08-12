@@ -32,10 +32,10 @@ import org.apache.accumulo.core.file.rfile.RelativeKey;
 import org.apache.accumulo.core.file.rfile.SkippedRelativeKey;
 import org.apache.accumulo.core.file.rfile.predicate.RowPredicate;
 import org.apache.accumulo.core.util.MutableByteSequence;
-import org.apache.accumulo.custom.file.rfile.readahead.BaseReadAhead;
-import org.apache.accumulo.custom.file.rfile.readahead.BlockReadAhead;
-import org.apache.accumulo.custom.file.rfile.readahead.BlockedRheadAhead;
-import org.apache.accumulo.custom.file.rfile.readahead.MultiReadAhead;
+import org.apache.accumulo.custom.custom.file.rfile.readahead.BaseReadAhead;
+import org.apache.accumulo.custom.custom.file.rfile.readahead.BlockReadAhead;
+import org.apache.accumulo.custom.custom.file.rfile.readahead.BlockedRheadAhead;
+import org.apache.accumulo.custom.custom.file.rfile.readahead.MultiReadAhead;
 import org.apache.accumulo.file.rfile.predicate.KeyPredicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +43,7 @@ import org.slf4j.LoggerFactory;
 public class FilteredLocalityGroupReader extends BaseLocalityGroupReader<PushdownRelativeKey> {
 
   BaseReadAhead blockreadAhead;
-  org.apache.accumulo.custom.file.rfile.readahead.BlockedRheadAhead readAheadResult;
+  BlockedRheadAhead readAheadResult;
   private static final Logger log = LoggerFactory.getLogger(FilteredLocalityGroupReader.class);
 
   String auths;
@@ -114,7 +114,6 @@ public class FilteredLocalityGroupReader extends BaseLocalityGroupReader<Pushdow
     do {
 
       if (entriesLeft == 0) {
-        // System.out.println("Queueing another");
         currBlock.close();
         if (metricsGatherer != null) {
           metricsGatherer.startBlock();
@@ -166,7 +165,6 @@ public class FilteredLocalityGroupReader extends BaseLocalityGroupReader<Pushdow
           if (null == myreadAheadResult) {
 
             try {
-              // System.out.println("Peeking");
               myreadAheadResult = blockreadAhead.peek();
             } catch (ExecutionException e) {
               throw new RuntimeException(e);
@@ -174,13 +172,10 @@ public class FilteredLocalityGroupReader extends BaseLocalityGroupReader<Pushdow
               throw new RuntimeException(e);
             }
           }
-          // System.out.println("key is filtered " + (null != myreadAheadResult) + " " + ((null !=
           // myreadAheadResult) ? (myreadAheadResult.nextBlockKey != null) : "false2"));
           // was it filtered b/c of the predicate?
           if (null != myreadAheadResult && myreadAheadResult.nextBlockKey != null) {
-            // System.out.println("checking... " + myreadAheadResult.nextBlockKey);
             if (!keyPredicate.accept(myreadAheadResult.nextBlockKey, 0)) {
-              // System.out.println("yep");
               // we can actually check the next block.
               // entriesLeft = 0;
             }
@@ -195,9 +190,7 @@ public class FilteredLocalityGroupReader extends BaseLocalityGroupReader<Pushdow
       }
 
     } while (isKeyFiltered && hasTop);
-    if (null != rk.getKey()) {
-      // System.out.println("got key " + rk.getKey());
-    }
+
   }
 
   public FilteredLocalityGroupReader withRowPredicate(RowPredicate predicate) {

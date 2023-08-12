@@ -149,7 +149,7 @@ public class RFileReader extends HeapIterator implements FileSKVIterator {
   protected RFileReader(RFileReader r, BaseLocalityGroupReader<?>[] sampleReaders) {
     super(sampleReaders.length);
     this.reader = r.reader;
-    this.currentReaders = new LocalityGroupReader[sampleReaders.length];
+    this.currentReaders = createArray(r.currentReaders.length);
     this.deepCopies = r.deepCopies;
     this.deepCopy = false;
     this.readers = r.readers;
@@ -410,12 +410,16 @@ public class RFileReader extends HeapIterator implements FileSKVIterator {
     requireNonNull(sampleConfig);
 
     if (this.samplerConfig != null && this.samplerConfig.equals(sampleConfig)) {
-      RFileReader copy = new RFileReader(this, sampleReaders);
-      copy.setInterruptFlagInternal(interruptFlag);
-      return copy;
+      return createCopy();
     }
 
     return null;
+  }
+
+  protected RFileReader createCopy() {
+    RFileReader copy = new RFileReader(this, sampleReaders);
+    copy.setInterruptFlagInternal(interruptFlag);
+    return copy;
   }
 
   // only visible for printinfo

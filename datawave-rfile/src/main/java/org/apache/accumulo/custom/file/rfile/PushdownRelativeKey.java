@@ -106,6 +106,77 @@ public class PushdownRelativeKey extends RelativeKey {
 
   @Override
   public void readFields(DataInput in) throws IOException {
+    if (null != keyPredicate) {
+      readFieldsFiltered(in);
+    } else {
+      readFieldsUnfiltered(in);
+    }
+
+  }
+
+  public void readFieldsUnfiltered(DataInput in) throws IOException {
+    fieldsSame = in.readByte();
+    if ((fieldsSame & PREFIX_COMPRESSION_ENABLED) == PREFIX_COMPRESSION_ENABLED) {
+      fieldsPrefixed = in.readByte();
+    } else {
+      fieldsPrefixed = 0;
+    }
+
+    byte[] row, cf, cq, cv;
+    final long ts;
+    // check the auths.
+    if (lastKeyCvFiltered) {
+      // we have the same visibility.
+      if ((fieldsSame & CV_SAME) == CV_SAME) {
+        lastKeyCvFiltered = true;
+      } else {
+        lastKeyCvFiltered = false;
+      }
+    }
+
+    row = getData(in, ROW_SAME, ROW_COMMON_PREFIX, () -> prevKey.getRowData(), lastKeyCvFiltered);
+
+    cf = getData(in, CF_SAME, CF_COMMON_PREFIX, () -> prevKey.getColumnFamilyData(),
+        lastKeyCvFiltered);
+
+    cq = getData(in, CQ_SAME, CQ_COMMON_PREFIX, () -> prevKey.getColumnQualifierData(),
+        lastKeyCvFiltered);
+    if (null == authObj || authObj.isEmpty()) {
+      cv = getData(in, CV_SAME, CV_COMMON_PREFIX, () -> prevKey.getColumnVisibilityData(),
+          lastKeyCvFiltered);
+    } else {
+      cv = getCvFiltered(in, CV_SAME, CV_COMMON_PREFIX, () -> prevKey.getColumnVisibilityData(),
+          lastKeyCvFiltered);
+    }
+
+    if ((fieldsSame & TS_SAME) == TS_SAME) {
+      ts = prevKey.getTimestamp();
+    } else if ((fieldsPrefixed & TS_DIFF) == TS_DIFF) {
+      ts = WritableUtils.readVLong(in) + prevKey.getTimestamp();
+    } else {
+      ts = WritableUtils.readVLong(in);
+    }
+
+    if (!lastKeyCvFiltered) {
+      try {
+        this.key = new Key(row, cf, cq, cv, ts, (fieldsSame & DELETED) == DELETED, false);
+        // System.out.println("produced key " + this.key);
+      } catch (NullPointerException npe) {
+        npe.printStackTrace();
+        throw npe;
+      }
+      this.prevKey = this.key;
+    } else {
+      // System.out.println(lastKeyCvFiltered + " " + lastKeyRowFiltered + " " + lastRowCfFIltered);
+      this.key = null;
+
+      // this.prevKey = key;
+
+    }
+
+  }
+
+  protected void readFieldsFiltered(DataInput in) throws IOException {
     fieldsSame = in.readByte();
     if ((fieldsSame & PREFIX_COMPRESSION_ENABLED) == PREFIX_COMPRESSION_ENABLED) {
       fieldsPrefixed = in.readByte();
@@ -137,7 +208,7 @@ public class PushdownRelativeKey extends RelativeKey {
 
     var rowFil = getRowData(in, () -> prevKey.getRowData(), keyPredicate, lastKeyCvFiltered);
 
-    if (rowFil.filtered && null != keyPredicate) {
+    if (rowFil.filtered) {
       // System.out.println("row is filterd");
 
       row = prevKey.getRowData().toArray();
@@ -150,7 +221,7 @@ public class PushdownRelativeKey extends RelativeKey {
 
     var cfData = getCfData(in, () -> prevKey.getRowData(), () -> prevKey.getColumnFamilyData(),
         keyPredicate, lastKeyCvFiltered, lastKeyRowFiltered);
-    if (cfData.filtered && null != keyPredicate) {
+    if (cfData.filtered) {
       cf = prevKey.getColumnFamilyData().toArray();
     } else {
       cf = cfData.originalSequence;
@@ -185,8 +256,7 @@ public class PushdownRelativeKey extends RelativeKey {
         npe.printStackTrace();
         throw npe;
       }
-      if (null != keyPredicate && keyPredicate.endKeyComparison()
-          && !keyPredicate.accept(this.key, fieldsSame)) {
+      if (keyPredicate.endKeyComparison() && !keyPredicate.accept(this.key, fieldsSame)) {
         // System.out.println(" no returning " + key);
         lastRowCfFIltered = true;
       } else {
@@ -247,80 +317,71 @@ public class PushdownRelativeKey extends RelativeKey {
     }
   }
 
-  protected org.apache.accumulo.custom.file.rfile.predicate.filtering.FilteredData getRowData(
-      DataInput in, Supplier<ByteSequence> data, KeyPredicate predicate, boolean skipCurrentKey)
-      throws IOException {
+  protected FilteredData getRowData(DataInput in, Supplier<ByteSequence> data,
+      KeyPredicate predicate, boolean skipCurrentKey) throws IOException {
     if ((fieldsSame & ROW_SAME) == ROW_SAME) {
       // System.out.println("samne " + skipCurrentKey);
       if (skipCurrentKey) {
-        return org.apache.accumulo.custom.file.rfile.predicate.filtering.FilteredData
-            .of(data.get().toArray(), true);
+        return FilteredData.of(data.get().toArray(), true);
       } else {
         if (null == predicate || (null != predicate && predicate.acceptRow(data.get(), true))) {
-          return org.apache.accumulo.custom.file.rfile.predicate.filtering.FilteredData
-              .of(data.get().toArray(), false);
+          return FilteredData.of(data.get().toArray(), false);
         } else {
-          return org.apache.accumulo.custom.file.rfile.predicate.filtering.FilteredData
-              .of(data.get().toArray(), true);
+          return FilteredData.of(data.get().toArray(), true);
         }
       }
     } else if ((fieldsPrefixed & ROW_COMMON_PREFIX) == ROW_COMMON_PREFIX) {
       var dt = readPrefix(in, data.get(), skipCurrentKey);
       // System.out.println("got a prefix " + skipCurrentKey);
       if (null == predicate || (null != predicate && predicate.acceptRow(dt, false))) {
-        return org.apache.accumulo.custom.file.rfile.predicate.filtering.FilteredData.of(dt, false);
+        return FilteredData.of(dt, false);
       } else {
-        return org.apache.accumulo.custom.file.rfile.predicate.filtering.FilteredData.of(dt, true);
+        return FilteredData.of(dt, true);
       }
     } else {
       // System.out.println("row not a prefix " + skipCurrentKey);
       var dt = read(in, skipCurrentKey);
       if (null == predicate || (null != predicate && predicate.acceptRow(dt, false))) {
-        return org.apache.accumulo.custom.file.rfile.predicate.filtering.FilteredData.of(dt, false);
+        return FilteredData.of(dt, false);
       } else {
-        return org.apache.accumulo.custom.file.rfile.predicate.filtering.FilteredData.of(dt, true);
+        return FilteredData.of(dt, true);
       }
     }
   }
 
-  protected org.apache.accumulo.custom.file.rfile.predicate.filtering.FilteredData getCfData(
-      DataInput in, Supplier<ByteSequence> rowData, Supplier<ByteSequence> cfData,
-      KeyPredicate predicate, boolean skipByCv, boolean skipByRow) throws IOException {
+  protected FilteredData getCfData(DataInput in, Supplier<ByteSequence> rowData,
+      Supplier<ByteSequence> cfData, KeyPredicate predicate, boolean skipByCv, boolean skipByRow)
+      throws IOException {
     // System.out.println("entre");
     boolean rowIsSame = (fieldsSame & ROW_SAME) == ROW_SAME;
     if ((fieldsSame & CF_SAME) == CF_SAME) {
       // System.out.println("samne cf " + skipByCv);
       if (skipByCv && skipByRow) {
-        return org.apache.accumulo.custom.file.rfile.predicate.filtering.FilteredData
-            .of(cfData.get().toArray(), true);
+        return FilteredData.of(cfData.get().toArray(), true);
       } else {
         if (null == predicate || (null != predicate
             && predicate.acceptColumn(rowData.get(), rowIsSame, cfData.get(), true))) {
-          return org.apache.accumulo.custom.file.rfile.predicate.filtering.FilteredData
-              .of(cfData.get().toArray(), false);
+          return FilteredData.of(cfData.get().toArray(), false);
         } else {
-          return org.apache.accumulo.custom.file.rfile.predicate.filtering.FilteredData
-              .of(cfData.get().toArray(), true);
+          return FilteredData.of(cfData.get().toArray(), true);
         }
       }
     } else if ((fieldsPrefixed & CF_COMMON_PREFIX) == CF_COMMON_PREFIX) {
       var dt = readPrefix(in, cfData.get(), skipByCv);
       // System.out.println("got a cf prefix " + skipByCv + " - " + (!skipByCv ? new String(dt) :
       // ""));
-      if (null == predicate || (null != predicate
-          && predicate.acceptColumn(rowData.get().getBackingArray(), rowIsSame, dt, false, true))) {
-        return org.apache.accumulo.custom.file.rfile.predicate.filtering.FilteredData.of(dt, false);
+      if (predicate.acceptColumn(rowData.get().getBackingArray(), rowIsSame, dt, false, true)) {
+        return FilteredData.of(dt, false);
       } else {
-        return org.apache.accumulo.custom.file.rfile.predicate.filtering.FilteredData.of(dt, true);
+        return FilteredData.of(dt, true);
       }
     } else {
       var dt = read(in, skipByCv);
       // System.out.println("not a cf prefix " + skipByCv + " - " + (!skipByCv ? new String(dt) :
       // ""));
-      if (null == predicate || (null != predicate
-          && predicate.acceptColumn(rowData.get().getBackingArray(), rowIsSame, dt, false, true))) {
+      if (predicate.acceptColumn(rowData.get().getBackingArray(), rowIsSame, dt, false, true)) {
         // System.out.println("not filtered");
-        return org.apache.accumulo.custom.file.rfile.predicate.filtering.FilteredData.of(dt, false);
+        return FilteredData.of(dt, false);
       } else {
         // System.out.println("filtered");
         return FilteredData.of(dt, true);
@@ -580,7 +641,7 @@ public class PushdownRelativeKey extends RelativeKey {
         if (rowCmp > 0) {
           PushdownRelativeKey rk = new PushdownRelativeKey(auths, keyPredicate);
           rk.key = rk.prevKey = new Key(currKey);
-          int skipped = rk.isLastKeyFiltered() ? 0 : 1;
+          int skipped = rk.isLastKeyFiltered() ? 1 : 0;
           return new SkippedRelativeKey<PushdownRelativeKey>(rk, skipped, prevKey, keyPredicate);
         }
 
@@ -588,14 +649,14 @@ public class PushdownRelativeKey extends RelativeKey {
           if (cfCmp > 0) {
             PushdownRelativeKey rk = new PushdownRelativeKey(auths, keyPredicate);
             rk.key = rk.prevKey = new Key(currKey);
-            int skipped = rk.isLastKeyFiltered() ? 0 : 1;
+            int skipped = rk.isLastKeyFiltered() ? 1 : 0;
             return new SkippedRelativeKey<PushdownRelativeKey>(rk, skipped, prevKey, keyPredicate);
           }
 
           if (cqCmp >= 0) {
             PushdownRelativeKey rk = new PushdownRelativeKey(auths, keyPredicate);
             rk.key = rk.prevKey = new Key(currKey);
-            int skipped = rk.isLastKeyFiltered() ? 0 : 1;
+            int skipped = rk.isLastKeyFiltered() ? 1 : 0;
             return new SkippedRelativeKey<PushdownRelativeKey>(rk, skipped, prevKey, keyPredicate);
           }
         }

@@ -26,10 +26,10 @@ import org.apache.accumulo.core.file.blockfile.impl.CachableBlockFile;
 import org.apache.accumulo.core.file.rfile.LocalityGroupMetadata;
 import org.apache.accumulo.core.file.rfile.LocalityGroupReader;
 import org.apache.accumulo.core.file.rfile.MultiLevelIndex;
-import org.apache.accumulo.custom.file.rfile.readahead.BaseReadAhead;
-import org.apache.accumulo.custom.file.rfile.readahead.BlockReadAhead;
-import org.apache.accumulo.custom.file.rfile.readahead.BlockedRheadAhead;
-import org.apache.accumulo.custom.file.rfile.readahead.MultiReadAhead;
+import org.apache.accumulo.custom.custom.file.rfile.readahead.BaseReadAhead;
+import org.apache.accumulo.custom.custom.file.rfile.readahead.BlockReadAhead;
+import org.apache.accumulo.custom.custom.file.rfile.readahead.BlockedRheadAhead;
+import org.apache.accumulo.custom.custom.file.rfile.readahead.MultiReadAhead;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
