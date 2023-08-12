@@ -16,44 +16,48 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.accumulo.file.rfile.predicate;
+package org.apache.accumulo.custom.file.rfile.predicate;
+
+import java.util.Arrays;
 
 import org.apache.accumulo.core.data.ByteSequence;
-import org.apache.accumulo.core.data.Key;
+import org.apache.accumulo.core.file.rfile.predicate.RowPredicate;
 
-public abstract class KeyPredicate {
+public class UniqueRowPredicate extends RowPredicate {
 
-  public Key topKey;
+  byte[] prev = null;
 
-  public Key nextBlockKey;
-
-  public boolean accept(Key key, int fieldSame) {
-    return true;
-  }
-
-  public boolean acceptColumn(ByteSequence row, boolean rowIsSame, ByteSequence cf,
-      boolean cfIsSame) {
-    return acceptColumn(row.getBackingArray(), rowIsSame, cf.getBackingArray(), cfIsSame, true);
-  }
-
-  public boolean acceptColumn(byte[] row, boolean rowIsSame, byte[] cf, boolean cfIsSame,
-      boolean set) {
-    return true;
-  }
-
+  @Override
   public boolean acceptRow(ByteSequence row, boolean isSame) {
-    return acceptRow(row.getBackingArray(), isSame);
+    // in this edition let's assume the row matches our terms
+    if (isSame) {
+      prev = row.getBackingArray();
+      return false;
+    } else {
+      if (null != prev) {
+        if (Arrays.equals(row.getBackingArray(), prev)) {
+          return false;
+        }
+      }
+      prev = row.getBackingArray();
+      return true;
+    }
   }
 
   public boolean acceptRow(byte[] row, boolean isSame) {
-    return true;
+    // in this edition let's assume the row matches our terms
+    if (isSame) {
+      prev = row;
+      return false;
+    } else {
+      if (null != prev) {
+        if (Arrays.equals(row, prev)) {
+          return false;
+        }
+      }
+      prev = row;
+      return true;
+    }
   }
 
-  public abstract boolean getLastKeyRowFiltered();
-
-  public abstract boolean getLastRowCfFiltered();
-
-  public boolean endKeyComparison() {
-    return true;
-  }
 }

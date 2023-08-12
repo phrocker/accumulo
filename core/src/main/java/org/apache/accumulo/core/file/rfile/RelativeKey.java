@@ -41,12 +41,12 @@ public class RelativeKey implements Writable {
   protected byte fieldsPrefixed;
 
   // Exact match compression options (first byte) and flag for further
-  static final byte ROW_SAME = BIT << 0;
-  static final byte CF_SAME = BIT << 1;
-  static final byte CQ_SAME = BIT << 2;
-  static final byte CV_SAME = BIT << 3;
-  static final byte TS_SAME = BIT << 4;
-  static final byte DELETED = BIT << 5;
+  protected static final byte ROW_SAME = BIT << 0;
+  protected static final byte CF_SAME = BIT << 1;
+  protected static final byte CQ_SAME = BIT << 2;
+  protected static final byte CV_SAME = BIT << 3;
+  protected static final byte TS_SAME = BIT << 4;
+  protected static final byte DELETED = BIT << 5;
   // protected static final byte UNUSED_1_6 = BIT << 6;
   protected static final byte PREFIX_COMPRESSION_ENABLED = (byte) (BIT << 7);
 
@@ -62,11 +62,11 @@ public class RelativeKey implements Writable {
   // protected static final byte UNUSED_2_7 = (byte) (BIT << 7);
 
   // Values for prefix compression
-  int rowCommonPrefixLen;
-  int cfCommonPrefixLen;
-  int cqCommonPrefixLen;
-  int cvCommonPrefixLen;
-  long tsDiff;
+  protected int rowCommonPrefixLen;
+  protected int cfCommonPrefixLen;
+  protected int cqCommonPrefixLen;
+  protected int cvCommonPrefixLen;
+  protected long tsDiff;
 
   /**
    * This constructor is used when one needs to read from an input stream

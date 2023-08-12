@@ -57,7 +57,7 @@ public abstract class BaseLocalityGroupReader<R extends RelativeKey>
   protected int startBlock;
   private boolean closed = false;
   protected int version;
-  boolean checkRange = true;
+  protected boolean checkRange = true;
 
   protected int numEntries;
 
@@ -453,7 +453,7 @@ public abstract class BaseLocalityGroupReader<R extends RelativeKey>
     return this;
   }
 
-  MetricsGatherer<?> metricsGatherer;
+  protected MetricsGatherer<?> metricsGatherer;
 
   public void registerMetrics(MetricsGatherer<?> vmg) {
     metricsGatherer = vmg;

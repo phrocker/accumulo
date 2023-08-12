@@ -390,7 +390,7 @@ public class RFileReader extends HeapIterator implements FileSKVIterator {
         LocalityGroupIterator.seek(this, lgContext, range, columnFamilies, inclusive, lgCache);
   }
 
-  int getNumLocalityGroupsSeeked() {
+  public int getNumLocalityGroupsSeeked() {
     return (lgCache == null ? 0 : lgCache.getNumLGSeeked());
   }
 

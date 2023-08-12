@@ -40,7 +40,7 @@ import org.apache.accumulo.core.file.rfile.bcfile.BCFile;
 import org.apache.commons.lang3.mutable.MutableLong;
 import org.apache.hadoop.io.Writable;
 
-class LocalityGroupMetadata implements Writable {
+public class LocalityGroupMetadata implements Writable {
 
   int startBlock = -1;
   Key firstKey;

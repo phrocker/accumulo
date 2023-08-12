@@ -16,31 +16,31 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.accumulo.core.file.rfile;
+package org.apache.accumulo.custom.file.rfile.readahead;
 
-import org.apache.accumulo.core.data.Key;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
-public class SkippedRelativeKey<R extends RelativeKey> {
+/**
+ * Supports read ahead on a block read.
+ */
+public class BlockReadAhead {
 
-  public R rk;
-  public int skipped;
-  public Key prevKey;
-  public boolean filtered;
+  ThreadPoolExecutor executor;
 
-  public org.apache.accumulo.file.rfile.predicate.KeyPredicate keyPredicate = null;
-
-  public SkippedRelativeKey(R rk, int skipped, Key prevKey,
-      org.apache.accumulo.file.rfile.predicate.KeyPredicate keyPredicate) {
-    this(rk, skipped, prevKey, false, keyPredicate);
+  public BlockReadAhead(final int maxThreads) {
+    executor = new ThreadPoolExecutor(maxThreads / 2, maxThreads, 60L, TimeUnit.SECONDS,
+        new LinkedBlockingQueue<Runnable>());
   }
 
-  public SkippedRelativeKey(R rk, int skipped, Key prevKey, boolean filtered,
-      org.apache.accumulo.file.rfile.predicate.KeyPredicate keyPredicate) {
-    this.rk = rk;
-    this.skipped = skipped;
-    this.prevKey = prevKey;
-    this.filtered = filtered;
-    this.keyPredicate = keyPredicate;
+  public Future<BlockedRheadAhead> submitReadAheadRequest(Supplier<BlockedRheadAhead> onRun) {
+    return executor.submit(() -> onRun.get());
   }
 
+  public void drain() {
+    // executor.awa
+  }
 }

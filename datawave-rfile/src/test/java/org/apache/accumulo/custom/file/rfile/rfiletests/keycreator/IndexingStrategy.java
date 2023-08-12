@@ -16,31 +16,11 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.accumulo.core.file.rfile;
+package org.apache.accumulo.custom.file.rfile.rfiletests.keycreator;
 
-import org.apache.accumulo.core.data.Key;
+import java.io.IOException;
 
-public class SkippedRelativeKey<R extends RelativeKey> {
+public interface IndexingStrategy {
 
-  public R rk;
-  public int skipped;
-  public Key prevKey;
-  public boolean filtered;
-
-  public org.apache.accumulo.file.rfile.predicate.KeyPredicate keyPredicate = null;
-
-  public SkippedRelativeKey(R rk, int skipped, Key prevKey,
-      org.apache.accumulo.file.rfile.predicate.KeyPredicate keyPredicate) {
-    this(rk, skipped, prevKey, false, keyPredicate);
-  }
-
-  public SkippedRelativeKey(R rk, int skipped, Key prevKey, boolean filtered,
-      org.apache.accumulo.file.rfile.predicate.KeyPredicate keyPredicate) {
-    this.rk = rk;
-    this.skipped = skipped;
-    this.prevKey = prevKey;
-    this.filtered = filtered;
-    this.keyPredicate = keyPredicate;
-  }
-
+  void select(TestRFileGenerator generator) throws IOException;
 }

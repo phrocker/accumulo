@@ -32,7 +32,7 @@ import org.apache.commons.math3.util.FastMath;
  * This class may not be as accurate as DescriptiveStatistics. In unit test its within 1/1000 of
  * DescriptiveStatistics.
  */
-class RollingStats {
+public class RollingStats {
   private int position;
   private double[] window;
 
@@ -45,7 +45,7 @@ class RollingStats {
 
   private int recomputeCounter = 0;
 
-  RollingStats(int windowSize) {
+  public RollingStats(int windowSize) {
     this.windowFull = false;
     this.position = 0;
     this.window = new double[windowSize];
@@ -65,7 +65,7 @@ class RollingStats {
     stddev = FastMath.sqrt(variance);
   }
 
-  void addValue(long stat) {
+  public void addValue(long stat) {
 
     double old = window[position];
     window[position] = stat;
@@ -102,7 +102,7 @@ class RollingStats {
     }
   }
 
-  double getMean() {
+  public double getMean() {
     computeStats();
     return average;
   }
@@ -112,7 +112,7 @@ class RollingStats {
     return variance;
   }
 
-  double getStandardDeviation() {
+  public double getStandardDeviation() {
     computeStats();
     return stddev;
   }

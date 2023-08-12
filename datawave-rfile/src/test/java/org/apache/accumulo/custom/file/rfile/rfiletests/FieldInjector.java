@@ -16,31 +16,21 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.accumulo.core.file.rfile;
+package org.apache.accumulo.custom.file.rfile.rfiletests;
 
-import org.apache.accumulo.core.data.Key;
+import org.apache.hadoop.io.Text;
 
-public class SkippedRelativeKey<R extends RelativeKey> {
+public class FieldInjector {
+  public Text fieldValue;
+  public String fieldName;
+  public long numberOfDocs;
 
-  public R rk;
-  public int skipped;
-  public Key prevKey;
-  public boolean filtered;
+  public Text auth;
 
-  public org.apache.accumulo.file.rfile.predicate.KeyPredicate keyPredicate = null;
-
-  public SkippedRelativeKey(R rk, int skipped, Key prevKey,
-      org.apache.accumulo.file.rfile.predicate.KeyPredicate keyPredicate) {
-    this(rk, skipped, prevKey, false, keyPredicate);
+  public FieldInjector(String fieldName, String fieldValue, String auth, long numberOfDocs) {
+    this.fieldName = fieldName;
+    this.fieldValue = new Text(fieldValue);
+    this.numberOfDocs = numberOfDocs;
+    this.auth = new Text(auth);
   }
-
-  public SkippedRelativeKey(R rk, int skipped, Key prevKey, boolean filtered,
-      org.apache.accumulo.file.rfile.predicate.KeyPredicate keyPredicate) {
-    this.rk = rk;
-    this.skipped = skipped;
-    this.prevKey = prevKey;
-    this.filtered = filtered;
-    this.keyPredicate = keyPredicate;
-  }
-
 }

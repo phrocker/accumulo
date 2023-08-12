@@ -16,31 +16,19 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.accumulo.core.file.rfile;
+package org.apache.accumulo.custom.file.rfile.predicate.filtering;
 
-import org.apache.accumulo.core.data.Key;
+public class FilteredData {
 
-public class SkippedRelativeKey<R extends RelativeKey> {
+  public boolean filtered = false;
+  public byte[] originalSequence = null;
 
-  public R rk;
-  public int skipped;
-  public Key prevKey;
-  public boolean filtered;
-
-  public org.apache.accumulo.file.rfile.predicate.KeyPredicate keyPredicate = null;
-
-  public SkippedRelativeKey(R rk, int skipped, Key prevKey,
-      org.apache.accumulo.file.rfile.predicate.KeyPredicate keyPredicate) {
-    this(rk, skipped, prevKey, false, keyPredicate);
-  }
-
-  public SkippedRelativeKey(R rk, int skipped, Key prevKey, boolean filtered,
-      org.apache.accumulo.file.rfile.predicate.KeyPredicate keyPredicate) {
-    this.rk = rk;
-    this.skipped = skipped;
-    this.prevKey = prevKey;
+  public FilteredData(byte[] data, boolean filtered) {
+    this.originalSequence = data;
     this.filtered = filtered;
-    this.keyPredicate = keyPredicate;
   }
 
+  public static FilteredData of(byte[] data, boolean filtered) {
+    return new FilteredData(data, filtered);
+  }
 }
