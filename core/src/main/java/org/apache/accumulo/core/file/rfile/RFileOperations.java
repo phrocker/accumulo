@@ -65,7 +65,7 @@ public class RFileOperations extends FileOperations {
     if (options.getIteratorScope() != null
         && IteratorUtil.IteratorScope.scan == options.getIteratorScope()) {
       var opt = options.getTableConfiguration().get(Property.TABLE_READER_SCAN);
-      if (null != opt) {
+      if (null != opt && !opt.isEmpty()) {
 
         try {
           var clazz = ClassLoaderUtil.loadClass(opt, RFileReader.class);
