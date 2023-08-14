@@ -622,6 +622,12 @@ public class RFileTester {
     // runWith(filenames, new Range());
   }
 
+  @Test
+  public void runAsTest() throws IOException, InterruptedException {
+    String[] args = {"--beginRow", "cat", "--endRow", "cz", "--numvalues", "100000", "--runs", "5"};
+    main(args);
+  }
+
   public static void main(String[] args) throws IOException, InterruptedException {
 
     RFileTester tester = new RFileTester();

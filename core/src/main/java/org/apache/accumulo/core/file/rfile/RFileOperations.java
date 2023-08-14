@@ -19,10 +19,12 @@
 package org.apache.accumulo.core.file.rfile;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 
+import org.apache.accumulo.core.classloader.ClassLoaderUtil;
 import org.apache.accumulo.core.client.sample.Sampler;
 import org.apache.accumulo.core.conf.AccumuloConfiguration;
 import org.apache.accumulo.core.conf.Property;
@@ -64,9 +66,20 @@ public class RFileOperations extends FileOperations {
         && IteratorUtil.IteratorScope.scan == options.getIteratorScope()) {
       var opt = options.getTableConfiguration().get(Property.TABLE_READER_SCAN);
       if (null != opt) {
-        if (opt.contains("SequentialRFileReader")) {
-          throw new IllegalArgumentException("class can't be loaded");
-          // return new SequentialRFileReader(cb);
+
+        try {
+          var clazz = ClassLoaderUtil.loadClass(opt, RFileReader.class);
+          return clazz.getConstructor(CachableBuilder.class).newInstance(cb);
+        } catch (ClassNotFoundException e) {
+          throw new RuntimeException(e);
+        } catch (InvocationTargetException e) {
+          throw new RuntimeException(e);
+        } catch (InstantiationException e) {
+          throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+          throw new RuntimeException(e);
+        } catch (NoSuchMethodException e) {
+          throw new RuntimeException(e);
         }
       }
     }
