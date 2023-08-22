@@ -22,6 +22,7 @@ import static org.apache.accumulo.core.file.blockfile.impl.CacheProvider.NULL_PR
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.accumulo.core.Constants;
@@ -29,6 +30,7 @@ import org.apache.accumulo.core.conf.AccumuloConfiguration;
 import org.apache.accumulo.core.conf.Property;
 import org.apache.accumulo.core.data.ByteSequence;
 import org.apache.accumulo.core.data.Range;
+import org.apache.accumulo.core.dataImpl.thrift.PushdownReaderRequest;
 import org.apache.accumulo.core.file.blockfile.impl.CacheProvider;
 import org.apache.accumulo.core.file.rfile.RFile;
 import org.apache.accumulo.core.iterators.IteratorUtil;
@@ -186,13 +188,14 @@ public abstract class FileOperations {
     public final boolean inclusive;
     public final boolean dropCacheBehind;
     private final IteratorUtil.IteratorScope iteratorScope;
+    private final PushdownReaderRequest readerRequest;
 
     public FileOptions(AccumuloConfiguration tableConfiguration, String filename, FileSystem fs,
         Configuration fsConf, RateLimiter rateLimiter, String compression,
         FSDataOutputStream outputStream, boolean enableAccumuloStart, CacheProvider cacheProvider,
         Cache<String,Long> fileLenCache, boolean seekToBeginning, CryptoService cryptoService,
         Range range, Set<ByteSequence> columnFamilies, boolean inclusive, boolean dropCacheBehind,
-        IteratorUtil.IteratorScope iteratorScope) {
+        IteratorUtil.IteratorScope iteratorScope, PushdownReaderRequest readerRequest) {
       this.tableConfiguration = tableConfiguration;
       this.filename = filename;
       this.iteratorScope = iteratorScope;
@@ -210,6 +213,7 @@ public abstract class FileOperations {
       this.columnFamilies = columnFamilies;
       this.inclusive = inclusive;
       this.dropCacheBehind = dropCacheBehind;
+      this.readerRequest = readerRequest;
     }
 
     public AccumuloConfiguration getTableConfiguration() {
@@ -275,6 +279,10 @@ public abstract class FileOperations {
     public IteratorUtil.IteratorScope getIteratorScope() {
       return this.iteratorScope;
     }
+
+    public Optional<PushdownReaderRequest> getReaderRequest() {
+      return this.readerRequest == null ? Optional.empty() : Optional.of(this.readerRequest);
+    }
   }
 
   /**
@@ -289,6 +297,8 @@ public abstract class FileOperations {
     private RateLimiter rateLimiter;
     private CryptoService cryptoService;
     private boolean dropCacheBehind = false;
+
+    protected PushdownReaderRequest readerRequest = null;
 
     protected FileHelper fs(FileSystem fs) {
       this.fs = Objects.requireNonNull(fs);
@@ -329,27 +339,28 @@ public abstract class FileOperations {
         FSDataOutputStream outputStream, boolean startEnabled) {
       return new FileOptions(tableConfiguration, filename, fs, fsConf, rateLimiter, compression,
           outputStream, startEnabled, NULL_PROVIDER, null, false, cryptoService, null, null, true,
-          dropCacheBehind, this.iteratorScope);
+          dropCacheBehind, this.iteratorScope, readerRequest);
     }
 
     protected FileOptions toReaderBuilderOptions(CacheProvider cacheProvider,
         Cache<String,Long> fileLenCache, boolean seekToBeginning) {
       return new FileOptions(tableConfiguration, filename, fs, fsConf, rateLimiter, null, null,
           false, cacheProvider == null ? NULL_PROVIDER : cacheProvider, fileLenCache,
-          seekToBeginning, cryptoService, null, null, true, dropCacheBehind, this.iteratorScope);
+          seekToBeginning, cryptoService, null, null, true, dropCacheBehind, this.iteratorScope,
+          readerRequest);
     }
 
     protected FileOptions toIndexReaderBuilderOptions(Cache<String,Long> fileLenCache) {
       return new FileOptions(tableConfiguration, filename, fs, fsConf, rateLimiter, null, null,
           false, NULL_PROVIDER, fileLenCache, false, cryptoService, null, null, true,
-          dropCacheBehind, this.iteratorScope);
+          dropCacheBehind, this.iteratorScope, readerRequest);
     }
 
     protected FileOptions toScanReaderBuilderOptions(Range range, Set<ByteSequence> columnFamilies,
         boolean inclusive) {
       return new FileOptions(tableConfiguration, filename, fs, fsConf, rateLimiter, null, null,
           false, NULL_PROVIDER, null, false, cryptoService, range, columnFamilies, inclusive,
-          dropCacheBehind, this.iteratorScope);
+          dropCacheBehind, this.iteratorScope, readerRequest);
     }
 
     protected AccumuloConfiguration getTableConfiguration() {
@@ -463,6 +474,11 @@ public abstract class FileOperations {
      */
     public ReaderBuilder seekToBeginning() {
       seekToBeginning(true);
+      return this;
+    }
+
+    public ReaderBuilder withReaderRequest(PushdownReaderRequest readerRequest) {
+      this.readerRequest = readerRequest;
       return this;
     }
 

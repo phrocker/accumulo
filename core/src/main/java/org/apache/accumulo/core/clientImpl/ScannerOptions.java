@@ -40,6 +40,7 @@ import org.apache.accumulo.core.client.ScannerBase;
 import org.apache.accumulo.core.client.sample.SamplerConfiguration;
 import org.apache.accumulo.core.data.Column;
 import org.apache.accumulo.core.data.Key;
+import org.apache.accumulo.core.data.PushdownConfiguration;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.dataImpl.thrift.IterInfo;
 import org.apache.accumulo.core.security.Authorizations;
@@ -66,6 +67,9 @@ public class ScannerOptions implements ScannerBase {
   protected Map<String,String> executionHints = Collections.emptyMap();
 
   private ConsistencyLevel consistencyLevel = ConsistencyLevel.IMMEDIATE;
+
+  private PushdownConfiguration pushdownConfiguration =
+      PushdownConfiguration.PushhDownConfigurationBuilder.empty();
 
   protected ScannerOptions() {}
 
@@ -285,6 +289,15 @@ public class ScannerOptions implements ScannerBase {
   @Override
   public void setConsistencyLevel(ConsistencyLevel level) {
     this.consistencyLevel = Objects.requireNonNull(level);
+  }
+
+  @Override
+  public void setPushdownConfiguration(PushdownConfiguration pushdownConfiguration) {
+    this.pushdownConfiguration = pushdownConfiguration;
+  }
+
+  public PushdownConfiguration getPushdownConfiguration() {
+    return this.pushdownConfiguration;
   }
 
 }

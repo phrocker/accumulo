@@ -75,6 +75,7 @@ import org.apache.accumulo.core.data.InstanceId;
 import org.apache.accumulo.core.data.KeyValue;
 import org.apache.accumulo.core.data.NamespaceId;
 import org.apache.accumulo.core.data.TableId;
+import org.apache.accumulo.core.dataImpl.thrift.PushdownReaderRequest;
 import org.apache.accumulo.core.fate.zookeeper.ServiceLock;
 import org.apache.accumulo.core.fate.zookeeper.ZooCache;
 import org.apache.accumulo.core.fate.zookeeper.ZooCache.ZcStat;
@@ -153,6 +154,8 @@ public class ClientContext implements AccumuloClient {
   private final ThreadPools clientThreadPools;
   private ThreadPoolExecutor cleanupThreadPool;
   private ThreadPoolExecutor scannerReadaheadPool;
+
+  private PushdownReaderRequest readerRequest = null;
 
   private void ensureOpen() {
     if (closed) {
@@ -249,6 +252,8 @@ public class ClientContext implements AccumuloClient {
         clientThreadPools = ThreadPools.getClientThreadPools(ueh);
       }
     }
+    // can be null or empty
+    this.readerRequest = new PushdownReaderRequest();
   }
 
   public Ample getAmple() {
@@ -894,6 +899,10 @@ public class ClientContext implements AccumuloClient {
       cleanupThreadPool.shutdown(); // wait for shutdown tasks to execute
     }
     singletonReservation.close();
+  }
+
+  public PushdownReaderRequest getReaderRequest() {
+    return this.readerRequest;
   }
 
   public static class ClientBuilderImpl<T>

@@ -97,11 +97,22 @@ public class SystemIteratorUtil {
 
   public static SortedKeyValueIterator<Key,Value> setupSystemScanIterators(
       SortedKeyValueIterator<Key,Value> source, Set<Column> cols, Authorizations auths,
-      byte[] defaultVisibility, AccumuloConfiguration conf) throws IOException {
+      byte[] defaultVisibility, AccumuloConfiguration conf,
+      PushdownReaderConfiguration readerConfiguration) throws IOException {
     SortedKeyValueIterator<Key,Value> delIter =
         DeletingIterator.wrap(source, false, DeletingIterator.getBehavior(conf));
-    ColumnFamilySkippingIterator cfsi = new ColumnFamilySkippingIterator(delIter);
-    SortedKeyValueIterator<Key,Value> colFilter = ColumnQualifierFilter.wrap(cfsi, cols);
-    return VisibilityFilter.wrap(colFilter, auths, defaultVisibility);
+    SortedKeyValueIterator<Key,Value> nextIter = delIter;
+    if (!readerConfiguration.isSkipcfSkippingIterator()) {
+      nextIter = new ColumnFamilySkippingIterator(delIter);
+    }
+    if (!readerConfiguration.isSkipCqSkippingIterator()) {
+      nextIter = ColumnQualifierFilter.wrap(nextIter, cols);
+    }
+
+    if (readerConfiguration.isSkipVisibilityFiltering()) {
+      return nextIter;
+    } else {
+      return VisibilityFilter.wrap(nextIter, auths, defaultVisibility);
+    }
   }
 }

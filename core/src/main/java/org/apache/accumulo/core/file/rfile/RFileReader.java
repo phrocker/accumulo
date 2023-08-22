@@ -43,6 +43,7 @@ import org.apache.accumulo.core.data.ByteSequence;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.core.dataImpl.thrift.PushdownReaderRequest;
 import org.apache.accumulo.core.file.FileSKVIterator;
 import org.apache.accumulo.core.file.NoSuchMetaStoreException;
 import org.apache.accumulo.core.file.blockfile.impl.CachableBlockFile;
@@ -333,6 +334,10 @@ public class RFileReader extends HeapIterator implements FileSKVIterator {
   public void init(SortedKeyValueIterator<Key,Value> source, Map<String,String> options,
       IteratorEnvironment env) {
     throw new UnsupportedOperationException();
+  }
+
+  public void configureReader(PushdownReaderRequest request) {
+    // do nothing
   }
 
   /**

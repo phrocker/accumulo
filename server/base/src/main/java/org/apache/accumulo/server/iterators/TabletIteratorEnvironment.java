@@ -159,7 +159,7 @@ public class TabletIteratorEnvironment implements SystemIteratorEnvironment {
   public SortedKeyValueIterator<Key,Value> reserveMapFileReader(String mapFileName)
       throws IOException {
     TabletFile ref = new TabletFile(new Path(mapFileName));
-    return trm.openFiles(Collections.singletonMap(ref, files.get(ref)), false, null).get(0);
+    return trm.openFiles(Collections.singletonMap(ref, files.get(ref)), false, null, null).get(0);
   }
 
   @Deprecated(since = "2.0.0")

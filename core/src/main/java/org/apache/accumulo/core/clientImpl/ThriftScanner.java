@@ -139,7 +139,7 @@ public class ThriftScanner {
             scanState.size, scanState.serverSideIteratorList, scanState.serverSideIteratorOptions,
             scanState.authorizations.getAuthorizationsBB(), waitForWrites, scanState.isolated,
             scanState.readaheadThreshold, null, scanState.batchTimeOut, classLoaderContext,
-            scanState.executionHints, 0L);
+            scanState.executionHints, 0L, null);
         if (waitForWrites) {
           serversWaitedForWrites.get(ttype).add(server);
         }
@@ -648,7 +648,8 @@ public class ThriftScanner {
             scanState.authorizations.getAuthorizationsBB(), waitForWrites, scanState.isolated,
             scanState.readaheadThreshold,
             SamplerConfigurationImpl.toThrift(scanState.samplerConfig), scanState.batchTimeOut,
-            scanState.classLoaderContext, scanState.executionHints, busyTimeout);
+            scanState.classLoaderContext, scanState.executionHints, busyTimeout,
+            context.getReaderRequest());
         if (waitForWrites) {
           serversWaitedForWrites.get(ttype).add(loc.tablet_location);
         }

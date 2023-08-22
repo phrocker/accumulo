@@ -93,6 +93,7 @@ public class TabletServerBatchReaderIterator implements Iterator<Entry<Key,Value
   private final ClientContext context;
   private final TableId tableId;
   private final String tableName;
+
   private Authorizations authorizations = Authorizations.EMPTY;
   private final int numThreads;
   private final ExecutorService queryThreadPool;
@@ -834,7 +835,8 @@ public class TabletServerBatchReaderIterator implements Iterator<Entry<Key,Value
             options.serverSideIteratorList, options.serverSideIteratorOptions,
             ByteBufferUtil.toByteBuffers(authorizations.getAuthorizations()), waitForWrites,
             SamplerConfigurationImpl.toThrift(options.getSamplerConfiguration()),
-            options.batchTimeout, options.classLoaderContext, execHints, busyTimeout);
+            options.batchTimeout, options.classLoaderContext, execHints, busyTimeout,
+            options.getPushdownConfiguration().toThrift());
         if (waitForWrites) {
           ThriftScanner.serversWaitedForWrites.get(ttype).add(server.toString());
         }

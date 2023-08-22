@@ -42,6 +42,7 @@ import org.apache.accumulo.core.dataImpl.thrift.InitialScan;
 import org.apache.accumulo.core.dataImpl.thrift.IterInfo;
 import org.apache.accumulo.core.dataImpl.thrift.MapFileInfo;
 import org.apache.accumulo.core.dataImpl.thrift.MultiScanResult;
+import org.apache.accumulo.core.dataImpl.thrift.PushdownReaderRequest;
 import org.apache.accumulo.core.dataImpl.thrift.ScanResult;
 import org.apache.accumulo.core.dataImpl.thrift.TCMResult;
 import org.apache.accumulo.core.dataImpl.thrift.TColumn;
@@ -151,7 +152,7 @@ public class NullTserver {
         Map<TKeyExtent,List<TRange>> batch, List<TColumn> columns, List<IterInfo> ssiList,
         Map<String,Map<String,String>> ssio, List<ByteBuffer> authorizations, boolean waitForWrites,
         TSamplerConfiguration tsc, long batchTimeOut, String context,
-        Map<String,String> executionHints, long busyTimeout) {
+        Map<String,String> executionHints, long busyTimeout, PushdownReaderRequest readerRequest) {
       return null;
     }
 
@@ -160,7 +161,8 @@ public class NullTserver {
         TRange range, List<TColumn> columns, int batchSize, List<IterInfo> ssiList,
         Map<String,Map<String,String>> ssio, List<ByteBuffer> authorizations, boolean waitForWrites,
         boolean isolated, long readaheadThreshold, TSamplerConfiguration tsc, long batchTimeOut,
-        String classLoaderContext, Map<String,String> executionHints, long busyTimeout) {
+        String classLoaderContext, Map<String,String> executionHints, long busyTimeout,
+        PushdownReaderRequest readerRequest) {
       return null;
     }
 

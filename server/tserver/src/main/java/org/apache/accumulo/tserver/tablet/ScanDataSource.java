@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.dataImpl.thrift.IterInfo;
+import org.apache.accumulo.core.file.rfile.RFileReader;
 import org.apache.accumulo.core.iterators.IteratorEnvironment;
 import org.apache.accumulo.core.iterators.IteratorUtil.IteratorScope;
 import org.apache.accumulo.core.iterators.SortedKeyValueIterator;
@@ -37,6 +38,7 @@ import org.apache.accumulo.core.iteratorsImpl.IteratorConfigUtil;
 import org.apache.accumulo.core.iteratorsImpl.system.InterruptibleIterator;
 import org.apache.accumulo.core.iteratorsImpl.system.IterationInterruptedException;
 import org.apache.accumulo.core.iteratorsImpl.system.MultiIterator;
+import org.apache.accumulo.core.iteratorsImpl.system.PushdownReaderConfiguration;
 import org.apache.accumulo.core.iteratorsImpl.system.SourceSwitchingIterator.DataSource;
 import org.apache.accumulo.core.iteratorsImpl.system.StatsIterator;
 import org.apache.accumulo.core.iteratorsImpl.system.SystemIteratorUtil;
@@ -166,8 +168,10 @@ class ScanDataSource implements DataSource {
       files = reservation.getSecond();
     }
 
-    Collection<InterruptibleIterator> mapfiles =
-        fileManager.openFiles(files, scanParams.isIsolated(), samplerConfig, IteratorScope.scan);
+    boolean canPushDown = !memIters.isEmpty();
+
+    Collection<InterruptibleIterator> mapfiles = fileManager.openFiles(files,
+        scanParams.isIsolated(), samplerConfig, IteratorScope.scan, scanParams.getReaderRequest());
 
     List.of(mapfiles, memIters).forEach(c -> c.forEach(ii -> ii.setInterruptFlag(interruptFlag)));
 
@@ -186,9 +190,11 @@ class ScanDataSource implements DataSource {
     statsIterator = new StatsIterator(multiIter, TabletServer.seekCount, tablet.getScannedCounter(),
         tablet.getScanMetrics().getScannedCounter());
 
-    SortedKeyValueIterator<Key,Value> visFilter =
-        SystemIteratorUtil.setupSystemScanIterators(statsIterator, scanParams.getColumnSet(),
-            scanParams.getAuthorizations(), defaultLabels, tablet.getTableConfiguration());
+    SortedKeyValueIterator<Key,
+        Value> visFilter = SystemIteratorUtil.setupSystemScanIterators(statsIterator,
+            scanParams.getColumnSet(), scanParams.getAuthorizations(), defaultLabels,
+            tablet.getTableConfiguration(),
+            PushdownReaderConfiguration.createReaderConfiguration(scanParams.getReaderRequest()));
 
     if (loadIters) {
       List<IterInfo> iterInfos;
@@ -234,6 +240,10 @@ class ScanDataSource implements DataSource {
     }
   }
 
+  private boolean canPushdownVisibilityFiltering(RFileReader readerRequest) {
+    return false;
+  }
+
   @Override
   public void close(boolean sawErrors) {
 
@@ -273,7 +283,7 @@ class ScanDataSource implements DataSource {
 
   public void reattachFileManager() throws IOException {
     if (fileManager != null) {
-      fileManager.reattach(scanParams.getSamplerConfigurationImpl());
+      fileManager.reattach(scanParams.getSamplerConfigurationImpl(), scanParams.getReaderRequest());
     }
   }
 

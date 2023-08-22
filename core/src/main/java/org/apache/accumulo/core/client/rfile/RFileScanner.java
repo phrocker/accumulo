@@ -58,6 +58,7 @@ import org.apache.accumulo.core.iterators.SortedKeyValueIterator;
 import org.apache.accumulo.core.iteratorsImpl.IteratorBuilder;
 import org.apache.accumulo.core.iteratorsImpl.IteratorConfigUtil;
 import org.apache.accumulo.core.iteratorsImpl.system.MultiIterator;
+import org.apache.accumulo.core.iteratorsImpl.system.PushdownReaderConfiguration;
 import org.apache.accumulo.core.iteratorsImpl.system.SystemIteratorUtil;
 import org.apache.accumulo.core.sample.impl.SamplerConfigurationImpl;
 import org.apache.accumulo.core.security.Authorizations;
@@ -373,7 +374,7 @@ class RFileScanner extends ScannerOptions implements Scanner {
         SortedSet<Column> cols = this.getFetchedColumns();
         families = LocalityGroupUtil.families(cols);
         iterator = SystemIteratorUtil.setupSystemScanIterators(iterator, cols, getAuthorizations(),
-            EMPTY_BYTES, tableConf);
+            EMPTY_BYTES, tableConf, PushdownReaderConfiguration.defaultConfiguration());
       }
 
       try {

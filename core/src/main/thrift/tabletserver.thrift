@@ -220,6 +220,7 @@ service TabletScanClientService {
     15:string classLoaderContext
     16:map<string, string> executionHints
     17:i64 busyTimeout
+    18:optional TReaderRequest reader;
   ) throws (
     1:client.ThriftSecurityException sec
     2:NotServingTabletException nste
@@ -261,6 +262,7 @@ service TabletScanClientService {
     11:string classLoaderContext
     12:map<string, string> executionHints
     13:i64 busyTimeout
+    14:optional TReaderRequest reader;
   ) throws (
     1:client.ThriftSecurityException sec
     2:TSampleNotPresentException tsnpe

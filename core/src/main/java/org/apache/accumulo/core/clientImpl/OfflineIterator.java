@@ -55,6 +55,7 @@ import org.apache.accumulo.core.iterators.IteratorUtil.IteratorScope;
 import org.apache.accumulo.core.iterators.SortedKeyValueIterator;
 import org.apache.accumulo.core.iteratorsImpl.IteratorConfigUtil;
 import org.apache.accumulo.core.iteratorsImpl.system.MultiIterator;
+import org.apache.accumulo.core.iteratorsImpl.system.PushdownReaderConfiguration;
 import org.apache.accumulo.core.iteratorsImpl.system.SystemIteratorUtil;
 import org.apache.accumulo.core.manager.state.tables.TableState;
 import org.apache.accumulo.core.metadata.StoredTabletFile;
@@ -330,9 +331,10 @@ class OfflineIterator implements Iterator<Entry<Key,Value>> {
         new ColumnVisibility(tableCC.get(Property.TABLE_DEFAULT_SCANTIME_VISIBILITY));
     defaultSecurityLabel = cv.getExpression();
 
-    SortedKeyValueIterator<Key,Value> visFilter =
-        SystemIteratorUtil.setupSystemScanIterators(multiIter,
-            new HashSet<>(options.fetchedColumns), authorizations, defaultSecurityLabel, tableCC);
+    SortedKeyValueIterator<Key,
+        Value> visFilter = SystemIteratorUtil.setupSystemScanIterators(multiIter,
+            new HashSet<>(options.fetchedColumns), authorizations, defaultSecurityLabel, tableCC,
+            PushdownReaderConfiguration.defaultConfiguration());
     var iteratorBuilderEnv = IteratorConfigUtil.loadIterConf(IteratorScope.scan,
         options.serverSideIteratorList, options.serverSideIteratorOptions, tableCC);
     var iteratorBuilder = iteratorBuilderEnv.env(iterEnv).build();

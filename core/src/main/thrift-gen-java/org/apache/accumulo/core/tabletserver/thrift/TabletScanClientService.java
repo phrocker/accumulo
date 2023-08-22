@@ -24,18 +24,21 @@
  */
 package org.apache.accumulo.core.tabletserver.thrift;
 
+
+import org.apache.accumulo.core.dataImpl.thrift.PushdownReaderRequest;
+
 @SuppressWarnings({"cast", "rawtypes", "serial", "unchecked", "unused"})
 public class TabletScanClientService {
 
   public interface Iface {
 
-    public org.apache.accumulo.core.dataImpl.thrift.InitialScan startScan(org.apache.accumulo.core.trace.thrift.TInfo tinfo, org.apache.accumulo.core.securityImpl.thrift.TCredentials credentials, org.apache.accumulo.core.dataImpl.thrift.TKeyExtent extent, org.apache.accumulo.core.dataImpl.thrift.TRange range, java.util.List<org.apache.accumulo.core.dataImpl.thrift.TColumn> columns, int batchSize, java.util.List<org.apache.accumulo.core.dataImpl.thrift.IterInfo> ssiList, java.util.Map<java.lang.String,java.util.Map<java.lang.String,java.lang.String>> ssio, java.util.List<java.nio.ByteBuffer> authorizations, boolean waitForWrites, boolean isolated, long readaheadThreshold, TSamplerConfiguration samplerConfig, long batchTimeOut, java.lang.String classLoaderContext, java.util.Map<java.lang.String,java.lang.String> executionHints, long busyTimeout) throws org.apache.accumulo.core.clientImpl.thrift.ThriftSecurityException, NotServingTabletException, TooManyFilesException, TSampleNotPresentException, ScanServerBusyException, org.apache.thrift.TException;
+    public org.apache.accumulo.core.dataImpl.thrift.InitialScan startScan(org.apache.accumulo.core.trace.thrift.TInfo tinfo, org.apache.accumulo.core.securityImpl.thrift.TCredentials credentials, org.apache.accumulo.core.dataImpl.thrift.TKeyExtent extent, org.apache.accumulo.core.dataImpl.thrift.TRange range, java.util.List<org.apache.accumulo.core.dataImpl.thrift.TColumn> columns, int batchSize, java.util.List<org.apache.accumulo.core.dataImpl.thrift.IterInfo> ssiList, java.util.Map<java.lang.String,java.util.Map<java.lang.String,java.lang.String>> ssio, java.util.List<java.nio.ByteBuffer> authorizations, boolean waitForWrites, boolean isolated, long readaheadThreshold, TSamplerConfiguration samplerConfig, long batchTimeOut, java.lang.String classLoaderContext, java.util.Map<java.lang.String,java.lang.String> executionHints, long busyTimeout, PushdownReaderRequest reader) throws org.apache.accumulo.core.clientImpl.thrift.ThriftSecurityException, NotServingTabletException, TooManyFilesException, TSampleNotPresentException, ScanServerBusyException, org.apache.thrift.TException;
 
     public org.apache.accumulo.core.dataImpl.thrift.ScanResult continueScan(org.apache.accumulo.core.trace.thrift.TInfo tinfo, long scanID, long busyTimeout) throws NoSuchScanIDException, NotServingTabletException, TooManyFilesException, TSampleNotPresentException, ScanServerBusyException, org.apache.thrift.TException;
 
     public void closeScan(org.apache.accumulo.core.trace.thrift.TInfo tinfo, long scanID) throws org.apache.thrift.TException;
 
-    public org.apache.accumulo.core.dataImpl.thrift.InitialMultiScan startMultiScan(org.apache.accumulo.core.trace.thrift.TInfo tinfo, org.apache.accumulo.core.securityImpl.thrift.TCredentials credentials, java.util.Map<org.apache.accumulo.core.dataImpl.thrift.TKeyExtent,java.util.List<org.apache.accumulo.core.dataImpl.thrift.TRange>> batch, java.util.List<org.apache.accumulo.core.dataImpl.thrift.TColumn> columns, java.util.List<org.apache.accumulo.core.dataImpl.thrift.IterInfo> ssiList, java.util.Map<java.lang.String,java.util.Map<java.lang.String,java.lang.String>> ssio, java.util.List<java.nio.ByteBuffer> authorizations, boolean waitForWrites, TSamplerConfiguration samplerConfig, long batchTimeOut, java.lang.String classLoaderContext, java.util.Map<java.lang.String,java.lang.String> executionHints, long busyTimeout) throws org.apache.accumulo.core.clientImpl.thrift.ThriftSecurityException, TSampleNotPresentException, ScanServerBusyException, org.apache.thrift.TException;
+    public org.apache.accumulo.core.dataImpl.thrift.InitialMultiScan startMultiScan(org.apache.accumulo.core.trace.thrift.TInfo tinfo, org.apache.accumulo.core.securityImpl.thrift.TCredentials credentials, java.util.Map<org.apache.accumulo.core.dataImpl.thrift.TKeyExtent,java.util.List<org.apache.accumulo.core.dataImpl.thrift.TRange>> batch, java.util.List<org.apache.accumulo.core.dataImpl.thrift.TColumn> columns, java.util.List<org.apache.accumulo.core.dataImpl.thrift.IterInfo> ssiList, java.util.Map<java.lang.String,java.util.Map<java.lang.String,java.lang.String>> ssio, java.util.List<java.nio.ByteBuffer> authorizations, boolean waitForWrites, TSamplerConfiguration samplerConfig, long batchTimeOut, java.lang.String classLoaderContext, java.util.Map<java.lang.String,java.lang.String> executionHints, long busyTimeout, PushdownReaderRequest reader) throws org.apache.accumulo.core.clientImpl.thrift.ThriftSecurityException, TSampleNotPresentException, ScanServerBusyException, org.apache.thrift.TException;
 
     public org.apache.accumulo.core.dataImpl.thrift.MultiScanResult continueMultiScan(org.apache.accumulo.core.trace.thrift.TInfo tinfo, long scanID, long busyTimeout) throws NoSuchScanIDException, TSampleNotPresentException, ScanServerBusyException, org.apache.thrift.TException;
 
@@ -47,13 +50,13 @@ public class TabletScanClientService {
 
   public interface AsyncIface {
 
-    public void startScan(org.apache.accumulo.core.trace.thrift.TInfo tinfo, org.apache.accumulo.core.securityImpl.thrift.TCredentials credentials, org.apache.accumulo.core.dataImpl.thrift.TKeyExtent extent, org.apache.accumulo.core.dataImpl.thrift.TRange range, java.util.List<org.apache.accumulo.core.dataImpl.thrift.TColumn> columns, int batchSize, java.util.List<org.apache.accumulo.core.dataImpl.thrift.IterInfo> ssiList, java.util.Map<java.lang.String,java.util.Map<java.lang.String,java.lang.String>> ssio, java.util.List<java.nio.ByteBuffer> authorizations, boolean waitForWrites, boolean isolated, long readaheadThreshold, TSamplerConfiguration samplerConfig, long batchTimeOut, java.lang.String classLoaderContext, java.util.Map<java.lang.String,java.lang.String> executionHints, long busyTimeout, org.apache.thrift.async.AsyncMethodCallback<org.apache.accumulo.core.dataImpl.thrift.InitialScan> resultHandler) throws org.apache.thrift.TException;
+    public void startScan(org.apache.accumulo.core.trace.thrift.TInfo tinfo, org.apache.accumulo.core.securityImpl.thrift.TCredentials credentials, org.apache.accumulo.core.dataImpl.thrift.TKeyExtent extent, org.apache.accumulo.core.dataImpl.thrift.TRange range, java.util.List<org.apache.accumulo.core.dataImpl.thrift.TColumn> columns, int batchSize, java.util.List<org.apache.accumulo.core.dataImpl.thrift.IterInfo> ssiList, java.util.Map<java.lang.String,java.util.Map<java.lang.String,java.lang.String>> ssio, java.util.List<java.nio.ByteBuffer> authorizations, boolean waitForWrites, boolean isolated, long readaheadThreshold, TSamplerConfiguration samplerConfig, long batchTimeOut, java.lang.String classLoaderContext, java.util.Map<java.lang.String,java.lang.String> executionHints, long busyTimeout, PushdownReaderRequest reader, org.apache.thrift.async.AsyncMethodCallback<org.apache.accumulo.core.dataImpl.thrift.InitialScan> resultHandler) throws org.apache.thrift.TException;
 
     public void continueScan(org.apache.accumulo.core.trace.thrift.TInfo tinfo, long scanID, long busyTimeout, org.apache.thrift.async.AsyncMethodCallback<org.apache.accumulo.core.dataImpl.thrift.ScanResult> resultHandler) throws org.apache.thrift.TException;
 
     public void closeScan(org.apache.accumulo.core.trace.thrift.TInfo tinfo, long scanID, org.apache.thrift.async.AsyncMethodCallback<Void> resultHandler) throws org.apache.thrift.TException;
 
-    public void startMultiScan(org.apache.accumulo.core.trace.thrift.TInfo tinfo, org.apache.accumulo.core.securityImpl.thrift.TCredentials credentials, java.util.Map<org.apache.accumulo.core.dataImpl.thrift.TKeyExtent,java.util.List<org.apache.accumulo.core.dataImpl.thrift.TRange>> batch, java.util.List<org.apache.accumulo.core.dataImpl.thrift.TColumn> columns, java.util.List<org.apache.accumulo.core.dataImpl.thrift.IterInfo> ssiList, java.util.Map<java.lang.String,java.util.Map<java.lang.String,java.lang.String>> ssio, java.util.List<java.nio.ByteBuffer> authorizations, boolean waitForWrites, TSamplerConfiguration samplerConfig, long batchTimeOut, java.lang.String classLoaderContext, java.util.Map<java.lang.String,java.lang.String> executionHints, long busyTimeout, org.apache.thrift.async.AsyncMethodCallback<org.apache.accumulo.core.dataImpl.thrift.InitialMultiScan> resultHandler) throws org.apache.thrift.TException;
+    public void startMultiScan(org.apache.accumulo.core.trace.thrift.TInfo tinfo, org.apache.accumulo.core.securityImpl.thrift.TCredentials credentials, java.util.Map<org.apache.accumulo.core.dataImpl.thrift.TKeyExtent,java.util.List<org.apache.accumulo.core.dataImpl.thrift.TRange>> batch, java.util.List<org.apache.accumulo.core.dataImpl.thrift.TColumn> columns, java.util.List<org.apache.accumulo.core.dataImpl.thrift.IterInfo> ssiList, java.util.Map<java.lang.String,java.util.Map<java.lang.String,java.lang.String>> ssio, java.util.List<java.nio.ByteBuffer> authorizations, boolean waitForWrites, TSamplerConfiguration samplerConfig, long batchTimeOut, java.lang.String classLoaderContext, java.util.Map<java.lang.String,java.lang.String> executionHints, long busyTimeout, PushdownReaderRequest reader, org.apache.thrift.async.AsyncMethodCallback<org.apache.accumulo.core.dataImpl.thrift.InitialMultiScan> resultHandler) throws org.apache.thrift.TException;
 
     public void continueMultiScan(org.apache.accumulo.core.trace.thrift.TInfo tinfo, long scanID, long busyTimeout, org.apache.thrift.async.AsyncMethodCallback<org.apache.accumulo.core.dataImpl.thrift.MultiScanResult> resultHandler) throws org.apache.thrift.TException;
 
@@ -86,13 +89,13 @@ public class TabletScanClientService {
     }
 
     @Override
-    public org.apache.accumulo.core.dataImpl.thrift.InitialScan startScan(org.apache.accumulo.core.trace.thrift.TInfo tinfo, org.apache.accumulo.core.securityImpl.thrift.TCredentials credentials, org.apache.accumulo.core.dataImpl.thrift.TKeyExtent extent, org.apache.accumulo.core.dataImpl.thrift.TRange range, java.util.List<org.apache.accumulo.core.dataImpl.thrift.TColumn> columns, int batchSize, java.util.List<org.apache.accumulo.core.dataImpl.thrift.IterInfo> ssiList, java.util.Map<java.lang.String,java.util.Map<java.lang.String,java.lang.String>> ssio, java.util.List<java.nio.ByteBuffer> authorizations, boolean waitForWrites, boolean isolated, long readaheadThreshold, TSamplerConfiguration samplerConfig, long batchTimeOut, java.lang.String classLoaderContext, java.util.Map<java.lang.String,java.lang.String> executionHints, long busyTimeout) throws org.apache.accumulo.core.clientImpl.thrift.ThriftSecurityException, NotServingTabletException, TooManyFilesException, TSampleNotPresentException, ScanServerBusyException, org.apache.thrift.TException
+    public org.apache.accumulo.core.dataImpl.thrift.InitialScan startScan(org.apache.accumulo.core.trace.thrift.TInfo tinfo, org.apache.accumulo.core.securityImpl.thrift.TCredentials credentials, org.apache.accumulo.core.dataImpl.thrift.TKeyExtent extent, org.apache.accumulo.core.dataImpl.thrift.TRange range, java.util.List<org.apache.accumulo.core.dataImpl.thrift.TColumn> columns, int batchSize, java.util.List<org.apache.accumulo.core.dataImpl.thrift.IterInfo> ssiList, java.util.Map<java.lang.String,java.util.Map<java.lang.String,java.lang.String>> ssio, java.util.List<java.nio.ByteBuffer> authorizations, boolean waitForWrites, boolean isolated, long readaheadThreshold, TSamplerConfiguration samplerConfig, long batchTimeOut, java.lang.String classLoaderContext, java.util.Map<java.lang.String,java.lang.String> executionHints, long busyTimeout, PushdownReaderRequest reader) throws org.apache.accumulo.core.clientImpl.thrift.ThriftSecurityException, NotServingTabletException, TooManyFilesException, TSampleNotPresentException, ScanServerBusyException, org.apache.thrift.TException
     {
-      send_startScan(tinfo, credentials, extent, range, columns, batchSize, ssiList, ssio, authorizations, waitForWrites, isolated, readaheadThreshold, samplerConfig, batchTimeOut, classLoaderContext, executionHints, busyTimeout);
+      send_startScan(tinfo, credentials, extent, range, columns, batchSize, ssiList, ssio, authorizations, waitForWrites, isolated, readaheadThreshold, samplerConfig, batchTimeOut, classLoaderContext, executionHints, busyTimeout, reader);
       return recv_startScan();
     }
 
-    public void send_startScan(org.apache.accumulo.core.trace.thrift.TInfo tinfo, org.apache.accumulo.core.securityImpl.thrift.TCredentials credentials, org.apache.accumulo.core.dataImpl.thrift.TKeyExtent extent, org.apache.accumulo.core.dataImpl.thrift.TRange range, java.util.List<org.apache.accumulo.core.dataImpl.thrift.TColumn> columns, int batchSize, java.util.List<org.apache.accumulo.core.dataImpl.thrift.IterInfo> ssiList, java.util.Map<java.lang.String,java.util.Map<java.lang.String,java.lang.String>> ssio, java.util.List<java.nio.ByteBuffer> authorizations, boolean waitForWrites, boolean isolated, long readaheadThreshold, TSamplerConfiguration samplerConfig, long batchTimeOut, java.lang.String classLoaderContext, java.util.Map<java.lang.String,java.lang.String> executionHints, long busyTimeout) throws org.apache.thrift.TException
+    public void send_startScan(org.apache.accumulo.core.trace.thrift.TInfo tinfo, org.apache.accumulo.core.securityImpl.thrift.TCredentials credentials, org.apache.accumulo.core.dataImpl.thrift.TKeyExtent extent, org.apache.accumulo.core.dataImpl.thrift.TRange range, java.util.List<org.apache.accumulo.core.dataImpl.thrift.TColumn> columns, int batchSize, java.util.List<org.apache.accumulo.core.dataImpl.thrift.IterInfo> ssiList, java.util.Map<java.lang.String,java.util.Map<java.lang.String,java.lang.String>> ssio, java.util.List<java.nio.ByteBuffer> authorizations, boolean waitForWrites, boolean isolated, long readaheadThreshold, TSamplerConfiguration samplerConfig, long batchTimeOut, java.lang.String classLoaderContext, java.util.Map<java.lang.String,java.lang.String> executionHints, long busyTimeout, PushdownReaderRequest reader) throws org.apache.thrift.TException
     {
       startScan_args args = new startScan_args();
       args.setTinfo(tinfo);
@@ -112,6 +115,7 @@ public class TabletScanClientService {
       args.setClassLoaderContext(classLoaderContext);
       args.setExecutionHints(executionHints);
       args.setBusyTimeout(busyTimeout);
+      args.setReader(reader);
       sendBase("startScan", args);
     }
 
@@ -196,13 +200,13 @@ public class TabletScanClientService {
     }
 
     @Override
-    public org.apache.accumulo.core.dataImpl.thrift.InitialMultiScan startMultiScan(org.apache.accumulo.core.trace.thrift.TInfo tinfo, org.apache.accumulo.core.securityImpl.thrift.TCredentials credentials, java.util.Map<org.apache.accumulo.core.dataImpl.thrift.TKeyExtent,java.util.List<org.apache.accumulo.core.dataImpl.thrift.TRange>> batch, java.util.List<org.apache.accumulo.core.dataImpl.thrift.TColumn> columns, java.util.List<org.apache.accumulo.core.dataImpl.thrift.IterInfo> ssiList, java.util.Map<java.lang.String,java.util.Map<java.lang.String,java.lang.String>> ssio, java.util.List<java.nio.ByteBuffer> authorizations, boolean waitForWrites, TSamplerConfiguration samplerConfig, long batchTimeOut, java.lang.String classLoaderContext, java.util.Map<java.lang.String,java.lang.String> executionHints, long busyTimeout) throws org.apache.accumulo.core.clientImpl.thrift.ThriftSecurityException, TSampleNotPresentException, ScanServerBusyException, org.apache.thrift.TException
+    public org.apache.accumulo.core.dataImpl.thrift.InitialMultiScan startMultiScan(org.apache.accumulo.core.trace.thrift.TInfo tinfo, org.apache.accumulo.core.securityImpl.thrift.TCredentials credentials, java.util.Map<org.apache.accumulo.core.dataImpl.thrift.TKeyExtent,java.util.List<org.apache.accumulo.core.dataImpl.thrift.TRange>> batch, java.util.List<org.apache.accumulo.core.dataImpl.thrift.TColumn> columns, java.util.List<org.apache.accumulo.core.dataImpl.thrift.IterInfo> ssiList, java.util.Map<java.lang.String,java.util.Map<java.lang.String,java.lang.String>> ssio, java.util.List<java.nio.ByteBuffer> authorizations, boolean waitForWrites, TSamplerConfiguration samplerConfig, long batchTimeOut, java.lang.String classLoaderContext, java.util.Map<java.lang.String,java.lang.String> executionHints, long busyTimeout, PushdownReaderRequest reader) throws org.apache.accumulo.core.clientImpl.thrift.ThriftSecurityException, TSampleNotPresentException, ScanServerBusyException, org.apache.thrift.TException
     {
-      send_startMultiScan(tinfo, credentials, batch, columns, ssiList, ssio, authorizations, waitForWrites, samplerConfig, batchTimeOut, classLoaderContext, executionHints, busyTimeout);
+      send_startMultiScan(tinfo, credentials, batch, columns, ssiList, ssio, authorizations, waitForWrites, samplerConfig, batchTimeOut, classLoaderContext, executionHints, busyTimeout, reader);
       return recv_startMultiScan();
     }
 
-    public void send_startMultiScan(org.apache.accumulo.core.trace.thrift.TInfo tinfo, org.apache.accumulo.core.securityImpl.thrift.TCredentials credentials, java.util.Map<org.apache.accumulo.core.dataImpl.thrift.TKeyExtent,java.util.List<org.apache.accumulo.core.dataImpl.thrift.TRange>> batch, java.util.List<org.apache.accumulo.core.dataImpl.thrift.TColumn> columns, java.util.List<org.apache.accumulo.core.dataImpl.thrift.IterInfo> ssiList, java.util.Map<java.lang.String,java.util.Map<java.lang.String,java.lang.String>> ssio, java.util.List<java.nio.ByteBuffer> authorizations, boolean waitForWrites, TSamplerConfiguration samplerConfig, long batchTimeOut, java.lang.String classLoaderContext, java.util.Map<java.lang.String,java.lang.String> executionHints, long busyTimeout) throws org.apache.thrift.TException
+    public void send_startMultiScan(org.apache.accumulo.core.trace.thrift.TInfo tinfo, org.apache.accumulo.core.securityImpl.thrift.TCredentials credentials, java.util.Map<org.apache.accumulo.core.dataImpl.thrift.TKeyExtent,java.util.List<org.apache.accumulo.core.dataImpl.thrift.TRange>> batch, java.util.List<org.apache.accumulo.core.dataImpl.thrift.TColumn> columns, java.util.List<org.apache.accumulo.core.dataImpl.thrift.IterInfo> ssiList, java.util.Map<java.lang.String,java.util.Map<java.lang.String,java.lang.String>> ssio, java.util.List<java.nio.ByteBuffer> authorizations, boolean waitForWrites, TSamplerConfiguration samplerConfig, long batchTimeOut, java.lang.String classLoaderContext, java.util.Map<java.lang.String,java.lang.String> executionHints, long busyTimeout, PushdownReaderRequest reader) throws org.apache.thrift.TException
     {
       startMultiScan_args args = new startMultiScan_args();
       args.setTinfo(tinfo);
@@ -218,6 +222,7 @@ public class TabletScanClientService {
       args.setClassLoaderContext(classLoaderContext);
       args.setExecutionHints(executionHints);
       args.setBusyTimeout(busyTimeout);
+      args.setReader(reader);
       sendBase("startMultiScan", args);
     }
 
@@ -348,9 +353,9 @@ public class TabletScanClientService {
     }
 
     @Override
-    public void startScan(org.apache.accumulo.core.trace.thrift.TInfo tinfo, org.apache.accumulo.core.securityImpl.thrift.TCredentials credentials, org.apache.accumulo.core.dataImpl.thrift.TKeyExtent extent, org.apache.accumulo.core.dataImpl.thrift.TRange range, java.util.List<org.apache.accumulo.core.dataImpl.thrift.TColumn> columns, int batchSize, java.util.List<org.apache.accumulo.core.dataImpl.thrift.IterInfo> ssiList, java.util.Map<java.lang.String,java.util.Map<java.lang.String,java.lang.String>> ssio, java.util.List<java.nio.ByteBuffer> authorizations, boolean waitForWrites, boolean isolated, long readaheadThreshold, TSamplerConfiguration samplerConfig, long batchTimeOut, java.lang.String classLoaderContext, java.util.Map<java.lang.String,java.lang.String> executionHints, long busyTimeout, org.apache.thrift.async.AsyncMethodCallback<org.apache.accumulo.core.dataImpl.thrift.InitialScan> resultHandler) throws org.apache.thrift.TException {
+    public void startScan(org.apache.accumulo.core.trace.thrift.TInfo tinfo, org.apache.accumulo.core.securityImpl.thrift.TCredentials credentials, org.apache.accumulo.core.dataImpl.thrift.TKeyExtent extent, org.apache.accumulo.core.dataImpl.thrift.TRange range, java.util.List<org.apache.accumulo.core.dataImpl.thrift.TColumn> columns, int batchSize, java.util.List<org.apache.accumulo.core.dataImpl.thrift.IterInfo> ssiList, java.util.Map<java.lang.String,java.util.Map<java.lang.String,java.lang.String>> ssio, java.util.List<java.nio.ByteBuffer> authorizations, boolean waitForWrites, boolean isolated, long readaheadThreshold, TSamplerConfiguration samplerConfig, long batchTimeOut, java.lang.String classLoaderContext, java.util.Map<java.lang.String,java.lang.String> executionHints, long busyTimeout, PushdownReaderRequest reader, org.apache.thrift.async.AsyncMethodCallback<org.apache.accumulo.core.dataImpl.thrift.InitialScan> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      startScan_call method_call = new startScan_call(tinfo, credentials, extent, range, columns, batchSize, ssiList, ssio, authorizations, waitForWrites, isolated, readaheadThreshold, samplerConfig, batchTimeOut, classLoaderContext, executionHints, busyTimeout, resultHandler, this, ___protocolFactory, ___transport);
+      startScan_call method_call = new startScan_call(tinfo, credentials, extent, range, columns, batchSize, ssiList, ssio, authorizations, waitForWrites, isolated, readaheadThreshold, samplerConfig, batchTimeOut, classLoaderContext, executionHints, busyTimeout, reader, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
@@ -373,7 +378,8 @@ public class TabletScanClientService {
       private java.lang.String classLoaderContext;
       private java.util.Map<java.lang.String,java.lang.String> executionHints;
       private long busyTimeout;
-      public startScan_call(org.apache.accumulo.core.trace.thrift.TInfo tinfo, org.apache.accumulo.core.securityImpl.thrift.TCredentials credentials, org.apache.accumulo.core.dataImpl.thrift.TKeyExtent extent, org.apache.accumulo.core.dataImpl.thrift.TRange range, java.util.List<org.apache.accumulo.core.dataImpl.thrift.TColumn> columns, int batchSize, java.util.List<org.apache.accumulo.core.dataImpl.thrift.IterInfo> ssiList, java.util.Map<java.lang.String,java.util.Map<java.lang.String,java.lang.String>> ssio, java.util.List<java.nio.ByteBuffer> authorizations, boolean waitForWrites, boolean isolated, long readaheadThreshold, TSamplerConfiguration samplerConfig, long batchTimeOut, java.lang.String classLoaderContext, java.util.Map<java.lang.String,java.lang.String> executionHints, long busyTimeout, org.apache.thrift.async.AsyncMethodCallback<org.apache.accumulo.core.dataImpl.thrift.InitialScan> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private PushdownReaderRequest reader;
+      public startScan_call(org.apache.accumulo.core.trace.thrift.TInfo tinfo, org.apache.accumulo.core.securityImpl.thrift.TCredentials credentials, org.apache.accumulo.core.dataImpl.thrift.TKeyExtent extent, org.apache.accumulo.core.dataImpl.thrift.TRange range, java.util.List<org.apache.accumulo.core.dataImpl.thrift.TColumn> columns, int batchSize, java.util.List<org.apache.accumulo.core.dataImpl.thrift.IterInfo> ssiList, java.util.Map<java.lang.String,java.util.Map<java.lang.String,java.lang.String>> ssio, java.util.List<java.nio.ByteBuffer> authorizations, boolean waitForWrites, boolean isolated, long readaheadThreshold, TSamplerConfiguration samplerConfig, long batchTimeOut, java.lang.String classLoaderContext, java.util.Map<java.lang.String,java.lang.String> executionHints, long busyTimeout, PushdownReaderRequest reader, org.apache.thrift.async.AsyncMethodCallback<org.apache.accumulo.core.dataImpl.thrift.InitialScan> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.tinfo = tinfo;
         this.credentials = credentials;
@@ -392,6 +398,7 @@ public class TabletScanClientService {
         this.classLoaderContext = classLoaderContext;
         this.executionHints = executionHints;
         this.busyTimeout = busyTimeout;
+        this.reader = reader;
       }
 
       @Override
@@ -415,6 +422,7 @@ public class TabletScanClientService {
         args.setClassLoaderContext(classLoaderContext);
         args.setExecutionHints(executionHints);
         args.setBusyTimeout(busyTimeout);
+        args.setReader(reader);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -510,9 +518,9 @@ public class TabletScanClientService {
     }
 
     @Override
-    public void startMultiScan(org.apache.accumulo.core.trace.thrift.TInfo tinfo, org.apache.accumulo.core.securityImpl.thrift.TCredentials credentials, java.util.Map<org.apache.accumulo.core.dataImpl.thrift.TKeyExtent,java.util.List<org.apache.accumulo.core.dataImpl.thrift.TRange>> batch, java.util.List<org.apache.accumulo.core.dataImpl.thrift.TColumn> columns, java.util.List<org.apache.accumulo.core.dataImpl.thrift.IterInfo> ssiList, java.util.Map<java.lang.String,java.util.Map<java.lang.String,java.lang.String>> ssio, java.util.List<java.nio.ByteBuffer> authorizations, boolean waitForWrites, TSamplerConfiguration samplerConfig, long batchTimeOut, java.lang.String classLoaderContext, java.util.Map<java.lang.String,java.lang.String> executionHints, long busyTimeout, org.apache.thrift.async.AsyncMethodCallback<org.apache.accumulo.core.dataImpl.thrift.InitialMultiScan> resultHandler) throws org.apache.thrift.TException {
+    public void startMultiScan(org.apache.accumulo.core.trace.thrift.TInfo tinfo, org.apache.accumulo.core.securityImpl.thrift.TCredentials credentials, java.util.Map<org.apache.accumulo.core.dataImpl.thrift.TKeyExtent,java.util.List<org.apache.accumulo.core.dataImpl.thrift.TRange>> batch, java.util.List<org.apache.accumulo.core.dataImpl.thrift.TColumn> columns, java.util.List<org.apache.accumulo.core.dataImpl.thrift.IterInfo> ssiList, java.util.Map<java.lang.String,java.util.Map<java.lang.String,java.lang.String>> ssio, java.util.List<java.nio.ByteBuffer> authorizations, boolean waitForWrites, TSamplerConfiguration samplerConfig, long batchTimeOut, java.lang.String classLoaderContext, java.util.Map<java.lang.String,java.lang.String> executionHints, long busyTimeout, PushdownReaderRequest reader, org.apache.thrift.async.AsyncMethodCallback<org.apache.accumulo.core.dataImpl.thrift.InitialMultiScan> resultHandler) throws org.apache.thrift.TException {
       checkReady();
-      startMultiScan_call method_call = new startMultiScan_call(tinfo, credentials, batch, columns, ssiList, ssio, authorizations, waitForWrites, samplerConfig, batchTimeOut, classLoaderContext, executionHints, busyTimeout, resultHandler, this, ___protocolFactory, ___transport);
+      startMultiScan_call method_call = new startMultiScan_call(tinfo, credentials, batch, columns, ssiList, ssio, authorizations, waitForWrites, samplerConfig, batchTimeOut, classLoaderContext, executionHints, busyTimeout, reader, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
       ___manager.call(method_call);
     }
@@ -531,7 +539,8 @@ public class TabletScanClientService {
       private java.lang.String classLoaderContext;
       private java.util.Map<java.lang.String,java.lang.String> executionHints;
       private long busyTimeout;
-      public startMultiScan_call(org.apache.accumulo.core.trace.thrift.TInfo tinfo, org.apache.accumulo.core.securityImpl.thrift.TCredentials credentials, java.util.Map<org.apache.accumulo.core.dataImpl.thrift.TKeyExtent,java.util.List<org.apache.accumulo.core.dataImpl.thrift.TRange>> batch, java.util.List<org.apache.accumulo.core.dataImpl.thrift.TColumn> columns, java.util.List<org.apache.accumulo.core.dataImpl.thrift.IterInfo> ssiList, java.util.Map<java.lang.String,java.util.Map<java.lang.String,java.lang.String>> ssio, java.util.List<java.nio.ByteBuffer> authorizations, boolean waitForWrites, TSamplerConfiguration samplerConfig, long batchTimeOut, java.lang.String classLoaderContext, java.util.Map<java.lang.String,java.lang.String> executionHints, long busyTimeout, org.apache.thrift.async.AsyncMethodCallback<org.apache.accumulo.core.dataImpl.thrift.InitialMultiScan> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private PushdownReaderRequest reader;
+      public startMultiScan_call(org.apache.accumulo.core.trace.thrift.TInfo tinfo, org.apache.accumulo.core.securityImpl.thrift.TCredentials credentials, java.util.Map<org.apache.accumulo.core.dataImpl.thrift.TKeyExtent,java.util.List<org.apache.accumulo.core.dataImpl.thrift.TRange>> batch, java.util.List<org.apache.accumulo.core.dataImpl.thrift.TColumn> columns, java.util.List<org.apache.accumulo.core.dataImpl.thrift.IterInfo> ssiList, java.util.Map<java.lang.String,java.util.Map<java.lang.String,java.lang.String>> ssio, java.util.List<java.nio.ByteBuffer> authorizations, boolean waitForWrites, TSamplerConfiguration samplerConfig, long batchTimeOut, java.lang.String classLoaderContext, java.util.Map<java.lang.String,java.lang.String> executionHints, long busyTimeout, PushdownReaderRequest reader, org.apache.thrift.async.AsyncMethodCallback<org.apache.accumulo.core.dataImpl.thrift.InitialMultiScan> resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.tinfo = tinfo;
         this.credentials = credentials;
@@ -546,6 +555,7 @@ public class TabletScanClientService {
         this.classLoaderContext = classLoaderContext;
         this.executionHints = executionHints;
         this.busyTimeout = busyTimeout;
+        this.reader = reader;
       }
 
       @Override
@@ -565,6 +575,7 @@ public class TabletScanClientService {
         args.setClassLoaderContext(classLoaderContext);
         args.setExecutionHints(executionHints);
         args.setBusyTimeout(busyTimeout);
+        args.setReader(reader);
         args.write(prot);
         prot.writeMessageEnd();
       }
@@ -745,7 +756,7 @@ public class TabletScanClientService {
       public startScan_result getResult(I iface, startScan_args args) throws org.apache.thrift.TException {
         startScan_result result = new startScan_result();
         try {
-          result.success = iface.startScan(args.tinfo, args.credentials, args.extent, args.range, args.columns, args.batchSize, args.ssiList, args.ssio, args.authorizations, args.waitForWrites, args.isolated, args.readaheadThreshold, args.samplerConfig, args.batchTimeOut, args.classLoaderContext, args.executionHints, args.busyTimeout);
+          result.success = iface.startScan(args.tinfo, args.credentials, args.extent, args.range, args.columns, args.batchSize, args.ssiList, args.ssio, args.authorizations, args.waitForWrites, args.isolated, args.readaheadThreshold, args.samplerConfig, args.batchTimeOut, args.classLoaderContext, args.executionHints, args.busyTimeout, args.reader);
         } catch (org.apache.accumulo.core.clientImpl.thrift.ThriftSecurityException sec) {
           result.sec = sec;
         } catch (NotServingTabletException nste) {
@@ -852,7 +863,7 @@ public class TabletScanClientService {
       public startMultiScan_result getResult(I iface, startMultiScan_args args) throws org.apache.thrift.TException {
         startMultiScan_result result = new startMultiScan_result();
         try {
-          result.success = iface.startMultiScan(args.tinfo, args.credentials, args.batch, args.columns, args.ssiList, args.ssio, args.authorizations, args.waitForWrites, args.samplerConfig, args.batchTimeOut, args.classLoaderContext, args.executionHints, args.busyTimeout);
+          result.success = iface.startMultiScan(args.tinfo, args.credentials, args.batch, args.columns, args.ssiList, args.ssio, args.authorizations, args.waitForWrites, args.samplerConfig, args.batchTimeOut, args.classLoaderContext, args.executionHints, args.busyTimeout, args.reader);
         } catch (org.apache.accumulo.core.clientImpl.thrift.ThriftSecurityException sec) {
           result.sec = sec;
         } catch (TSampleNotPresentException tsnpe) {
@@ -1070,7 +1081,7 @@ public class TabletScanClientService {
 
       @Override
       public void start(I iface, startScan_args args, org.apache.thrift.async.AsyncMethodCallback<org.apache.accumulo.core.dataImpl.thrift.InitialScan> resultHandler) throws org.apache.thrift.TException {
-        iface.startScan(args.tinfo, args.credentials, args.extent, args.range, args.columns, args.batchSize, args.ssiList, args.ssio, args.authorizations, args.waitForWrites, args.isolated, args.readaheadThreshold, args.samplerConfig, args.batchTimeOut, args.classLoaderContext, args.executionHints, args.busyTimeout,resultHandler);
+        iface.startScan(args.tinfo, args.credentials, args.extent, args.range, args.columns, args.batchSize, args.ssiList, args.ssio, args.authorizations, args.waitForWrites, args.isolated, args.readaheadThreshold, args.samplerConfig, args.batchTimeOut, args.classLoaderContext, args.executionHints, args.busyTimeout, args.reader,resultHandler);
       }
     }
 
@@ -1276,7 +1287,7 @@ public class TabletScanClientService {
 
       @Override
       public void start(I iface, startMultiScan_args args, org.apache.thrift.async.AsyncMethodCallback<org.apache.accumulo.core.dataImpl.thrift.InitialMultiScan> resultHandler) throws org.apache.thrift.TException {
-        iface.startMultiScan(args.tinfo, args.credentials, args.batch, args.columns, args.ssiList, args.ssio, args.authorizations, args.waitForWrites, args.samplerConfig, args.batchTimeOut, args.classLoaderContext, args.executionHints, args.busyTimeout,resultHandler);
+        iface.startMultiScan(args.tinfo, args.credentials, args.batch, args.columns, args.ssiList, args.ssio, args.authorizations, args.waitForWrites, args.samplerConfig, args.batchTimeOut, args.classLoaderContext, args.executionHints, args.busyTimeout, args.reader,resultHandler);
       }
     }
 
@@ -1523,6 +1534,7 @@ public class TabletScanClientService {
     private static final org.apache.thrift.protocol.TField CLASS_LOADER_CONTEXT_FIELD_DESC = new org.apache.thrift.protocol.TField("classLoaderContext", org.apache.thrift.protocol.TType.STRING, (short)15);
     private static final org.apache.thrift.protocol.TField EXECUTION_HINTS_FIELD_DESC = new org.apache.thrift.protocol.TField("executionHints", org.apache.thrift.protocol.TType.MAP, (short)16);
     private static final org.apache.thrift.protocol.TField BUSY_TIMEOUT_FIELD_DESC = new org.apache.thrift.protocol.TField("busyTimeout", org.apache.thrift.protocol.TType.I64, (short)17);
+    private static final org.apache.thrift.protocol.TField READER_FIELD_DESC = new org.apache.thrift.protocol.TField("reader", org.apache.thrift.protocol.TType.STRUCT, (short)18);
 
     private static final org.apache.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new startScan_argsStandardSchemeFactory();
     private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new startScan_argsTupleSchemeFactory();
@@ -1544,6 +1556,7 @@ public class TabletScanClientService {
     public @org.apache.thrift.annotation.Nullable java.lang.String classLoaderContext; // required
     public @org.apache.thrift.annotation.Nullable java.util.Map<java.lang.String,java.lang.String> executionHints; // required
     public long busyTimeout; // required
+    public @org.apache.thrift.annotation.Nullable PushdownReaderRequest reader; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -1563,7 +1576,8 @@ public class TabletScanClientService {
       BATCH_TIME_OUT((short)14, "batchTimeOut"),
       CLASS_LOADER_CONTEXT((short)15, "classLoaderContext"),
       EXECUTION_HINTS((short)16, "executionHints"),
-      BUSY_TIMEOUT((short)17, "busyTimeout");
+      BUSY_TIMEOUT((short)17, "busyTimeout"),
+      READER((short)18, "reader");
 
       private static final java.util.Map<java.lang.String, _Fields> byName = new java.util.HashMap<java.lang.String, _Fields>();
 
@@ -1613,6 +1627,8 @@ public class TabletScanClientService {
             return EXECUTION_HINTS;
           case 17: // BUSY_TIMEOUT
             return BUSY_TIMEOUT;
+          case 18: // READER
+            return READER;
           default:
             return null;
         }
@@ -1709,6 +1725,8 @@ public class TabletScanClientService {
               new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
       tmpMap.put(_Fields.BUSY_TIMEOUT, new org.apache.thrift.meta_data.FieldMetaData("busyTimeout", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      tmpMap.put(_Fields.READER, new org.apache.thrift.meta_data.FieldMetaData("reader", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, PushdownReaderRequest.class)));
       metaDataMap = java.util.Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(startScan_args.class, metaDataMap);
     }
@@ -1733,7 +1751,8 @@ public class TabletScanClientService {
       long batchTimeOut,
       java.lang.String classLoaderContext,
       java.util.Map<java.lang.String,java.lang.String> executionHints,
-      long busyTimeout)
+      long busyTimeout,
+      PushdownReaderRequest reader)
     {
       this();
       this.tinfo = tinfo;
@@ -1759,6 +1778,7 @@ public class TabletScanClientService {
       this.executionHints = executionHints;
       this.busyTimeout = busyTimeout;
       setBusyTimeoutIsSet(true);
+      this.reader = reader;
     }
 
     /**
@@ -1827,6 +1847,9 @@ public class TabletScanClientService {
         this.executionHints = __this__executionHints;
       }
       this.busyTimeout = other.busyTimeout;
+      if (other.isSetReader()) {
+        this.reader = new PushdownReaderRequest(other.reader);
+      }
     }
 
     @Override
@@ -1859,6 +1882,7 @@ public class TabletScanClientService {
       this.executionHints = null;
       setBusyTimeoutIsSet(false);
       this.busyTimeout = 0;
+      this.reader = null;
     }
 
     @org.apache.thrift.annotation.Nullable
@@ -2344,6 +2368,31 @@ public class TabletScanClientService {
       __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __BUSYTIMEOUT_ISSET_ID, value);
     }
 
+    @org.apache.thrift.annotation.Nullable
+    public PushdownReaderRequest getReader() {
+      return this.reader;
+    }
+
+    public startScan_args setReader(@org.apache.thrift.annotation.Nullable PushdownReaderRequest reader) {
+      this.reader = reader;
+      return this;
+    }
+
+    public void unsetReader() {
+      this.reader = null;
+    }
+
+    /** Returns true if field reader is set (has been assigned a value) and false otherwise */
+    public boolean isSetReader() {
+      return this.reader != null;
+    }
+
+    public void setReaderIsSet(boolean value) {
+      if (!value) {
+        this.reader = null;
+      }
+    }
+
     @Override
     public void setFieldValue(_Fields field, @org.apache.thrift.annotation.Nullable java.lang.Object value) {
       switch (field) {
@@ -2483,6 +2532,14 @@ public class TabletScanClientService {
         }
         break;
 
+      case READER:
+        if (value == null) {
+          unsetReader();
+        } else {
+          setReader((PushdownReaderRequest)value);
+        }
+        break;
+
       }
     }
 
@@ -2541,6 +2598,9 @@ public class TabletScanClientService {
       case BUSY_TIMEOUT:
         return getBusyTimeout();
 
+      case READER:
+        return getReader();
+
       }
       throw new java.lang.IllegalStateException();
     }
@@ -2587,6 +2647,8 @@ public class TabletScanClientService {
         return isSetExecutionHints();
       case BUSY_TIMEOUT:
         return isSetBusyTimeout();
+      case READER:
+        return isSetReader();
       }
       throw new java.lang.IllegalStateException();
     }
@@ -2757,6 +2819,15 @@ public class TabletScanClientService {
           return false;
       }
 
+      boolean this_present_reader = true && this.isSetReader();
+      boolean that_present_reader = true && that.isSetReader();
+      if (this_present_reader || that_present_reader) {
+        if (!(this_present_reader && that_present_reader))
+          return false;
+        if (!this.reader.equals(that.reader))
+          return false;
+      }
+
       return true;
     }
 
@@ -2819,6 +2890,10 @@ public class TabletScanClientService {
         hashCode = hashCode * 8191 + executionHints.hashCode();
 
       hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(busyTimeout);
+
+      hashCode = hashCode * 8191 + ((isSetReader()) ? 131071 : 524287);
+      if (isSetReader())
+        hashCode = hashCode * 8191 + reader.hashCode();
 
       return hashCode;
     }
@@ -3001,6 +3076,16 @@ public class TabletScanClientService {
           return lastComparison;
         }
       }
+      lastComparison = java.lang.Boolean.compare(isSetReader(), other.isSetReader());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetReader()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.reader, other.reader);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -3136,6 +3221,14 @@ public class TabletScanClientService {
       sb.append("busyTimeout:");
       sb.append(this.busyTimeout);
       first = false;
+      if (!first) sb.append(", ");
+      sb.append("reader:");
+      if (this.reader == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.reader);
+      }
+      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -3157,6 +3250,9 @@ public class TabletScanClientService {
       }
       if (samplerConfig != null) {
         samplerConfig.validate();
+      }
+      if (reader != null) {
+        reader.validate();
       }
     }
 
@@ -3237,14 +3333,14 @@ public class TabletScanClientService {
             case 4: // COLUMNS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list134 = iprot.readListBegin();
-                  struct.columns = new java.util.ArrayList<org.apache.accumulo.core.dataImpl.thrift.TColumn>(_list134.size);
-                  @org.apache.thrift.annotation.Nullable org.apache.accumulo.core.dataImpl.thrift.TColumn _elem135;
-                  for (int _i136 = 0; _i136 < _list134.size; ++_i136)
+                  org.apache.thrift.protocol.TList _list172 = iprot.readListBegin();
+                  struct.columns = new java.util.ArrayList<org.apache.accumulo.core.dataImpl.thrift.TColumn>(_list172.size);
+                  @org.apache.thrift.annotation.Nullable org.apache.accumulo.core.dataImpl.thrift.TColumn _elem173;
+                  for (int _i174 = 0; _i174 < _list172.size; ++_i174)
                   {
-                    _elem135 = new org.apache.accumulo.core.dataImpl.thrift.TColumn();
-                    _elem135.read(iprot);
-                    struct.columns.add(_elem135);
+                    _elem173 = new org.apache.accumulo.core.dataImpl.thrift.TColumn();
+                    _elem173.read(iprot);
+                    struct.columns.add(_elem173);
                   }
                   iprot.readListEnd();
                 }
@@ -3264,14 +3360,14 @@ public class TabletScanClientService {
             case 6: // SSI_LIST
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list137 = iprot.readListBegin();
-                  struct.ssiList = new java.util.ArrayList<org.apache.accumulo.core.dataImpl.thrift.IterInfo>(_list137.size);
-                  @org.apache.thrift.annotation.Nullable org.apache.accumulo.core.dataImpl.thrift.IterInfo _elem138;
-                  for (int _i139 = 0; _i139 < _list137.size; ++_i139)
+                  org.apache.thrift.protocol.TList _list175 = iprot.readListBegin();
+                  struct.ssiList = new java.util.ArrayList<org.apache.accumulo.core.dataImpl.thrift.IterInfo>(_list175.size);
+                  @org.apache.thrift.annotation.Nullable org.apache.accumulo.core.dataImpl.thrift.IterInfo _elem176;
+                  for (int _i177 = 0; _i177 < _list175.size; ++_i177)
                   {
-                    _elem138 = new org.apache.accumulo.core.dataImpl.thrift.IterInfo();
-                    _elem138.read(iprot);
-                    struct.ssiList.add(_elem138);
+                    _elem176 = new org.apache.accumulo.core.dataImpl.thrift.IterInfo();
+                    _elem176.read(iprot);
+                    struct.ssiList.add(_elem176);
                   }
                   iprot.readListEnd();
                 }
@@ -3283,27 +3379,27 @@ public class TabletScanClientService {
             case 7: // SSIO
               if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
                 {
-                  org.apache.thrift.protocol.TMap _map140 = iprot.readMapBegin();
-                  struct.ssio = new java.util.HashMap<java.lang.String,java.util.Map<java.lang.String,java.lang.String>>(2*_map140.size);
-                  @org.apache.thrift.annotation.Nullable java.lang.String _key141;
-                  @org.apache.thrift.annotation.Nullable java.util.Map<java.lang.String,java.lang.String> _val142;
-                  for (int _i143 = 0; _i143 < _map140.size; ++_i143)
+                  org.apache.thrift.protocol.TMap _map178 = iprot.readMapBegin();
+                  struct.ssio = new java.util.HashMap<java.lang.String,java.util.Map<java.lang.String,java.lang.String>>(2*_map178.size);
+                  @org.apache.thrift.annotation.Nullable java.lang.String _key179;
+                  @org.apache.thrift.annotation.Nullable java.util.Map<java.lang.String,java.lang.String> _val180;
+                  for (int _i181 = 0; _i181 < _map178.size; ++_i181)
                   {
-                    _key141 = iprot.readString();
+                    _key179 = iprot.readString();
                     {
-                      org.apache.thrift.protocol.TMap _map144 = iprot.readMapBegin();
-                      _val142 = new java.util.HashMap<java.lang.String,java.lang.String>(2*_map144.size);
-                      @org.apache.thrift.annotation.Nullable java.lang.String _key145;
-                      @org.apache.thrift.annotation.Nullable java.lang.String _val146;
-                      for (int _i147 = 0; _i147 < _map144.size; ++_i147)
+                      org.apache.thrift.protocol.TMap _map182 = iprot.readMapBegin();
+                      _val180 = new java.util.HashMap<java.lang.String,java.lang.String>(2*_map182.size);
+                      @org.apache.thrift.annotation.Nullable java.lang.String _key183;
+                      @org.apache.thrift.annotation.Nullable java.lang.String _val184;
+                      for (int _i185 = 0; _i185 < _map182.size; ++_i185)
                       {
-                        _key145 = iprot.readString();
-                        _val146 = iprot.readString();
-                        _val142.put(_key145, _val146);
+                        _key183 = iprot.readString();
+                        _val184 = iprot.readString();
+                        _val180.put(_key183, _val184);
                       }
                       iprot.readMapEnd();
                     }
-                    struct.ssio.put(_key141, _val142);
+                    struct.ssio.put(_key179, _val180);
                   }
                   iprot.readMapEnd();
                 }
@@ -3315,13 +3411,13 @@ public class TabletScanClientService {
             case 8: // AUTHORIZATIONS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list148 = iprot.readListBegin();
-                  struct.authorizations = new java.util.ArrayList<java.nio.ByteBuffer>(_list148.size);
-                  @org.apache.thrift.annotation.Nullable java.nio.ByteBuffer _elem149;
-                  for (int _i150 = 0; _i150 < _list148.size; ++_i150)
+                  org.apache.thrift.protocol.TList _list186 = iprot.readListBegin();
+                  struct.authorizations = new java.util.ArrayList<java.nio.ByteBuffer>(_list186.size);
+                  @org.apache.thrift.annotation.Nullable java.nio.ByteBuffer _elem187;
+                  for (int _i188 = 0; _i188 < _list186.size; ++_i188)
                   {
-                    _elem149 = iprot.readBinary();
-                    struct.authorizations.add(_elem149);
+                    _elem187 = iprot.readBinary();
+                    struct.authorizations.add(_elem187);
                   }
                   iprot.readListEnd();
                 }
@@ -3382,15 +3478,15 @@ public class TabletScanClientService {
             case 16: // EXECUTION_HINTS
               if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
                 {
-                  org.apache.thrift.protocol.TMap _map151 = iprot.readMapBegin();
-                  struct.executionHints = new java.util.HashMap<java.lang.String,java.lang.String>(2*_map151.size);
-                  @org.apache.thrift.annotation.Nullable java.lang.String _key152;
-                  @org.apache.thrift.annotation.Nullable java.lang.String _val153;
-                  for (int _i154 = 0; _i154 < _map151.size; ++_i154)
+                  org.apache.thrift.protocol.TMap _map189 = iprot.readMapBegin();
+                  struct.executionHints = new java.util.HashMap<java.lang.String,java.lang.String>(2*_map189.size);
+                  @org.apache.thrift.annotation.Nullable java.lang.String _key190;
+                  @org.apache.thrift.annotation.Nullable java.lang.String _val191;
+                  for (int _i192 = 0; _i192 < _map189.size; ++_i192)
                   {
-                    _key152 = iprot.readString();
-                    _val153 = iprot.readString();
-                    struct.executionHints.put(_key152, _val153);
+                    _key190 = iprot.readString();
+                    _val191 = iprot.readString();
+                    struct.executionHints.put(_key190, _val191);
                   }
                   iprot.readMapEnd();
                 }
@@ -3403,6 +3499,15 @@ public class TabletScanClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
                 struct.busyTimeout = iprot.readI64();
                 struct.setBusyTimeoutIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 18: // READER
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.reader = new PushdownReaderRequest();
+                struct.reader.read(iprot);
+                struct.setReaderIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -3442,9 +3547,9 @@ public class TabletScanClientService {
           oprot.writeFieldBegin(COLUMNS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.columns.size()));
-            for (org.apache.accumulo.core.dataImpl.thrift.TColumn _iter155 : struct.columns)
+            for (org.apache.accumulo.core.dataImpl.thrift.TColumn _iter193 : struct.columns)
             {
-              _iter155.write(oprot);
+              _iter193.write(oprot);
             }
             oprot.writeListEnd();
           }
@@ -3457,9 +3562,9 @@ public class TabletScanClientService {
           oprot.writeFieldBegin(SSI_LIST_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.ssiList.size()));
-            for (org.apache.accumulo.core.dataImpl.thrift.IterInfo _iter156 : struct.ssiList)
+            for (org.apache.accumulo.core.dataImpl.thrift.IterInfo _iter194 : struct.ssiList)
             {
-              _iter156.write(oprot);
+              _iter194.write(oprot);
             }
             oprot.writeListEnd();
           }
@@ -3469,15 +3574,15 @@ public class TabletScanClientService {
           oprot.writeFieldBegin(SSIO_FIELD_DESC);
           {
             oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.MAP, struct.ssio.size()));
-            for (java.util.Map.Entry<java.lang.String, java.util.Map<java.lang.String,java.lang.String>> _iter157 : struct.ssio.entrySet())
+            for (java.util.Map.Entry<java.lang.String, java.util.Map<java.lang.String,java.lang.String>> _iter195 : struct.ssio.entrySet())
             {
-              oprot.writeString(_iter157.getKey());
+              oprot.writeString(_iter195.getKey());
               {
-                oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, _iter157.getValue().size()));
-                for (java.util.Map.Entry<java.lang.String, java.lang.String> _iter158 : _iter157.getValue().entrySet())
+                oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, _iter195.getValue().size()));
+                for (java.util.Map.Entry<java.lang.String, java.lang.String> _iter196 : _iter195.getValue().entrySet())
                 {
-                  oprot.writeString(_iter158.getKey());
-                  oprot.writeString(_iter158.getValue());
+                  oprot.writeString(_iter196.getKey());
+                  oprot.writeString(_iter196.getValue());
                 }
                 oprot.writeMapEnd();
               }
@@ -3490,9 +3595,9 @@ public class TabletScanClientService {
           oprot.writeFieldBegin(AUTHORIZATIONS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.authorizations.size()));
-            for (java.nio.ByteBuffer _iter159 : struct.authorizations)
+            for (java.nio.ByteBuffer _iter197 : struct.authorizations)
             {
-              oprot.writeBinary(_iter159);
+              oprot.writeBinary(_iter197);
             }
             oprot.writeListEnd();
           }
@@ -3529,10 +3634,10 @@ public class TabletScanClientService {
           oprot.writeFieldBegin(EXECUTION_HINTS_FIELD_DESC);
           {
             oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, struct.executionHints.size()));
-            for (java.util.Map.Entry<java.lang.String, java.lang.String> _iter160 : struct.executionHints.entrySet())
+            for (java.util.Map.Entry<java.lang.String, java.lang.String> _iter198 : struct.executionHints.entrySet())
             {
-              oprot.writeString(_iter160.getKey());
-              oprot.writeString(_iter160.getValue());
+              oprot.writeString(_iter198.getKey());
+              oprot.writeString(_iter198.getValue());
             }
             oprot.writeMapEnd();
           }
@@ -3541,6 +3646,11 @@ public class TabletScanClientService {
         oprot.writeFieldBegin(BUSY_TIMEOUT_FIELD_DESC);
         oprot.writeI64(struct.busyTimeout);
         oprot.writeFieldEnd();
+        if (struct.reader != null) {
+          oprot.writeFieldBegin(READER_FIELD_DESC);
+          struct.reader.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -3611,7 +3721,10 @@ public class TabletScanClientService {
         if (struct.isSetBusyTimeout()) {
           optionals.set(16);
         }
-        oprot.writeBitSet(optionals, 17);
+        if (struct.isSetReader()) {
+          optionals.set(17);
+        }
+        oprot.writeBitSet(optionals, 18);
         if (struct.isSetTinfo()) {
           struct.tinfo.write(oprot);
         }
@@ -3627,9 +3740,9 @@ public class TabletScanClientService {
         if (struct.isSetColumns()) {
           {
             oprot.writeI32(struct.columns.size());
-            for (org.apache.accumulo.core.dataImpl.thrift.TColumn _iter161 : struct.columns)
+            for (org.apache.accumulo.core.dataImpl.thrift.TColumn _iter199 : struct.columns)
             {
-              _iter161.write(oprot);
+              _iter199.write(oprot);
             }
           }
         }
@@ -3639,24 +3752,24 @@ public class TabletScanClientService {
         if (struct.isSetSsiList()) {
           {
             oprot.writeI32(struct.ssiList.size());
-            for (org.apache.accumulo.core.dataImpl.thrift.IterInfo _iter162 : struct.ssiList)
+            for (org.apache.accumulo.core.dataImpl.thrift.IterInfo _iter200 : struct.ssiList)
             {
-              _iter162.write(oprot);
+              _iter200.write(oprot);
             }
           }
         }
         if (struct.isSetSsio()) {
           {
             oprot.writeI32(struct.ssio.size());
-            for (java.util.Map.Entry<java.lang.String, java.util.Map<java.lang.String,java.lang.String>> _iter163 : struct.ssio.entrySet())
+            for (java.util.Map.Entry<java.lang.String, java.util.Map<java.lang.String,java.lang.String>> _iter201 : struct.ssio.entrySet())
             {
-              oprot.writeString(_iter163.getKey());
+              oprot.writeString(_iter201.getKey());
               {
-                oprot.writeI32(_iter163.getValue().size());
-                for (java.util.Map.Entry<java.lang.String, java.lang.String> _iter164 : _iter163.getValue().entrySet())
+                oprot.writeI32(_iter201.getValue().size());
+                for (java.util.Map.Entry<java.lang.String, java.lang.String> _iter202 : _iter201.getValue().entrySet())
                 {
-                  oprot.writeString(_iter164.getKey());
-                  oprot.writeString(_iter164.getValue());
+                  oprot.writeString(_iter202.getKey());
+                  oprot.writeString(_iter202.getValue());
                 }
               }
             }
@@ -3665,9 +3778,9 @@ public class TabletScanClientService {
         if (struct.isSetAuthorizations()) {
           {
             oprot.writeI32(struct.authorizations.size());
-            for (java.nio.ByteBuffer _iter165 : struct.authorizations)
+            for (java.nio.ByteBuffer _iter203 : struct.authorizations)
             {
-              oprot.writeBinary(_iter165);
+              oprot.writeBinary(_iter203);
             }
           }
         }
@@ -3692,22 +3805,25 @@ public class TabletScanClientService {
         if (struct.isSetExecutionHints()) {
           {
             oprot.writeI32(struct.executionHints.size());
-            for (java.util.Map.Entry<java.lang.String, java.lang.String> _iter166 : struct.executionHints.entrySet())
+            for (java.util.Map.Entry<java.lang.String, java.lang.String> _iter204 : struct.executionHints.entrySet())
             {
-              oprot.writeString(_iter166.getKey());
-              oprot.writeString(_iter166.getValue());
+              oprot.writeString(_iter204.getKey());
+              oprot.writeString(_iter204.getValue());
             }
           }
         }
         if (struct.isSetBusyTimeout()) {
           oprot.writeI64(struct.busyTimeout);
         }
+        if (struct.isSetReader()) {
+          struct.reader.write(oprot);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, startScan_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TTupleProtocol iprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
-        java.util.BitSet incoming = iprot.readBitSet(17);
+        java.util.BitSet incoming = iprot.readBitSet(18);
         if (incoming.get(0)) {
           struct.tinfo = new org.apache.accumulo.core.trace.thrift.TInfo();
           struct.tinfo.read(iprot);
@@ -3730,14 +3846,14 @@ public class TabletScanClientService {
         }
         if (incoming.get(4)) {
           {
-            org.apache.thrift.protocol.TList _list167 = iprot.readListBegin(org.apache.thrift.protocol.TType.STRUCT);
-            struct.columns = new java.util.ArrayList<org.apache.accumulo.core.dataImpl.thrift.TColumn>(_list167.size);
-            @org.apache.thrift.annotation.Nullable org.apache.accumulo.core.dataImpl.thrift.TColumn _elem168;
-            for (int _i169 = 0; _i169 < _list167.size; ++_i169)
+            org.apache.thrift.protocol.TList _list205 = iprot.readListBegin(org.apache.thrift.protocol.TType.STRUCT);
+            struct.columns = new java.util.ArrayList<org.apache.accumulo.core.dataImpl.thrift.TColumn>(_list205.size);
+            @org.apache.thrift.annotation.Nullable org.apache.accumulo.core.dataImpl.thrift.TColumn _elem206;
+            for (int _i207 = 0; _i207 < _list205.size; ++_i207)
             {
-              _elem168 = new org.apache.accumulo.core.dataImpl.thrift.TColumn();
-              _elem168.read(iprot);
-              struct.columns.add(_elem168);
+              _elem206 = new org.apache.accumulo.core.dataImpl.thrift.TColumn();
+              _elem206.read(iprot);
+              struct.columns.add(_elem206);
             }
           }
           struct.setColumnsIsSet(true);
@@ -3748,53 +3864,53 @@ public class TabletScanClientService {
         }
         if (incoming.get(6)) {
           {
-            org.apache.thrift.protocol.TList _list170 = iprot.readListBegin(org.apache.thrift.protocol.TType.STRUCT);
-            struct.ssiList = new java.util.ArrayList<org.apache.accumulo.core.dataImpl.thrift.IterInfo>(_list170.size);
-            @org.apache.thrift.annotation.Nullable org.apache.accumulo.core.dataImpl.thrift.IterInfo _elem171;
-            for (int _i172 = 0; _i172 < _list170.size; ++_i172)
+            org.apache.thrift.protocol.TList _list208 = iprot.readListBegin(org.apache.thrift.protocol.TType.STRUCT);
+            struct.ssiList = new java.util.ArrayList<org.apache.accumulo.core.dataImpl.thrift.IterInfo>(_list208.size);
+            @org.apache.thrift.annotation.Nullable org.apache.accumulo.core.dataImpl.thrift.IterInfo _elem209;
+            for (int _i210 = 0; _i210 < _list208.size; ++_i210)
             {
-              _elem171 = new org.apache.accumulo.core.dataImpl.thrift.IterInfo();
-              _elem171.read(iprot);
-              struct.ssiList.add(_elem171);
+              _elem209 = new org.apache.accumulo.core.dataImpl.thrift.IterInfo();
+              _elem209.read(iprot);
+              struct.ssiList.add(_elem209);
             }
           }
           struct.setSsiListIsSet(true);
         }
         if (incoming.get(7)) {
           {
-            org.apache.thrift.protocol.TMap _map173 = iprot.readMapBegin(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.MAP); 
-            struct.ssio = new java.util.HashMap<java.lang.String,java.util.Map<java.lang.String,java.lang.String>>(2*_map173.size);
-            @org.apache.thrift.annotation.Nullable java.lang.String _key174;
-            @org.apache.thrift.annotation.Nullable java.util.Map<java.lang.String,java.lang.String> _val175;
-            for (int _i176 = 0; _i176 < _map173.size; ++_i176)
+            org.apache.thrift.protocol.TMap _map211 = iprot.readMapBegin(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.MAP); 
+            struct.ssio = new java.util.HashMap<java.lang.String,java.util.Map<java.lang.String,java.lang.String>>(2*_map211.size);
+            @org.apache.thrift.annotation.Nullable java.lang.String _key212;
+            @org.apache.thrift.annotation.Nullable java.util.Map<java.lang.String,java.lang.String> _val213;
+            for (int _i214 = 0; _i214 < _map211.size; ++_i214)
             {
-              _key174 = iprot.readString();
+              _key212 = iprot.readString();
               {
-                org.apache.thrift.protocol.TMap _map177 = iprot.readMapBegin(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING); 
-                _val175 = new java.util.HashMap<java.lang.String,java.lang.String>(2*_map177.size);
-                @org.apache.thrift.annotation.Nullable java.lang.String _key178;
-                @org.apache.thrift.annotation.Nullable java.lang.String _val179;
-                for (int _i180 = 0; _i180 < _map177.size; ++_i180)
+                org.apache.thrift.protocol.TMap _map215 = iprot.readMapBegin(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING); 
+                _val213 = new java.util.HashMap<java.lang.String,java.lang.String>(2*_map215.size);
+                @org.apache.thrift.annotation.Nullable java.lang.String _key216;
+                @org.apache.thrift.annotation.Nullable java.lang.String _val217;
+                for (int _i218 = 0; _i218 < _map215.size; ++_i218)
                 {
-                  _key178 = iprot.readString();
-                  _val179 = iprot.readString();
-                  _val175.put(_key178, _val179);
+                  _key216 = iprot.readString();
+                  _val217 = iprot.readString();
+                  _val213.put(_key216, _val217);
                 }
               }
-              struct.ssio.put(_key174, _val175);
+              struct.ssio.put(_key212, _val213);
             }
           }
           struct.setSsioIsSet(true);
         }
         if (incoming.get(8)) {
           {
-            org.apache.thrift.protocol.TList _list181 = iprot.readListBegin(org.apache.thrift.protocol.TType.STRING);
-            struct.authorizations = new java.util.ArrayList<java.nio.ByteBuffer>(_list181.size);
-            @org.apache.thrift.annotation.Nullable java.nio.ByteBuffer _elem182;
-            for (int _i183 = 0; _i183 < _list181.size; ++_i183)
+            org.apache.thrift.protocol.TList _list219 = iprot.readListBegin(org.apache.thrift.protocol.TType.STRING);
+            struct.authorizations = new java.util.ArrayList<java.nio.ByteBuffer>(_list219.size);
+            @org.apache.thrift.annotation.Nullable java.nio.ByteBuffer _elem220;
+            for (int _i221 = 0; _i221 < _list219.size; ++_i221)
             {
-              _elem182 = iprot.readBinary();
-              struct.authorizations.add(_elem182);
+              _elem220 = iprot.readBinary();
+              struct.authorizations.add(_elem220);
             }
           }
           struct.setAuthorizationsIsSet(true);
@@ -3826,15 +3942,15 @@ public class TabletScanClientService {
         }
         if (incoming.get(15)) {
           {
-            org.apache.thrift.protocol.TMap _map184 = iprot.readMapBegin(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING); 
-            struct.executionHints = new java.util.HashMap<java.lang.String,java.lang.String>(2*_map184.size);
-            @org.apache.thrift.annotation.Nullable java.lang.String _key185;
-            @org.apache.thrift.annotation.Nullable java.lang.String _val186;
-            for (int _i187 = 0; _i187 < _map184.size; ++_i187)
+            org.apache.thrift.protocol.TMap _map222 = iprot.readMapBegin(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING); 
+            struct.executionHints = new java.util.HashMap<java.lang.String,java.lang.String>(2*_map222.size);
+            @org.apache.thrift.annotation.Nullable java.lang.String _key223;
+            @org.apache.thrift.annotation.Nullable java.lang.String _val224;
+            for (int _i225 = 0; _i225 < _map222.size; ++_i225)
             {
-              _key185 = iprot.readString();
-              _val186 = iprot.readString();
-              struct.executionHints.put(_key185, _val186);
+              _key223 = iprot.readString();
+              _val224 = iprot.readString();
+              struct.executionHints.put(_key223, _val224);
             }
           }
           struct.setExecutionHintsIsSet(true);
@@ -3842,6 +3958,11 @@ public class TabletScanClientService {
         if (incoming.get(16)) {
           struct.busyTimeout = iprot.readI64();
           struct.setBusyTimeoutIsSet(true);
+        }
+        if (incoming.get(17)) {
+          struct.reader = new PushdownReaderRequest();
+          struct.reader.read(iprot);
+          struct.setReaderIsSet(true);
         }
       }
     }
@@ -6768,6 +6889,7 @@ public class TabletScanClientService {
     private static final org.apache.thrift.protocol.TField CLASS_LOADER_CONTEXT_FIELD_DESC = new org.apache.thrift.protocol.TField("classLoaderContext", org.apache.thrift.protocol.TType.STRING, (short)11);
     private static final org.apache.thrift.protocol.TField EXECUTION_HINTS_FIELD_DESC = new org.apache.thrift.protocol.TField("executionHints", org.apache.thrift.protocol.TType.MAP, (short)12);
     private static final org.apache.thrift.protocol.TField BUSY_TIMEOUT_FIELD_DESC = new org.apache.thrift.protocol.TField("busyTimeout", org.apache.thrift.protocol.TType.I64, (short)13);
+    private static final org.apache.thrift.protocol.TField READER_FIELD_DESC = new org.apache.thrift.protocol.TField("reader", org.apache.thrift.protocol.TType.STRUCT, (short)14);
 
     private static final org.apache.thrift.scheme.SchemeFactory STANDARD_SCHEME_FACTORY = new startMultiScan_argsStandardSchemeFactory();
     private static final org.apache.thrift.scheme.SchemeFactory TUPLE_SCHEME_FACTORY = new startMultiScan_argsTupleSchemeFactory();
@@ -6785,6 +6907,7 @@ public class TabletScanClientService {
     public @org.apache.thrift.annotation.Nullable java.lang.String classLoaderContext; // required
     public @org.apache.thrift.annotation.Nullable java.util.Map<java.lang.String,java.lang.String> executionHints; // required
     public long busyTimeout; // required
+    public @org.apache.thrift.annotation.Nullable PushdownReaderRequest reader; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -6800,7 +6923,8 @@ public class TabletScanClientService {
       BATCH_TIME_OUT((short)10, "batchTimeOut"),
       CLASS_LOADER_CONTEXT((short)11, "classLoaderContext"),
       EXECUTION_HINTS((short)12, "executionHints"),
-      BUSY_TIMEOUT((short)13, "busyTimeout");
+      BUSY_TIMEOUT((short)13, "busyTimeout"),
+      READER((short)14, "reader");
 
       private static final java.util.Map<java.lang.String, _Fields> byName = new java.util.HashMap<java.lang.String, _Fields>();
 
@@ -6842,6 +6966,8 @@ public class TabletScanClientService {
             return EXECUTION_HINTS;
           case 13: // BUSY_TIMEOUT
             return BUSY_TIMEOUT;
+          case 14: // READER
+            return READER;
           default:
             return null;
         }
@@ -6927,6 +7053,8 @@ public class TabletScanClientService {
               new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
       tmpMap.put(_Fields.BUSY_TIMEOUT, new org.apache.thrift.meta_data.FieldMetaData("busyTimeout", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
+      tmpMap.put(_Fields.READER, new org.apache.thrift.meta_data.FieldMetaData("reader", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, PushdownReaderRequest.class)));
       metaDataMap = java.util.Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(startMultiScan_args.class, metaDataMap);
     }
@@ -6947,7 +7075,8 @@ public class TabletScanClientService {
       long batchTimeOut,
       java.lang.String classLoaderContext,
       java.util.Map<java.lang.String,java.lang.String> executionHints,
-      long busyTimeout)
+      long busyTimeout,
+      PushdownReaderRequest reader)
     {
       this();
       this.tinfo = tinfo;
@@ -6966,6 +7095,7 @@ public class TabletScanClientService {
       this.executionHints = executionHints;
       this.busyTimeout = busyTimeout;
       setBusyTimeoutIsSet(true);
+      this.reader = reader;
     }
 
     /**
@@ -7043,6 +7173,9 @@ public class TabletScanClientService {
         this.executionHints = __this__executionHints;
       }
       this.busyTimeout = other.busyTimeout;
+      if (other.isSetReader()) {
+        this.reader = new PushdownReaderRequest(other.reader);
+      }
     }
 
     @Override
@@ -7068,6 +7201,7 @@ public class TabletScanClientService {
       this.executionHints = null;
       setBusyTimeoutIsSet(false);
       this.busyTimeout = 0;
+      this.reader = null;
     }
 
     @org.apache.thrift.annotation.Nullable
@@ -7470,6 +7604,31 @@ public class TabletScanClientService {
       __isset_bitfield = org.apache.thrift.EncodingUtils.setBit(__isset_bitfield, __BUSYTIMEOUT_ISSET_ID, value);
     }
 
+    @org.apache.thrift.annotation.Nullable
+    public PushdownReaderRequest getReader() {
+      return this.reader;
+    }
+
+    public startMultiScan_args setReader(@org.apache.thrift.annotation.Nullable PushdownReaderRequest reader) {
+      this.reader = reader;
+      return this;
+    }
+
+    public void unsetReader() {
+      this.reader = null;
+    }
+
+    /** Returns true if field reader is set (has been assigned a value) and false otherwise */
+    public boolean isSetReader() {
+      return this.reader != null;
+    }
+
+    public void setReaderIsSet(boolean value) {
+      if (!value) {
+        this.reader = null;
+      }
+    }
+
     @Override
     public void setFieldValue(_Fields field, @org.apache.thrift.annotation.Nullable java.lang.Object value) {
       switch (field) {
@@ -7577,6 +7736,14 @@ public class TabletScanClientService {
         }
         break;
 
+      case READER:
+        if (value == null) {
+          unsetReader();
+        } else {
+          setReader((PushdownReaderRequest)value);
+        }
+        break;
+
       }
     }
 
@@ -7623,6 +7790,9 @@ public class TabletScanClientService {
       case BUSY_TIMEOUT:
         return getBusyTimeout();
 
+      case READER:
+        return getReader();
+
       }
       throw new java.lang.IllegalStateException();
     }
@@ -7661,6 +7831,8 @@ public class TabletScanClientService {
         return isSetExecutionHints();
       case BUSY_TIMEOUT:
         return isSetBusyTimeout();
+      case READER:
+        return isSetReader();
       }
       throw new java.lang.IllegalStateException();
     }
@@ -7795,6 +7967,15 @@ public class TabletScanClientService {
           return false;
       }
 
+      boolean this_present_reader = true && this.isSetReader();
+      boolean that_present_reader = true && that.isSetReader();
+      if (this_present_reader || that_present_reader) {
+        if (!(this_present_reader && that_present_reader))
+          return false;
+        if (!this.reader.equals(that.reader))
+          return false;
+      }
+
       return true;
     }
 
@@ -7847,6 +8028,10 @@ public class TabletScanClientService {
         hashCode = hashCode * 8191 + executionHints.hashCode();
 
       hashCode = hashCode * 8191 + org.apache.thrift.TBaseHelper.hashCode(busyTimeout);
+
+      hashCode = hashCode * 8191 + ((isSetReader()) ? 131071 : 524287);
+      if (isSetReader())
+        hashCode = hashCode * 8191 + reader.hashCode();
 
       return hashCode;
     }
@@ -7989,6 +8174,16 @@ public class TabletScanClientService {
           return lastComparison;
         }
       }
+      lastComparison = java.lang.Boolean.compare(isSetReader(), other.isSetReader());
+      if (lastComparison != 0) {
+        return lastComparison;
+      }
+      if (isSetReader()) {
+        lastComparison = org.apache.thrift.TBaseHelper.compareTo(this.reader, other.reader);
+        if (lastComparison != 0) {
+          return lastComparison;
+        }
+      }
       return 0;
     }
 
@@ -8104,6 +8299,14 @@ public class TabletScanClientService {
       sb.append("busyTimeout:");
       sb.append(this.busyTimeout);
       first = false;
+      if (!first) sb.append(", ");
+      sb.append("reader:");
+      if (this.reader == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.reader);
+      }
+      first = false;
       sb.append(")");
       return sb.toString();
     }
@@ -8119,6 +8322,9 @@ public class TabletScanClientService {
       }
       if (samplerConfig != null) {
         samplerConfig.validate();
+      }
+      if (reader != null) {
+        reader.validate();
       }
     }
 
@@ -8181,27 +8387,27 @@ public class TabletScanClientService {
             case 2: // BATCH
               if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
                 {
-                  org.apache.thrift.protocol.TMap _map188 = iprot.readMapBegin();
-                  struct.batch = new java.util.HashMap<org.apache.accumulo.core.dataImpl.thrift.TKeyExtent,java.util.List<org.apache.accumulo.core.dataImpl.thrift.TRange>>(2*_map188.size);
-                  @org.apache.thrift.annotation.Nullable org.apache.accumulo.core.dataImpl.thrift.TKeyExtent _key189;
-                  @org.apache.thrift.annotation.Nullable java.util.List<org.apache.accumulo.core.dataImpl.thrift.TRange> _val190;
-                  for (int _i191 = 0; _i191 < _map188.size; ++_i191)
+                  org.apache.thrift.protocol.TMap _map226 = iprot.readMapBegin();
+                  struct.batch = new java.util.HashMap<org.apache.accumulo.core.dataImpl.thrift.TKeyExtent,java.util.List<org.apache.accumulo.core.dataImpl.thrift.TRange>>(2*_map226.size);
+                  @org.apache.thrift.annotation.Nullable org.apache.accumulo.core.dataImpl.thrift.TKeyExtent _key227;
+                  @org.apache.thrift.annotation.Nullable java.util.List<org.apache.accumulo.core.dataImpl.thrift.TRange> _val228;
+                  for (int _i229 = 0; _i229 < _map226.size; ++_i229)
                   {
-                    _key189 = new org.apache.accumulo.core.dataImpl.thrift.TKeyExtent();
-                    _key189.read(iprot);
+                    _key227 = new org.apache.accumulo.core.dataImpl.thrift.TKeyExtent();
+                    _key227.read(iprot);
                     {
-                      org.apache.thrift.protocol.TList _list192 = iprot.readListBegin();
-                      _val190 = new java.util.ArrayList<org.apache.accumulo.core.dataImpl.thrift.TRange>(_list192.size);
-                      @org.apache.thrift.annotation.Nullable org.apache.accumulo.core.dataImpl.thrift.TRange _elem193;
-                      for (int _i194 = 0; _i194 < _list192.size; ++_i194)
+                      org.apache.thrift.protocol.TList _list230 = iprot.readListBegin();
+                      _val228 = new java.util.ArrayList<org.apache.accumulo.core.dataImpl.thrift.TRange>(_list230.size);
+                      @org.apache.thrift.annotation.Nullable org.apache.accumulo.core.dataImpl.thrift.TRange _elem231;
+                      for (int _i232 = 0; _i232 < _list230.size; ++_i232)
                       {
-                        _elem193 = new org.apache.accumulo.core.dataImpl.thrift.TRange();
-                        _elem193.read(iprot);
-                        _val190.add(_elem193);
+                        _elem231 = new org.apache.accumulo.core.dataImpl.thrift.TRange();
+                        _elem231.read(iprot);
+                        _val228.add(_elem231);
                       }
                       iprot.readListEnd();
                     }
-                    struct.batch.put(_key189, _val190);
+                    struct.batch.put(_key227, _val228);
                   }
                   iprot.readMapEnd();
                 }
@@ -8213,14 +8419,14 @@ public class TabletScanClientService {
             case 3: // COLUMNS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list195 = iprot.readListBegin();
-                  struct.columns = new java.util.ArrayList<org.apache.accumulo.core.dataImpl.thrift.TColumn>(_list195.size);
-                  @org.apache.thrift.annotation.Nullable org.apache.accumulo.core.dataImpl.thrift.TColumn _elem196;
-                  for (int _i197 = 0; _i197 < _list195.size; ++_i197)
+                  org.apache.thrift.protocol.TList _list233 = iprot.readListBegin();
+                  struct.columns = new java.util.ArrayList<org.apache.accumulo.core.dataImpl.thrift.TColumn>(_list233.size);
+                  @org.apache.thrift.annotation.Nullable org.apache.accumulo.core.dataImpl.thrift.TColumn _elem234;
+                  for (int _i235 = 0; _i235 < _list233.size; ++_i235)
                   {
-                    _elem196 = new org.apache.accumulo.core.dataImpl.thrift.TColumn();
-                    _elem196.read(iprot);
-                    struct.columns.add(_elem196);
+                    _elem234 = new org.apache.accumulo.core.dataImpl.thrift.TColumn();
+                    _elem234.read(iprot);
+                    struct.columns.add(_elem234);
                   }
                   iprot.readListEnd();
                 }
@@ -8232,14 +8438,14 @@ public class TabletScanClientService {
             case 4: // SSI_LIST
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list198 = iprot.readListBegin();
-                  struct.ssiList = new java.util.ArrayList<org.apache.accumulo.core.dataImpl.thrift.IterInfo>(_list198.size);
-                  @org.apache.thrift.annotation.Nullable org.apache.accumulo.core.dataImpl.thrift.IterInfo _elem199;
-                  for (int _i200 = 0; _i200 < _list198.size; ++_i200)
+                  org.apache.thrift.protocol.TList _list236 = iprot.readListBegin();
+                  struct.ssiList = new java.util.ArrayList<org.apache.accumulo.core.dataImpl.thrift.IterInfo>(_list236.size);
+                  @org.apache.thrift.annotation.Nullable org.apache.accumulo.core.dataImpl.thrift.IterInfo _elem237;
+                  for (int _i238 = 0; _i238 < _list236.size; ++_i238)
                   {
-                    _elem199 = new org.apache.accumulo.core.dataImpl.thrift.IterInfo();
-                    _elem199.read(iprot);
-                    struct.ssiList.add(_elem199);
+                    _elem237 = new org.apache.accumulo.core.dataImpl.thrift.IterInfo();
+                    _elem237.read(iprot);
+                    struct.ssiList.add(_elem237);
                   }
                   iprot.readListEnd();
                 }
@@ -8251,27 +8457,27 @@ public class TabletScanClientService {
             case 5: // SSIO
               if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
                 {
-                  org.apache.thrift.protocol.TMap _map201 = iprot.readMapBegin();
-                  struct.ssio = new java.util.HashMap<java.lang.String,java.util.Map<java.lang.String,java.lang.String>>(2*_map201.size);
-                  @org.apache.thrift.annotation.Nullable java.lang.String _key202;
-                  @org.apache.thrift.annotation.Nullable java.util.Map<java.lang.String,java.lang.String> _val203;
-                  for (int _i204 = 0; _i204 < _map201.size; ++_i204)
+                  org.apache.thrift.protocol.TMap _map239 = iprot.readMapBegin();
+                  struct.ssio = new java.util.HashMap<java.lang.String,java.util.Map<java.lang.String,java.lang.String>>(2*_map239.size);
+                  @org.apache.thrift.annotation.Nullable java.lang.String _key240;
+                  @org.apache.thrift.annotation.Nullable java.util.Map<java.lang.String,java.lang.String> _val241;
+                  for (int _i242 = 0; _i242 < _map239.size; ++_i242)
                   {
-                    _key202 = iprot.readString();
+                    _key240 = iprot.readString();
                     {
-                      org.apache.thrift.protocol.TMap _map205 = iprot.readMapBegin();
-                      _val203 = new java.util.HashMap<java.lang.String,java.lang.String>(2*_map205.size);
-                      @org.apache.thrift.annotation.Nullable java.lang.String _key206;
-                      @org.apache.thrift.annotation.Nullable java.lang.String _val207;
-                      for (int _i208 = 0; _i208 < _map205.size; ++_i208)
+                      org.apache.thrift.protocol.TMap _map243 = iprot.readMapBegin();
+                      _val241 = new java.util.HashMap<java.lang.String,java.lang.String>(2*_map243.size);
+                      @org.apache.thrift.annotation.Nullable java.lang.String _key244;
+                      @org.apache.thrift.annotation.Nullable java.lang.String _val245;
+                      for (int _i246 = 0; _i246 < _map243.size; ++_i246)
                       {
-                        _key206 = iprot.readString();
-                        _val207 = iprot.readString();
-                        _val203.put(_key206, _val207);
+                        _key244 = iprot.readString();
+                        _val245 = iprot.readString();
+                        _val241.put(_key244, _val245);
                       }
                       iprot.readMapEnd();
                     }
-                    struct.ssio.put(_key202, _val203);
+                    struct.ssio.put(_key240, _val241);
                   }
                   iprot.readMapEnd();
                 }
@@ -8283,13 +8489,13 @@ public class TabletScanClientService {
             case 6: // AUTHORIZATIONS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list209 = iprot.readListBegin();
-                  struct.authorizations = new java.util.ArrayList<java.nio.ByteBuffer>(_list209.size);
-                  @org.apache.thrift.annotation.Nullable java.nio.ByteBuffer _elem210;
-                  for (int _i211 = 0; _i211 < _list209.size; ++_i211)
+                  org.apache.thrift.protocol.TList _list247 = iprot.readListBegin();
+                  struct.authorizations = new java.util.ArrayList<java.nio.ByteBuffer>(_list247.size);
+                  @org.apache.thrift.annotation.Nullable java.nio.ByteBuffer _elem248;
+                  for (int _i249 = 0; _i249 < _list247.size; ++_i249)
                   {
-                    _elem210 = iprot.readBinary();
-                    struct.authorizations.add(_elem210);
+                    _elem248 = iprot.readBinary();
+                    struct.authorizations.add(_elem248);
                   }
                   iprot.readListEnd();
                 }
@@ -8334,15 +8540,15 @@ public class TabletScanClientService {
             case 12: // EXECUTION_HINTS
               if (schemeField.type == org.apache.thrift.protocol.TType.MAP) {
                 {
-                  org.apache.thrift.protocol.TMap _map212 = iprot.readMapBegin();
-                  struct.executionHints = new java.util.HashMap<java.lang.String,java.lang.String>(2*_map212.size);
-                  @org.apache.thrift.annotation.Nullable java.lang.String _key213;
-                  @org.apache.thrift.annotation.Nullable java.lang.String _val214;
-                  for (int _i215 = 0; _i215 < _map212.size; ++_i215)
+                  org.apache.thrift.protocol.TMap _map250 = iprot.readMapBegin();
+                  struct.executionHints = new java.util.HashMap<java.lang.String,java.lang.String>(2*_map250.size);
+                  @org.apache.thrift.annotation.Nullable java.lang.String _key251;
+                  @org.apache.thrift.annotation.Nullable java.lang.String _val252;
+                  for (int _i253 = 0; _i253 < _map250.size; ++_i253)
                   {
-                    _key213 = iprot.readString();
-                    _val214 = iprot.readString();
-                    struct.executionHints.put(_key213, _val214);
+                    _key251 = iprot.readString();
+                    _val252 = iprot.readString();
+                    struct.executionHints.put(_key251, _val252);
                   }
                   iprot.readMapEnd();
                 }
@@ -8355,6 +8561,15 @@ public class TabletScanClientService {
               if (schemeField.type == org.apache.thrift.protocol.TType.I64) {
                 struct.busyTimeout = iprot.readI64();
                 struct.setBusyTimeoutIsSet(true);
+              } else { 
+                org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
+              }
+              break;
+            case 14: // READER
+              if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
+                struct.reader = new PushdownReaderRequest();
+                struct.reader.read(iprot);
+                struct.setReaderIsSet(true);
               } else { 
                 org.apache.thrift.protocol.TProtocolUtil.skip(iprot, schemeField.type);
               }
@@ -8384,14 +8599,14 @@ public class TabletScanClientService {
           oprot.writeFieldBegin(BATCH_FIELD_DESC);
           {
             oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRUCT, org.apache.thrift.protocol.TType.LIST, struct.batch.size()));
-            for (java.util.Map.Entry<org.apache.accumulo.core.dataImpl.thrift.TKeyExtent, java.util.List<org.apache.accumulo.core.dataImpl.thrift.TRange>> _iter216 : struct.batch.entrySet())
+            for (java.util.Map.Entry<org.apache.accumulo.core.dataImpl.thrift.TKeyExtent, java.util.List<org.apache.accumulo.core.dataImpl.thrift.TRange>> _iter254 : struct.batch.entrySet())
             {
-              _iter216.getKey().write(oprot);
+              _iter254.getKey().write(oprot);
               {
-                oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, _iter216.getValue().size()));
-                for (org.apache.accumulo.core.dataImpl.thrift.TRange _iter217 : _iter216.getValue())
+                oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, _iter254.getValue().size()));
+                for (org.apache.accumulo.core.dataImpl.thrift.TRange _iter255 : _iter254.getValue())
                 {
-                  _iter217.write(oprot);
+                  _iter255.write(oprot);
                 }
                 oprot.writeListEnd();
               }
@@ -8404,9 +8619,9 @@ public class TabletScanClientService {
           oprot.writeFieldBegin(COLUMNS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.columns.size()));
-            for (org.apache.accumulo.core.dataImpl.thrift.TColumn _iter218 : struct.columns)
+            for (org.apache.accumulo.core.dataImpl.thrift.TColumn _iter256 : struct.columns)
             {
-              _iter218.write(oprot);
+              _iter256.write(oprot);
             }
             oprot.writeListEnd();
           }
@@ -8416,9 +8631,9 @@ public class TabletScanClientService {
           oprot.writeFieldBegin(SSI_LIST_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.ssiList.size()));
-            for (org.apache.accumulo.core.dataImpl.thrift.IterInfo _iter219 : struct.ssiList)
+            for (org.apache.accumulo.core.dataImpl.thrift.IterInfo _iter257 : struct.ssiList)
             {
-              _iter219.write(oprot);
+              _iter257.write(oprot);
             }
             oprot.writeListEnd();
           }
@@ -8428,15 +8643,15 @@ public class TabletScanClientService {
           oprot.writeFieldBegin(SSIO_FIELD_DESC);
           {
             oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.MAP, struct.ssio.size()));
-            for (java.util.Map.Entry<java.lang.String, java.util.Map<java.lang.String,java.lang.String>> _iter220 : struct.ssio.entrySet())
+            for (java.util.Map.Entry<java.lang.String, java.util.Map<java.lang.String,java.lang.String>> _iter258 : struct.ssio.entrySet())
             {
-              oprot.writeString(_iter220.getKey());
+              oprot.writeString(_iter258.getKey());
               {
-                oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, _iter220.getValue().size()));
-                for (java.util.Map.Entry<java.lang.String, java.lang.String> _iter221 : _iter220.getValue().entrySet())
+                oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, _iter258.getValue().size()));
+                for (java.util.Map.Entry<java.lang.String, java.lang.String> _iter259 : _iter258.getValue().entrySet())
                 {
-                  oprot.writeString(_iter221.getKey());
-                  oprot.writeString(_iter221.getValue());
+                  oprot.writeString(_iter259.getKey());
+                  oprot.writeString(_iter259.getValue());
                 }
                 oprot.writeMapEnd();
               }
@@ -8449,9 +8664,9 @@ public class TabletScanClientService {
           oprot.writeFieldBegin(AUTHORIZATIONS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRING, struct.authorizations.size()));
-            for (java.nio.ByteBuffer _iter222 : struct.authorizations)
+            for (java.nio.ByteBuffer _iter260 : struct.authorizations)
             {
-              oprot.writeBinary(_iter222);
+              oprot.writeBinary(_iter260);
             }
             oprot.writeListEnd();
           }
@@ -8482,10 +8697,10 @@ public class TabletScanClientService {
           oprot.writeFieldBegin(EXECUTION_HINTS_FIELD_DESC);
           {
             oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, struct.executionHints.size()));
-            for (java.util.Map.Entry<java.lang.String, java.lang.String> _iter223 : struct.executionHints.entrySet())
+            for (java.util.Map.Entry<java.lang.String, java.lang.String> _iter261 : struct.executionHints.entrySet())
             {
-              oprot.writeString(_iter223.getKey());
-              oprot.writeString(_iter223.getValue());
+              oprot.writeString(_iter261.getKey());
+              oprot.writeString(_iter261.getValue());
             }
             oprot.writeMapEnd();
           }
@@ -8494,6 +8709,11 @@ public class TabletScanClientService {
         oprot.writeFieldBegin(BUSY_TIMEOUT_FIELD_DESC);
         oprot.writeI64(struct.busyTimeout);
         oprot.writeFieldEnd();
+        if (struct.reader != null) {
+          oprot.writeFieldBegin(READER_FIELD_DESC);
+          struct.reader.write(oprot);
+          oprot.writeFieldEnd();
+        }
         oprot.writeFieldStop();
         oprot.writeStructEnd();
       }
@@ -8552,7 +8772,10 @@ public class TabletScanClientService {
         if (struct.isSetBusyTimeout()) {
           optionals.set(12);
         }
-        oprot.writeBitSet(optionals, 13);
+        if (struct.isSetReader()) {
+          optionals.set(13);
+        }
+        oprot.writeBitSet(optionals, 14);
         if (struct.isSetTinfo()) {
           struct.tinfo.write(oprot);
         }
@@ -8562,14 +8785,14 @@ public class TabletScanClientService {
         if (struct.isSetBatch()) {
           {
             oprot.writeI32(struct.batch.size());
-            for (java.util.Map.Entry<org.apache.accumulo.core.dataImpl.thrift.TKeyExtent, java.util.List<org.apache.accumulo.core.dataImpl.thrift.TRange>> _iter224 : struct.batch.entrySet())
+            for (java.util.Map.Entry<org.apache.accumulo.core.dataImpl.thrift.TKeyExtent, java.util.List<org.apache.accumulo.core.dataImpl.thrift.TRange>> _iter262 : struct.batch.entrySet())
             {
-              _iter224.getKey().write(oprot);
+              _iter262.getKey().write(oprot);
               {
-                oprot.writeI32(_iter224.getValue().size());
-                for (org.apache.accumulo.core.dataImpl.thrift.TRange _iter225 : _iter224.getValue())
+                oprot.writeI32(_iter262.getValue().size());
+                for (org.apache.accumulo.core.dataImpl.thrift.TRange _iter263 : _iter262.getValue())
                 {
-                  _iter225.write(oprot);
+                  _iter263.write(oprot);
                 }
               }
             }
@@ -8578,33 +8801,33 @@ public class TabletScanClientService {
         if (struct.isSetColumns()) {
           {
             oprot.writeI32(struct.columns.size());
-            for (org.apache.accumulo.core.dataImpl.thrift.TColumn _iter226 : struct.columns)
+            for (org.apache.accumulo.core.dataImpl.thrift.TColumn _iter264 : struct.columns)
             {
-              _iter226.write(oprot);
+              _iter264.write(oprot);
             }
           }
         }
         if (struct.isSetSsiList()) {
           {
             oprot.writeI32(struct.ssiList.size());
-            for (org.apache.accumulo.core.dataImpl.thrift.IterInfo _iter227 : struct.ssiList)
+            for (org.apache.accumulo.core.dataImpl.thrift.IterInfo _iter265 : struct.ssiList)
             {
-              _iter227.write(oprot);
+              _iter265.write(oprot);
             }
           }
         }
         if (struct.isSetSsio()) {
           {
             oprot.writeI32(struct.ssio.size());
-            for (java.util.Map.Entry<java.lang.String, java.util.Map<java.lang.String,java.lang.String>> _iter228 : struct.ssio.entrySet())
+            for (java.util.Map.Entry<java.lang.String, java.util.Map<java.lang.String,java.lang.String>> _iter266 : struct.ssio.entrySet())
             {
-              oprot.writeString(_iter228.getKey());
+              oprot.writeString(_iter266.getKey());
               {
-                oprot.writeI32(_iter228.getValue().size());
-                for (java.util.Map.Entry<java.lang.String, java.lang.String> _iter229 : _iter228.getValue().entrySet())
+                oprot.writeI32(_iter266.getValue().size());
+                for (java.util.Map.Entry<java.lang.String, java.lang.String> _iter267 : _iter266.getValue().entrySet())
                 {
-                  oprot.writeString(_iter229.getKey());
-                  oprot.writeString(_iter229.getValue());
+                  oprot.writeString(_iter267.getKey());
+                  oprot.writeString(_iter267.getValue());
                 }
               }
             }
@@ -8613,9 +8836,9 @@ public class TabletScanClientService {
         if (struct.isSetAuthorizations()) {
           {
             oprot.writeI32(struct.authorizations.size());
-            for (java.nio.ByteBuffer _iter230 : struct.authorizations)
+            for (java.nio.ByteBuffer _iter268 : struct.authorizations)
             {
-              oprot.writeBinary(_iter230);
+              oprot.writeBinary(_iter268);
             }
           }
         }
@@ -8634,22 +8857,25 @@ public class TabletScanClientService {
         if (struct.isSetExecutionHints()) {
           {
             oprot.writeI32(struct.executionHints.size());
-            for (java.util.Map.Entry<java.lang.String, java.lang.String> _iter231 : struct.executionHints.entrySet())
+            for (java.util.Map.Entry<java.lang.String, java.lang.String> _iter269 : struct.executionHints.entrySet())
             {
-              oprot.writeString(_iter231.getKey());
-              oprot.writeString(_iter231.getValue());
+              oprot.writeString(_iter269.getKey());
+              oprot.writeString(_iter269.getValue());
             }
           }
         }
         if (struct.isSetBusyTimeout()) {
           oprot.writeI64(struct.busyTimeout);
         }
+        if (struct.isSetReader()) {
+          struct.reader.write(oprot);
+        }
       }
 
       @Override
       public void read(org.apache.thrift.protocol.TProtocol prot, startMultiScan_args struct) throws org.apache.thrift.TException {
         org.apache.thrift.protocol.TTupleProtocol iprot = (org.apache.thrift.protocol.TTupleProtocol) prot;
-        java.util.BitSet incoming = iprot.readBitSet(13);
+        java.util.BitSet incoming = iprot.readBitSet(14);
         if (incoming.get(0)) {
           struct.tinfo = new org.apache.accumulo.core.trace.thrift.TInfo();
           struct.tinfo.read(iprot);
@@ -8662,93 +8888,93 @@ public class TabletScanClientService {
         }
         if (incoming.get(2)) {
           {
-            org.apache.thrift.protocol.TMap _map232 = iprot.readMapBegin(org.apache.thrift.protocol.TType.STRUCT, org.apache.thrift.protocol.TType.LIST); 
-            struct.batch = new java.util.HashMap<org.apache.accumulo.core.dataImpl.thrift.TKeyExtent,java.util.List<org.apache.accumulo.core.dataImpl.thrift.TRange>>(2*_map232.size);
-            @org.apache.thrift.annotation.Nullable org.apache.accumulo.core.dataImpl.thrift.TKeyExtent _key233;
-            @org.apache.thrift.annotation.Nullable java.util.List<org.apache.accumulo.core.dataImpl.thrift.TRange> _val234;
-            for (int _i235 = 0; _i235 < _map232.size; ++_i235)
+            org.apache.thrift.protocol.TMap _map270 = iprot.readMapBegin(org.apache.thrift.protocol.TType.STRUCT, org.apache.thrift.protocol.TType.LIST); 
+            struct.batch = new java.util.HashMap<org.apache.accumulo.core.dataImpl.thrift.TKeyExtent,java.util.List<org.apache.accumulo.core.dataImpl.thrift.TRange>>(2*_map270.size);
+            @org.apache.thrift.annotation.Nullable org.apache.accumulo.core.dataImpl.thrift.TKeyExtent _key271;
+            @org.apache.thrift.annotation.Nullable java.util.List<org.apache.accumulo.core.dataImpl.thrift.TRange> _val272;
+            for (int _i273 = 0; _i273 < _map270.size; ++_i273)
             {
-              _key233 = new org.apache.accumulo.core.dataImpl.thrift.TKeyExtent();
-              _key233.read(iprot);
+              _key271 = new org.apache.accumulo.core.dataImpl.thrift.TKeyExtent();
+              _key271.read(iprot);
               {
-                org.apache.thrift.protocol.TList _list236 = iprot.readListBegin(org.apache.thrift.protocol.TType.STRUCT);
-                _val234 = new java.util.ArrayList<org.apache.accumulo.core.dataImpl.thrift.TRange>(_list236.size);
-                @org.apache.thrift.annotation.Nullable org.apache.accumulo.core.dataImpl.thrift.TRange _elem237;
-                for (int _i238 = 0; _i238 < _list236.size; ++_i238)
+                org.apache.thrift.protocol.TList _list274 = iprot.readListBegin(org.apache.thrift.protocol.TType.STRUCT);
+                _val272 = new java.util.ArrayList<org.apache.accumulo.core.dataImpl.thrift.TRange>(_list274.size);
+                @org.apache.thrift.annotation.Nullable org.apache.accumulo.core.dataImpl.thrift.TRange _elem275;
+                for (int _i276 = 0; _i276 < _list274.size; ++_i276)
                 {
-                  _elem237 = new org.apache.accumulo.core.dataImpl.thrift.TRange();
-                  _elem237.read(iprot);
-                  _val234.add(_elem237);
+                  _elem275 = new org.apache.accumulo.core.dataImpl.thrift.TRange();
+                  _elem275.read(iprot);
+                  _val272.add(_elem275);
                 }
               }
-              struct.batch.put(_key233, _val234);
+              struct.batch.put(_key271, _val272);
             }
           }
           struct.setBatchIsSet(true);
         }
         if (incoming.get(3)) {
           {
-            org.apache.thrift.protocol.TList _list239 = iprot.readListBegin(org.apache.thrift.protocol.TType.STRUCT);
-            struct.columns = new java.util.ArrayList<org.apache.accumulo.core.dataImpl.thrift.TColumn>(_list239.size);
-            @org.apache.thrift.annotation.Nullable org.apache.accumulo.core.dataImpl.thrift.TColumn _elem240;
-            for (int _i241 = 0; _i241 < _list239.size; ++_i241)
+            org.apache.thrift.protocol.TList _list277 = iprot.readListBegin(org.apache.thrift.protocol.TType.STRUCT);
+            struct.columns = new java.util.ArrayList<org.apache.accumulo.core.dataImpl.thrift.TColumn>(_list277.size);
+            @org.apache.thrift.annotation.Nullable org.apache.accumulo.core.dataImpl.thrift.TColumn _elem278;
+            for (int _i279 = 0; _i279 < _list277.size; ++_i279)
             {
-              _elem240 = new org.apache.accumulo.core.dataImpl.thrift.TColumn();
-              _elem240.read(iprot);
-              struct.columns.add(_elem240);
+              _elem278 = new org.apache.accumulo.core.dataImpl.thrift.TColumn();
+              _elem278.read(iprot);
+              struct.columns.add(_elem278);
             }
           }
           struct.setColumnsIsSet(true);
         }
         if (incoming.get(4)) {
           {
-            org.apache.thrift.protocol.TList _list242 = iprot.readListBegin(org.apache.thrift.protocol.TType.STRUCT);
-            struct.ssiList = new java.util.ArrayList<org.apache.accumulo.core.dataImpl.thrift.IterInfo>(_list242.size);
-            @org.apache.thrift.annotation.Nullable org.apache.accumulo.core.dataImpl.thrift.IterInfo _elem243;
-            for (int _i244 = 0; _i244 < _list242.size; ++_i244)
+            org.apache.thrift.protocol.TList _list280 = iprot.readListBegin(org.apache.thrift.protocol.TType.STRUCT);
+            struct.ssiList = new java.util.ArrayList<org.apache.accumulo.core.dataImpl.thrift.IterInfo>(_list280.size);
+            @org.apache.thrift.annotation.Nullable org.apache.accumulo.core.dataImpl.thrift.IterInfo _elem281;
+            for (int _i282 = 0; _i282 < _list280.size; ++_i282)
             {
-              _elem243 = new org.apache.accumulo.core.dataImpl.thrift.IterInfo();
-              _elem243.read(iprot);
-              struct.ssiList.add(_elem243);
+              _elem281 = new org.apache.accumulo.core.dataImpl.thrift.IterInfo();
+              _elem281.read(iprot);
+              struct.ssiList.add(_elem281);
             }
           }
           struct.setSsiListIsSet(true);
         }
         if (incoming.get(5)) {
           {
-            org.apache.thrift.protocol.TMap _map245 = iprot.readMapBegin(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.MAP); 
-            struct.ssio = new java.util.HashMap<java.lang.String,java.util.Map<java.lang.String,java.lang.String>>(2*_map245.size);
-            @org.apache.thrift.annotation.Nullable java.lang.String _key246;
-            @org.apache.thrift.annotation.Nullable java.util.Map<java.lang.String,java.lang.String> _val247;
-            for (int _i248 = 0; _i248 < _map245.size; ++_i248)
+            org.apache.thrift.protocol.TMap _map283 = iprot.readMapBegin(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.MAP); 
+            struct.ssio = new java.util.HashMap<java.lang.String,java.util.Map<java.lang.String,java.lang.String>>(2*_map283.size);
+            @org.apache.thrift.annotation.Nullable java.lang.String _key284;
+            @org.apache.thrift.annotation.Nullable java.util.Map<java.lang.String,java.lang.String> _val285;
+            for (int _i286 = 0; _i286 < _map283.size; ++_i286)
             {
-              _key246 = iprot.readString();
+              _key284 = iprot.readString();
               {
-                org.apache.thrift.protocol.TMap _map249 = iprot.readMapBegin(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING); 
-                _val247 = new java.util.HashMap<java.lang.String,java.lang.String>(2*_map249.size);
-                @org.apache.thrift.annotation.Nullable java.lang.String _key250;
-                @org.apache.thrift.annotation.Nullable java.lang.String _val251;
-                for (int _i252 = 0; _i252 < _map249.size; ++_i252)
+                org.apache.thrift.protocol.TMap _map287 = iprot.readMapBegin(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING); 
+                _val285 = new java.util.HashMap<java.lang.String,java.lang.String>(2*_map287.size);
+                @org.apache.thrift.annotation.Nullable java.lang.String _key288;
+                @org.apache.thrift.annotation.Nullable java.lang.String _val289;
+                for (int _i290 = 0; _i290 < _map287.size; ++_i290)
                 {
-                  _key250 = iprot.readString();
-                  _val251 = iprot.readString();
-                  _val247.put(_key250, _val251);
+                  _key288 = iprot.readString();
+                  _val289 = iprot.readString();
+                  _val285.put(_key288, _val289);
                 }
               }
-              struct.ssio.put(_key246, _val247);
+              struct.ssio.put(_key284, _val285);
             }
           }
           struct.setSsioIsSet(true);
         }
         if (incoming.get(6)) {
           {
-            org.apache.thrift.protocol.TList _list253 = iprot.readListBegin(org.apache.thrift.protocol.TType.STRING);
-            struct.authorizations = new java.util.ArrayList<java.nio.ByteBuffer>(_list253.size);
-            @org.apache.thrift.annotation.Nullable java.nio.ByteBuffer _elem254;
-            for (int _i255 = 0; _i255 < _list253.size; ++_i255)
+            org.apache.thrift.protocol.TList _list291 = iprot.readListBegin(org.apache.thrift.protocol.TType.STRING);
+            struct.authorizations = new java.util.ArrayList<java.nio.ByteBuffer>(_list291.size);
+            @org.apache.thrift.annotation.Nullable java.nio.ByteBuffer _elem292;
+            for (int _i293 = 0; _i293 < _list291.size; ++_i293)
             {
-              _elem254 = iprot.readBinary();
-              struct.authorizations.add(_elem254);
+              _elem292 = iprot.readBinary();
+              struct.authorizations.add(_elem292);
             }
           }
           struct.setAuthorizationsIsSet(true);
@@ -8772,15 +8998,15 @@ public class TabletScanClientService {
         }
         if (incoming.get(11)) {
           {
-            org.apache.thrift.protocol.TMap _map256 = iprot.readMapBegin(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING); 
-            struct.executionHints = new java.util.HashMap<java.lang.String,java.lang.String>(2*_map256.size);
-            @org.apache.thrift.annotation.Nullable java.lang.String _key257;
-            @org.apache.thrift.annotation.Nullable java.lang.String _val258;
-            for (int _i259 = 0; _i259 < _map256.size; ++_i259)
+            org.apache.thrift.protocol.TMap _map294 = iprot.readMapBegin(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING); 
+            struct.executionHints = new java.util.HashMap<java.lang.String,java.lang.String>(2*_map294.size);
+            @org.apache.thrift.annotation.Nullable java.lang.String _key295;
+            @org.apache.thrift.annotation.Nullable java.lang.String _val296;
+            for (int _i297 = 0; _i297 < _map294.size; ++_i297)
             {
-              _key257 = iprot.readString();
-              _val258 = iprot.readString();
-              struct.executionHints.put(_key257, _val258);
+              _key295 = iprot.readString();
+              _val296 = iprot.readString();
+              struct.executionHints.put(_key295, _val296);
             }
           }
           struct.setExecutionHintsIsSet(true);
@@ -8788,6 +9014,11 @@ public class TabletScanClientService {
         if (incoming.get(12)) {
           struct.busyTimeout = iprot.readI64();
           struct.setBusyTimeoutIsSet(true);
+        }
+        if (incoming.get(13)) {
+          struct.reader = new PushdownReaderRequest();
+          struct.reader.read(iprot);
+          struct.setReaderIsSet(true);
         }
       }
     }
@@ -12554,14 +12785,14 @@ public class TabletScanClientService {
             case 0: // SUCCESS
               if (schemeField.type == org.apache.thrift.protocol.TType.LIST) {
                 {
-                  org.apache.thrift.protocol.TList _list260 = iprot.readListBegin();
-                  struct.success = new java.util.ArrayList<ActiveScan>(_list260.size);
-                  @org.apache.thrift.annotation.Nullable ActiveScan _elem261;
-                  for (int _i262 = 0; _i262 < _list260.size; ++_i262)
+                  org.apache.thrift.protocol.TList _list298 = iprot.readListBegin();
+                  struct.success = new java.util.ArrayList<ActiveScan>(_list298.size);
+                  @org.apache.thrift.annotation.Nullable ActiveScan _elem299;
+                  for (int _i300 = 0; _i300 < _list298.size; ++_i300)
                   {
-                    _elem261 = new ActiveScan();
-                    _elem261.read(iprot);
-                    struct.success.add(_elem261);
+                    _elem299 = new ActiveScan();
+                    _elem299.read(iprot);
+                    struct.success.add(_elem299);
                   }
                   iprot.readListEnd();
                 }
@@ -12599,9 +12830,9 @@ public class TabletScanClientService {
           oprot.writeFieldBegin(SUCCESS_FIELD_DESC);
           {
             oprot.writeListBegin(new org.apache.thrift.protocol.TList(org.apache.thrift.protocol.TType.STRUCT, struct.success.size()));
-            for (ActiveScan _iter263 : struct.success)
+            for (ActiveScan _iter301 : struct.success)
             {
-              _iter263.write(oprot);
+              _iter301.write(oprot);
             }
             oprot.writeListEnd();
           }
@@ -12641,9 +12872,9 @@ public class TabletScanClientService {
         if (struct.isSetSuccess()) {
           {
             oprot.writeI32(struct.success.size());
-            for (ActiveScan _iter264 : struct.success)
+            for (ActiveScan _iter302 : struct.success)
             {
-              _iter264.write(oprot);
+              _iter302.write(oprot);
             }
           }
         }
@@ -12658,14 +12889,14 @@ public class TabletScanClientService {
         java.util.BitSet incoming = iprot.readBitSet(2);
         if (incoming.get(0)) {
           {
-            org.apache.thrift.protocol.TList _list265 = iprot.readListBegin(org.apache.thrift.protocol.TType.STRUCT);
-            struct.success = new java.util.ArrayList<ActiveScan>(_list265.size);
-            @org.apache.thrift.annotation.Nullable ActiveScan _elem266;
-            for (int _i267 = 0; _i267 < _list265.size; ++_i267)
+            org.apache.thrift.protocol.TList _list303 = iprot.readListBegin(org.apache.thrift.protocol.TType.STRUCT);
+            struct.success = new java.util.ArrayList<ActiveScan>(_list303.size);
+            @org.apache.thrift.annotation.Nullable ActiveScan _elem304;
+            for (int _i305 = 0; _i305 < _list303.size; ++_i305)
             {
-              _elem266 = new ActiveScan();
-              _elem266.read(iprot);
-              struct.success.add(_elem266);
+              _elem304 = new ActiveScan();
+              _elem304.read(iprot);
+              struct.success.add(_elem304);
             }
           }
           struct.setSuccessIsSet(true);
@@ -12683,5 +12914,4 @@ public class TabletScanClientService {
     }
   }
 
-  private static void unusedMethod() {}
 }

@@ -191,3 +191,13 @@ typedef map<TKeyExtent, list<TMutation>> UpdateBatch
 
 typedef map<TKeyExtent, map<string, MapFileInfo>> TabletFiles
 
+struct PushdownReaderRequest{
+   1:string readerClassName;
+   2:map<string, string> readerClassOptions;
+   3:list<IterInfo> pushDownList;
+   4:map<string, map<string, string>> pushDownListOptions;
+   5:bool disableCfsIter;
+   6:bool disableCqsIter;
+   7:bool disableVisIter;
+}
+

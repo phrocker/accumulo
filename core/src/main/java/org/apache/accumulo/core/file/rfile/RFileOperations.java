@@ -19,10 +19,12 @@
 package org.apache.accumulo.core.file.rfile;
 
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Optional;
 
 import org.apache.accumulo.core.classloader.ClassLoaderUtil;
 import org.apache.accumulo.core.client.sample.Sampler;
@@ -31,6 +33,7 @@ import org.apache.accumulo.core.conf.Property;
 import org.apache.accumulo.core.data.ByteSequence;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
+import org.apache.accumulo.core.dataImpl.thrift.PushdownReaderRequest;
 import org.apache.accumulo.core.file.FileOperations;
 import org.apache.accumulo.core.file.FileSKVIterator;
 import org.apache.accumulo.core.file.FileSKVWriter;
@@ -39,6 +42,7 @@ import org.apache.accumulo.core.file.rfile.bcfile.BCFile;
 import org.apache.accumulo.core.iterators.IteratorUtil;
 import org.apache.accumulo.core.sample.impl.SamplerConfigurationImpl;
 import org.apache.accumulo.core.sample.impl.SamplerFactory;
+import org.apache.commons.collections4.map.LRUMap;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.CreateFlag;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -56,12 +60,32 @@ public class RFileOperations extends FileOperations {
 
   private static final Collection<ByteSequence> EMPTY_CF_SET = Collections.emptySet();
 
+  public static LRUMap<String,Constructor<RFileReader>> readerConstructors = new LRUMap<>();
+
   private static RFileReader getReader(FileOptions options) throws IOException {
     CachableBuilder cb = new CachableBuilder()
         .fsPath(options.getFileSystem(), new Path(options.getFilename()), options.dropCacheBehind)
         .conf(options.getConfiguration()).fileLen(options.getFileLenCache())
         .cacheProvider(options.cacheProvider).readLimiter(options.getRateLimiter())
         .cryptoService(options.getCryptoService());
+    final Optional<PushdownReaderRequest> clientReaderRequest = options.getReaderRequest();
+    RFileReader rdr = null;
+    try {
+      rdr = createIfConfigured(clientReaderRequest, cb);
+    } catch (ClassNotFoundException e) {
+      throw new RuntimeException(e);
+    } catch (NoSuchMethodException e) {
+      throw new RuntimeException(e);
+    } catch (InvocationTargetException e) {
+      throw new RuntimeException(e);
+    } catch (InstantiationException e) {
+      throw new RuntimeException(e);
+    } catch (IllegalAccessException e) {
+      throw new RuntimeException(e);
+    }
+    if (null != rdr) {
+      return rdr;
+    }
     if (options.getIteratorScope() != null
         && IteratorUtil.IteratorScope.scan == options.getIteratorScope()) {
       var opt = options.getTableConfiguration().get(Property.TABLE_READER_SCAN);
@@ -85,6 +109,27 @@ public class RFileOperations extends FileOperations {
     }
     return new RFileReader(cb);
 
+  }
+
+  private static RFileReader createIfConfigured(Optional<PushdownReaderRequest> readerRequest,
+      CachableBuilder cb) throws ClassNotFoundException, NoSuchMethodException,
+      InvocationTargetException, InstantiationException, IllegalAccessException {
+    if (readerRequest.isPresent()) {
+      // we have one specified
+      var clazzStr = readerRequest.orElseThrow().getReaderClassName();
+      if (!clazzStr.isEmpty()) {
+        Constructor<? extends RFileReader> constructor = readerConstructors.get(clazzStr);
+        if (null == constructor) {
+          var clazz = ClassLoaderUtil.loadClass(clazzStr, RFileReader.class);
+          constructor = clazz.getConstructor(CachableBuilder.class);
+        }
+        var ret = constructor.newInstance(cb);
+        // configure the reader at the lowest level
+        ret.configureReader(readerRequest.orElseThrow());
+        return ret;
+      }
+    }
+    return null;
   }
 
   @Override

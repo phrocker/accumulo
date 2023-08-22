@@ -30,6 +30,7 @@ import java.util.stream.StreamSupport;
 import org.apache.accumulo.core.client.IteratorSetting.Column;
 import org.apache.accumulo.core.client.sample.SamplerConfiguration;
 import org.apache.accumulo.core.data.Key;
+import org.apache.accumulo.core.data.PushdownConfiguration;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.spi.scan.HintScanPrioritizer;
@@ -390,5 +391,7 @@ public interface ScannerBase extends Iterable<Entry<Key,Value>>, AutoCloseable {
   default Stream<Entry<Key,Value>> stream() {
     return StreamSupport.stream(this.spliterator(), false);
   }
+
+  void setPushdownConfiguration(PushdownConfiguration pushdownConfiguration);
 
 }

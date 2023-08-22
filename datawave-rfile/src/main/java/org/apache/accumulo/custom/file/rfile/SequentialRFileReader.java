@@ -24,9 +24,10 @@ import org.apache.accumulo.core.file.blockfile.impl.CachableBlockFile;
 import org.apache.accumulo.core.file.rfile.BaseLocalityGroupReader;
 import org.apache.accumulo.core.file.rfile.LocalityGroupMetadata;
 import org.apache.accumulo.core.file.rfile.RFileReader;
+import org.apache.accumulo.core.file.rfile.VisibilityPushdownFiltering;
 import org.apache.accumulo.file.rfile.predicate.KeyPredicate;
 
-public class SequentialRFileReader extends RFileReader {
+public class SequentialRFileReader extends RFileReader implements VisibilityPushdownFiltering {
 
   String auths = null;
 
@@ -80,5 +81,10 @@ public class SequentialRFileReader extends RFileReader {
         (BaseLocalityGroupReader<PushdownRelativeKey>[]) sampleReaders);
     copy.setInterruptFlagInternal(interruptFlag);
     return copy;
+  }
+
+  @Override
+  public boolean pushdownFilter() {
+    return true;
   }
 }

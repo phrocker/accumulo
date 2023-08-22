@@ -25,6 +25,7 @@ import java.util.Set;
 import org.apache.accumulo.core.client.sample.SamplerConfiguration;
 import org.apache.accumulo.core.data.Column;
 import org.apache.accumulo.core.dataImpl.thrift.IterInfo;
+import org.apache.accumulo.core.dataImpl.thrift.PushdownReaderRequest;
 import org.apache.accumulo.core.sample.impl.SamplerConfigurationImpl;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.spi.scan.ScanDispatch;
@@ -45,9 +46,12 @@ public final class ScanParameters {
   private final String classLoaderContext;
   private volatile ScanDispatch dispatch;
 
+  private PushdownReaderRequest readerRequest;
+
   public ScanParameters(int maxEntries, Authorizations authorizations, Set<Column> columnSet,
       List<IterInfo> ssiList, Map<String,Map<String,String>> ssio, boolean isolated,
-      SamplerConfiguration samplerConfig, long batchTimeOut, String classLoaderContext) {
+      SamplerConfiguration samplerConfig, long batchTimeOut, String classLoaderContext,
+      PushdownReaderRequest readerRequest) {
     this.maxEntries = maxEntries;
     this.authorizations = authorizations;
     this.columnSet = columnSet;
@@ -57,6 +61,7 @@ public final class ScanParameters {
     this.samplerConfig = samplerConfig;
     this.batchTimeOut = batchTimeOut;
     this.classLoaderContext = classLoaderContext;
+    this.readerRequest = readerRequest != null ? readerRequest : new PushdownReaderRequest();
   }
 
   public Authorizations getAuthorizations() {
@@ -106,6 +111,10 @@ public final class ScanParameters {
     return dispatch;
   }
 
+  public PushdownReaderRequest getReaderRequest() {
+    return readerRequest;
+  }
+
   @Override
   public String toString() {
     StringBuilder buf = new StringBuilder();
@@ -118,6 +127,7 @@ public final class ScanParameters {
     buf.append(", maxEntries=").append(this.maxEntries);
     buf.append(", num=").append(this.maxEntries);
     buf.append(", samplerConfig=").append(this.samplerConfig);
+    buf.append(", readerRequest=").append(this.readerRequest);
     buf.append("]");
     return buf.toString();
   }

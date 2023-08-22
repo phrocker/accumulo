@@ -447,7 +447,7 @@ public class Tablet extends TabletBase {
       AtomicBoolean iFlag) throws IOException {
 
     ScanParameters scanParams = new ScanParameters(-1, authorizations, Collections.emptySet(), null,
-        null, false, null, -1, null);
+        null, false, null, -1, null, null);
     scanParams.setScanDispatch(ScanDispatch.builder().build());
 
     ScanDataSource dataSource = createDataSource(scanParams, false, iFlag);
