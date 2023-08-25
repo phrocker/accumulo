@@ -60,9 +60,10 @@ public class RFileOperations extends FileOperations {
 
   private static final Collection<ByteSequence> EMPTY_CF_SET = Collections.emptySet();
 
-  public static LRUMap<String,Constructor<RFileReader>> readerConstructors = new LRUMap<>();
+  public static final LRUMap<String,Constructor<RFileReader>> readerConstructors = new LRUMap<>();
 
   private static RFileReader getReader(FileOptions options) throws IOException {
+    System.out.println("Scannernnernenre");
     CachableBuilder cb = new CachableBuilder()
         .fsPath(options.getFileSystem(), new Path(options.getFilename()), options.dropCacheBehind)
         .conf(options.getConfiguration()).fileLen(options.getFileLenCache())
@@ -73,14 +74,19 @@ public class RFileOperations extends FileOperations {
     try {
       rdr = createIfConfigured(clientReaderRequest, cb);
     } catch (ClassNotFoundException e) {
+      e.printStackTrace();
       throw new RuntimeException(e);
     } catch (NoSuchMethodException e) {
+      e.printStackTrace();
       throw new RuntimeException(e);
     } catch (InvocationTargetException e) {
+      e.printStackTrace();
       throw new RuntimeException(e);
     } catch (InstantiationException e) {
+      e.printStackTrace();
       throw new RuntimeException(e);
     } catch (IllegalAccessException e) {
+      e.printStackTrace();
       throw new RuntimeException(e);
     }
     if (null != rdr) {
@@ -95,14 +101,19 @@ public class RFileOperations extends FileOperations {
           var clazz = ClassLoaderUtil.loadClass(opt, RFileReader.class);
           return clazz.getConstructor(CachableBuilder.class).newInstance(cb);
         } catch (ClassNotFoundException e) {
+          e.printStackTrace();
           throw new RuntimeException(e);
         } catch (InvocationTargetException e) {
+          e.printStackTrace();
           throw new RuntimeException(e);
         } catch (InstantiationException e) {
+          e.printStackTrace();
           throw new RuntimeException(e);
         } catch (IllegalAccessException e) {
+          e.printStackTrace();
           throw new RuntimeException(e);
         } catch (NoSuchMethodException e) {
+          e.printStackTrace();
           throw new RuntimeException(e);
         }
       }
@@ -117,7 +128,7 @@ public class RFileOperations extends FileOperations {
     if (readerRequest.isPresent()) {
       // we have one specified
       var clazzStr = readerRequest.orElseThrow().getReaderClassName();
-      if (!clazzStr.isEmpty()) {
+      if (null != clazzStr && !clazzStr.isEmpty()) {
         Constructor<? extends RFileReader> constructor = readerConstructors.get(clazzStr);
         if (null == constructor) {
           var clazz = ClassLoaderUtil.loadClass(clazzStr, RFileReader.class);

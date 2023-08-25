@@ -36,7 +36,8 @@ public class PushdownReaderConfiguration {
   private PushdownReaderConfiguration(PushdownReaderRequest readerRequest) {
     this.readerRequest = readerRequest;
     if (null != readerRequest) {
-      if (!readerRequest.getReaderClassName().isEmpty()) {
+      if (null != readerRequest.getReaderClassName()
+          && !readerRequest.getReaderClassName().isEmpty()) {
         canSkipVisibilityFiltering = checkCacheForFiltering(readerRequest.readerClassName);
       }
 
