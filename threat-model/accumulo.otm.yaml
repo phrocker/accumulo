@@ -1,0 +1,491 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+
+# Apache Accumulo — Machine-Readable Threat Model
+# Format: Open Threat Model (OTM) v0.2.0  — https://github.com/iriusrisk/OpenThreatModel
+# Scope:  Whole-system skeleton for the 4.x (main) line.
+#
+# This is a SKELETON: trust zones, components, dataflows and a representative
+# set of STRIDE-derived threats + mitigations are in place. Threats are marked
+# with a `state` and cross-referenced to mitigations so gaps are visible.
+# Extend per-subsystem over time. Validate with the JSON Schema in this dir.
+
+otmVersion: "0.2.0"
+
+project:
+  name: Apache Accumulo
+  id: apache-accumulo
+  description: >-
+    Distributed, sorted key/value store built on Apache Hadoop (HDFS) and Apache
+    ZooKeeper. Provides cell-level security via column visibility labels,
+    pluggable authentication/authorization, SASL/Kerberos wire security,
+    delegation tokens, and optional on-disk encryption of RFiles and WALs.
+  owner: Apache Accumulo PMC
+  tags:
+    - line:4.x
+    - branch:main
+
+# ---------------------------------------------------------------------------
+# Representations — how this model can be viewed/rendered
+# ---------------------------------------------------------------------------
+representations:
+  - name: Accumulo Deployment (logical)
+    id: accumulo-logical
+    type: diagram
+
+# ---------------------------------------------------------------------------
+# Trust Zones — trustRating: 100 = fully trusted, 1 = fully untrusted
+# ---------------------------------------------------------------------------
+trustZones:
+  - id: tz-public
+    name: Public / Client Network
+    risk:
+      trustRating: 10
+    properties:
+      description: >-
+        Where end-user client applications and interactive shells run. Outside
+        the cluster security perimeter; authenticates inbound to the cluster.
+
+  - id: tz-operator
+    name: Operator / Admin Network
+    risk:
+      trustRating: 40
+    properties:
+      description: >-
+        Administrators, dashboards and browsers reaching the Monitor UI and
+        running admin CLIs (accumulo admin, init, config).
+
+  - id: tz-cluster
+    name: Accumulo Server Cluster
+    risk:
+      trustRating: 80
+    properties:
+      description: >-
+        Mutually-authenticating Accumulo server processes on the internal
+        cluster network. Trusted, but breachable via a single compromised node.
+
+  - id: tz-zookeeper
+    name: ZooKeeper Ensemble
+    risk:
+      trustRating: 70
+    properties:
+      description: >-
+        Stores instance metadata, locks, config, users, permissions, and the
+        delegation-token master keys. High-value target.
+
+  - id: tz-hdfs
+    name: HDFS Storage
+    risk:
+      trustRating: 70
+    properties:
+      description: >-
+        Durable storage for RFiles (table data) and write-ahead logs (WALs).
+        Data at rest lives here.
+
+# ---------------------------------------------------------------------------
+# Components
+# ---------------------------------------------------------------------------
+components:
+
+  - id: client-app
+    name: Client Application / Shell
+    type: external-entity
+    parent:
+      trustZone: tz-public
+    tags: [thrift-client, accumulo-shell]
+
+  - id: monitor-user
+    name: Operator (Browser / Admin CLI)
+    type: external-entity
+    parent:
+      trustZone: tz-operator
+
+  - id: manager
+    name: Manager
+    type: process
+    parent:
+      trustZone: tz-cluster
+    tags: [coordination, fate, tablet-assignment, compaction-coordinator]
+    threats:
+      - threat: t-zk-acl-weak
+        state: exposed
+        mitigations:
+          - mitigation: m-zk-kerberos-acl
+            state: partially-implemented
+      - threat: t-fate-privileged-op
+        state: exposed
+        mitigations:
+          - mitigation: m-authz-permission-check
+            state: implemented
+
+  - id: tserver
+    name: Tablet Server
+    type: process
+    parent:
+      trustZone: tz-cluster
+    tags: [read, write, wal, visibility-enforcement]
+    threats:
+      - threat: t-visibility-bypass
+        state: exposed
+        mitigations:
+          - mitigation: m-visibility-enforcement
+            state: implemented
+      - threat: t-unauth-rpc
+        state: exposed
+        mitigations:
+          - mitigation: m-sasl-mutual-auth
+            state: partially-implemented
+      - threat: t-authz-cache-stale
+        state: exposed
+        mitigations:
+          - mitigation: m-authz-permission-check
+            state: implemented
+
+  - id: scan-server
+    name: Scan Server (sserver)
+    type: process
+    parent:
+      trustZone: tz-cluster
+    tags: [eventual-consistency-scan, elasticity]
+    threats:
+      - threat: t-visibility-bypass
+        state: exposed
+        mitigations:
+          - mitigation: m-visibility-enforcement
+            state: implemented
+
+  - id: compactor
+    name: External Compactor
+    type: process
+    parent:
+      trustZone: tz-cluster
+    tags: [external-compaction, elasticity]
+    threats:
+      - threat: t-crypto-key-exposure
+        state: exposed
+        mitigations:
+          - mitigation: m-ondisk-encryption
+            state: partially-implemented
+
+  - id: gc
+    name: Garbage Collector
+    type: process
+    parent:
+      trustZone: tz-cluster
+    tags: [file-deletion]
+    threats:
+      - threat: t-gc-destructive-delete
+        state: exposed
+        mitigations:
+          - mitigation: m-authz-permission-check
+            state: implemented
+
+  - id: monitor
+    name: Monitor (Web UI)
+    type: web-application
+    parent:
+      trustZone: tz-cluster
+    tags: [metrics, web-ui, rest]
+    threats:
+      - threat: t-monitor-info-disclosure
+        state: exposed
+        mitigations:
+          - mitigation: m-monitor-tls-auth
+            state: partially-implemented
+
+  - id: zookeeper
+    name: ZooKeeper Ensemble
+    type: datastore
+    parent:
+      trustZone: tz-zookeeper
+    tags: [metadata, locks, users, permissions, delegation-token-keys]
+    threats:
+      - threat: t-zk-acl-weak
+        state: exposed
+        mitigations:
+          - mitigation: m-zk-kerberos-acl
+            state: partially-implemented
+      - threat: t-deleg-token-key-theft
+        state: exposed
+        mitigations:
+          - mitigation: m-zk-kerberos-acl
+            state: partially-implemented
+
+  - id: hdfs
+    name: HDFS (NameNode + DataNodes)
+    type: datastore
+    parent:
+      trustZone: tz-hdfs
+    tags: [rfile, wal, data-at-rest]
+    threats:
+      - threat: t-hdfs-file-tampering
+        state: exposed
+        mitigations:
+          - mitigation: m-ondisk-encryption
+            state: partially-implemented
+          - mitigation: m-hdfs-perms
+            state: implemented
+
+# ---------------------------------------------------------------------------
+# Dataflows
+# ---------------------------------------------------------------------------
+dataflows:
+  - id: df-client-rpc
+    name: Client RPC (scan / write / admin)
+    source: client-app
+    destination: tserver
+    tags: [thrift, sasl, delegation-token]
+    assets:
+      processed: [cell-data, authorizations, credentials]
+
+  - id: df-client-scanserver
+    name: Client Eventual-Consistency Scan
+    source: client-app
+    destination: scan-server
+    tags: [thrift, sasl]
+    assets:
+      processed: [cell-data, authorizations]
+
+  - id: df-client-manager
+    name: Client Admin RPC (create/drop, permissions)
+    source: client-app
+    destination: manager
+    tags: [thrift, sasl]
+    assets:
+      processed: [credentials, permissions]
+
+  - id: df-manager-tserver
+    name: Manager ⇄ TabletServer coordination
+    source: manager
+    destination: tserver
+    tags: [thrift, sasl, internal]
+
+  - id: df-manager-compactor
+    name: Compaction dispatch (Coordinator ⇄ Compactor)
+    source: manager
+    destination: compactor
+    tags: [thrift, sasl, external-compaction]
+
+  - id: df-server-zk
+    name: Server ⇄ ZooKeeper (locks, config, users)
+    source: tserver
+    destination: zookeeper
+    tags: [zk-client, sasl-optional]
+    assets:
+      processed: [credentials, permissions, delegation-token-keys]
+
+  - id: df-server-hdfs
+    name: Server ⇄ HDFS (RFile / WAL I/O)
+    source: tserver
+    destination: hdfs
+    tags: [hdfs-client, hadoop-delegation-token]
+    assets:
+      stored: [cell-data]
+
+  - id: df-compactor-hdfs
+    name: Compactor ⇄ HDFS (read/write RFiles)
+    source: compactor
+    destination: hdfs
+    tags: [hdfs-client]
+    assets:
+      stored: [cell-data]
+
+  - id: df-gc-hdfs
+    name: GC ⇄ HDFS (delete unreferenced files)
+    source: gc
+    destination: hdfs
+    tags: [hdfs-client, destructive]
+
+  - id: df-operator-monitor
+    name: Operator → Monitor UI
+    source: monitor-user
+    destination: monitor
+    tags: [http, https-optional]
+    assets:
+      processed: [operational-metadata]
+
+# ---------------------------------------------------------------------------
+# Threats  (categories use STRIDE)
+# ---------------------------------------------------------------------------
+threats:
+  - id: t-visibility-bypass
+    name: Column-visibility label bypass / data exfiltration
+    description: >-
+      A client reads cells they are not authorized to see because visibility
+      labels are not evaluated, are evaluated against forged authorizations, or
+      a scan/scan-server path skips enforcement.
+    categories: [information-disclosure, elevation-of-privilege]
+    cwes: [285, 863]
+    risk:
+      likelihood: 40
+      impact: 90
+
+  - id: t-unauth-rpc
+    name: Unauthenticated / spoofed cluster RPC
+    description: >-
+      An attacker on the cluster network invokes Thrift RPCs without valid SASL
+      credentials, or impersonates another server, when wire auth is disabled or
+      misconfigured (non-Kerberos deployments).
+    categories: [spoofing, elevation-of-privilege]
+    cwes: [287, 306]
+    risk:
+      likelihood: 40
+      impact: 80
+
+  - id: t-deleg-token-key-theft
+    name: Delegation-token master key theft
+    description: >-
+      Reading the delegation-token secret keys from ZooKeeper allows minting
+      valid delegation tokens and impersonating any user.
+    categories: [spoofing, elevation-of-privilege]
+    cwes: [522, 320]
+    risk:
+      likelihood: 20
+      impact: 95
+
+  - id: t-zk-acl-weak
+    name: Weak ZooKeeper ACLs expose secrets/metadata
+    description: >-
+      ZooKeeper znodes holding users, permissions, config and token keys are
+      world-readable or lack Kerberos ACLs, exposing credentials and allowing
+      metadata tampering.
+    categories: [information-disclosure, tampering]
+    cwes: [732, 284]
+    risk:
+      likelihood: 30
+      impact: 85
+
+  - id: t-hdfs-file-tampering
+    name: Direct RFile / WAL tampering or read in HDFS
+    description: >-
+      A principal with HDFS access reads or modifies RFiles/WALs directly,
+      bypassing Accumulo's visibility and authorization layer entirely.
+    categories: [tampering, information-disclosure]
+    cwes: [732, 284]
+    risk:
+      likelihood: 30
+      impact: 90
+
+  - id: t-crypto-key-exposure
+    name: On-disk encryption key exposure / weak crypto config
+    description: >-
+      Table encryption keys are stored or transmitted insecurely, or encryption
+      is disabled, leaving data-at-rest readable if HDFS is compromised.
+    categories: [information-disclosure]
+    cwes: [311, 320]
+    risk:
+      likelihood: 30
+      impact: 80
+
+  - id: t-authz-cache-stale
+    name: Stale authorization / permission cache
+    description: >-
+      Revoked permissions or authorizations remain effective due to cached
+      values on tservers until TTL expiry, extending an attacker's access.
+    categories: [elevation-of-privilege]
+    cwes: [613, 863]
+    risk:
+      likelihood: 30
+      impact: 50
+
+  - id: t-fate-privileged-op
+    name: Unauthorized FATE administrative operation
+    description: >-
+      A client triggers a privileged FATE operation (drop/rename table, alter
+      permissions) without holding the required system/namespace/table permission.
+    categories: [elevation-of-privilege, tampering]
+    cwes: [285, 862]
+    risk:
+      likelihood: 20
+      impact: 75
+
+  - id: t-gc-destructive-delete
+    name: Garbage Collector deletes referenced files (data loss)
+    description: >-
+      A bug or manipulated metadata causes the GC to delete still-referenced
+      RFiles/WALs, or a forged candidate list drives destructive deletion.
+    categories: [tampering, denial-of-service]
+    cwes: [284, 707]
+    risk:
+      likelihood: 15
+      impact: 85
+
+  - id: t-monitor-info-disclosure
+    name: Monitor UI information disclosure
+    description: >-
+      The Monitor web UI/REST endpoints expose table names, scan data samples,
+      configuration and metrics without TLS or authentication.
+    categories: [information-disclosure]
+    cwes: [200, 306]
+    risk:
+      likelihood: 45
+      impact: 45
+
+# ---------------------------------------------------------------------------
+# Mitigations
+# ---------------------------------------------------------------------------
+mitigations:
+  - id: m-visibility-enforcement
+    name: Server-side column-visibility enforcement
+    description: >-
+      Every scan filters cells against the caller's Authorizations using the
+      ColumnVisibility evaluator, enforced on tserver and scan-server read paths.
+    riskReduction: 80
+
+  - id: m-sasl-mutual-auth
+    name: SASL/Kerberos mutual authentication + wire encryption
+    description: >-
+      Enable instance.rpc.sasl.enabled with Kerberos so all cluster RPC is
+      mutually authenticated and optionally encrypted (QOP auth-conf).
+    riskReduction: 75
+
+  - id: m-authz-permission-check
+    name: Pluggable authorizer permission checks
+    description: >-
+      System/namespace/table permission checks on every privileged operation via
+      the configured Authorizer/PermissionHandler.
+    riskReduction: 70
+
+  - id: m-zk-kerberos-acl
+    name: Kerberos-authenticated ZooKeeper ACLs
+    description: >-
+      Restrict sensitive znodes (users, permissions, token keys) with
+      Kerberos/SASL ACLs so only cluster principals can read/write them.
+    riskReduction: 70
+
+  - id: m-ondisk-encryption
+    name: On-disk encryption of RFiles and WALs
+    description: >-
+      Configure the crypto service to encrypt table files and write-ahead logs
+      at rest with a securely-managed key encryption key.
+    riskReduction: 70
+
+  - id: m-hdfs-perms
+    name: Restrictive HDFS permissions + Hadoop delegation tokens
+    description: >-
+      Accumulo's HDFS directories are readable/writable only by the service
+      principal; access uses Hadoop delegation tokens.
+    riskReduction: 60
+
+  - id: m-monitor-tls-auth
+    name: Monitor TLS + authentication
+    description: >-
+      Serve the Monitor over HTTPS and require authentication; do not expose it
+      to untrusted networks.
+    riskReduction: 60

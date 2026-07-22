@@ -1,0 +1,418 @@
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+
+# Apache Accumulo — Column Visibility / Cell-Level Security (deep subsystem model)
+# Format: Open Threat Model (OTM) v0.2.0
+#
+# Focused model of the data path that enforces cell-level security: how a scan's
+# Authorizations are validated and how per-cell ColumnVisibility labels are
+# evaluated so a caller only ever sees cells they are entitled to. This is the
+# subsystem-depth companion to accumulo.otm.yaml (the whole-system skeleton).
+#
+# Key implementation references (4.x / main):
+#   core   org.apache.accumulo.core.security.ColumnVisibility
+#   core   org.apache.accumulo.core.security.VisibilityEvaluator
+#   core   org.apache.accumulo.core.security.Authorizations
+#   core   org.apache.accumulo.core.iteratorsImpl.system.VisibilityFilter
+#   server org.apache.accumulo.server.security.SecurityOperation
+#   server org.apache.accumulo.server.security.AuditedSecurityOperation
+#   server org.apache.accumulo.server.security.handler.ZKAuthenticator
+#   server org.apache.accumulo.server.security.handler.ZKAuthorizor
+#   server org.apache.accumulo.server.security.handler.ZKPermHandler
+
+otmVersion: "0.2.0"
+
+project:
+  name: Apache Accumulo — Column Visibility Subsystem
+  id: apache-accumulo-column-visibility
+  description: >-
+    Cell-level security data path: validation of a scan's presented
+    Authorizations against the user's granted labels, and per-cell evaluation of
+    ColumnVisibility expressions by the system VisibilityFilter, plus the write
+    path constraint that governs which labels a writer may apply.
+  owner: Apache Accumulo PMC
+  tags:
+    - subsystem:column-visibility
+    - line:4.x
+
+representations:
+  - name: Cell-level security data path
+    id: cv-dataflow
+    type: diagram
+
+trustZones:
+  - id: tz-public
+    name: Public / Client Network
+    risk:
+      trustRating: 10
+  - id: tz-cluster
+    name: Accumulo Server Cluster
+    risk:
+      trustRating: 80
+  - id: tz-zookeeper
+    name: ZooKeeper Ensemble
+    risk:
+      trustRating: 70
+  - id: tz-hdfs
+    name: HDFS Storage
+    risk:
+      trustRating: 70
+
+components:
+
+  - id: client-scan
+    name: Scanning Client
+    type: external-entity
+    parent:
+      trustZone: tz-public
+    tags: [scan, presents-authorizations]
+    threats:
+      - threat: t-cv-forged-auths
+        state: exposed
+        mitigations:
+          - mitigation: m-cv-auth-subset-check
+            state: implemented
+
+  - id: client-writer
+    name: Writing Client
+    type: external-entity
+    parent:
+      trustZone: tz-public
+    tags: [mutation, sets-columnvisibility]
+    threats:
+      - threat: t-cv-empty-visibility
+        state: exposed
+        mitigations:
+          - mitigation: m-cv-write-constraint
+            state: partially-implemented
+      - threat: t-cv-write-unheld-label
+        state: exposed
+        mitigations:
+          - mitigation: m-cv-write-constraint
+            state: partially-implemented
+
+  - id: security-operation
+    name: SecurityOperation (auth gate)
+    type: process
+    parent:
+      trustZone: tz-cluster
+    tags: [canScan, authenticatedUserHasAuthorizations, AuditedSecurityOperation]
+    threats:
+      - threat: t-cv-forged-auths
+        state: exposed
+        mitigations:
+          - mitigation: m-cv-auth-subset-check
+            state: implemented
+          - mitigation: m-cv-audit
+            state: implemented
+      - threat: t-cv-stale-auth-cache
+        state: exposed
+        mitigations:
+          - mitigation: m-cv-cache-ttl
+            state: implemented
+
+  - id: visibility-filter
+    name: System VisibilityFilter (per-cell evaluation)
+    type: process
+    parent:
+      trustZone: tz-cluster
+    tags: [VisibilityEvaluator, ColumnVisibility, scan-iterator]
+    threats:
+      - threat: t-cv-filter-bypass
+        state: exposed
+        mitigations:
+          - mitigation: m-cv-system-filter-nonremovable
+            state: implemented
+      - threat: t-cv-expr-parsing
+        state: exposed
+        mitigations:
+          - mitigation: m-cv-expr-hardening
+            state: partially-implemented
+      - threat: t-cv-combiner-leak
+        state: exposed
+        mitigations:
+          - mitigation: m-cv-system-filter-nonremovable
+            state: partially-implemented
+
+  - id: visibility-constraint
+    name: VisibilityConstraint (write gate)
+    type: process
+    parent:
+      trustZone: tz-cluster
+    tags: [write-path, constraint]
+    threats:
+      - threat: t-cv-write-unheld-label
+        state: exposed
+        mitigations:
+          - mitigation: m-cv-write-constraint
+            state: partially-implemented
+
+  - id: zk-auth-store
+    name: ZK Security Store (users / auths / perms)
+    type: datastore
+    parent:
+      trustZone: tz-zookeeper
+    tags: [ZKAuthenticator, ZKAuthorizor, ZKPermHandler]
+    threats:
+      - threat: t-cv-zk-auth-tamper
+        state: exposed
+        mitigations:
+          - mitigation: m-cv-zk-acl
+            state: partially-implemented
+
+  - id: rfile-store
+    name: RFiles (cells + visibility labels)
+    type: datastore
+    parent:
+      trustZone: tz-hdfs
+    tags: [rfile, columnvisibility-at-rest]
+    threats:
+      - threat: t-cv-bulk-unlabeled
+        state: exposed
+        mitigations:
+          - mitigation: m-cv-bulk-validation
+            state: partially-implemented
+
+  - id: bulk-import
+    name: Bulk Import (externally-generated RFiles)
+    type: process
+    parent:
+      trustZone: tz-cluster
+    tags: [importDirectory, external-rfiles]
+    threats:
+      - threat: t-cv-bulk-unlabeled
+        state: exposed
+        mitigations:
+          - mitigation: m-cv-bulk-validation
+            state: partially-implemented
+
+dataflows:
+  - id: df-cv-scan-request
+    name: Scan request with presented Authorizations
+    source: client-scan
+    destination: security-operation
+    tags: [thrift, sasl]
+    assets:
+      processed: [authorizations, credentials]
+
+  - id: df-cv-auth-lookup
+    name: Look up user's granted authorizations / permissions
+    source: security-operation
+    destination: zk-auth-store
+    tags: [zk-client]
+    assets:
+      processed: [granted-authorizations, permissions]
+
+  - id: df-cv-validated-scan
+    name: Validated auths handed to per-cell filter
+    source: security-operation
+    destination: visibility-filter
+    tags: [internal]
+    assets:
+      processed: [authorizations]
+
+  - id: df-cv-read-cells
+    name: Read cells + ColumnVisibility labels
+    source: visibility-filter
+    destination: rfile-store
+    tags: [hdfs-client]
+    assets:
+      stored: [cell-data, columnvisibility]
+
+  - id: df-cv-write-mutation
+    name: Write mutation carrying a ColumnVisibility
+    source: client-writer
+    destination: visibility-constraint
+    tags: [thrift, sasl]
+    assets:
+      processed: [cell-data, columnvisibility]
+
+  - id: df-cv-bulk-import
+    name: Import externally-generated RFiles
+    source: bulk-import
+    destination: rfile-store
+    tags: [hdfs, bulk]
+    assets:
+      stored: [cell-data, columnvisibility]
+
+threats:
+  - id: t-cv-forged-auths
+    name: Scan presents authorizations the user does not hold
+    description: >-
+      A client requests a scan with an Authorizations set broader than the
+      labels granted to its authenticated user, attempting to read cells above
+      its clearance.
+    categories: [elevation-of-privilege, information-disclosure]
+    cwes: [863, 285]
+    risk:
+      likelihood: 45
+      impact: 90
+
+  - id: t-cv-filter-bypass
+    name: System VisibilityFilter removed or bypassed by iterator config
+    description: >-
+      A custom server-side iterator configuration, or a scan path that omits the
+      system VisibilityFilter, returns cells without evaluating their
+      ColumnVisibility against the caller's authorizations.
+    categories: [elevation-of-privilege, information-disclosure]
+    cwes: [284, 693]
+    risk:
+      likelihood: 25
+      impact: 90
+
+  - id: t-cv-expr-parsing
+    name: ColumnVisibility expression parsing edge cases
+    description: >-
+      Malformed, adversarial, or ambiguous ColumnVisibility expressions cause
+      the evaluator to mis-evaluate (fail-open) or throw in a way that changes
+      visibility semantics.
+    categories: [tampering, information-disclosure]
+    cwes: [20, 703]
+    risk:
+      likelihood: 20
+      impact: 70
+
+  - id: t-cv-empty-visibility
+    name: Cells written with empty visibility are visible to everyone
+    description: >-
+      A writer omits a ColumnVisibility (empty label), so the cell is readable by
+      any scan regardless of authorizations — often unintended data exposure.
+    categories: [information-disclosure]
+    cwes: [732, 1188]
+    risk:
+      likelihood: 50
+      impact: 70
+
+  - id: t-cv-write-unheld-label
+    name: Writer applies a visibility label it does not hold
+    description: >-
+      Without the visibility constraint, a user writes cells labeled with a
+      ColumnVisibility they themselves cannot satisfy, hiding data from
+      legitimate readers or planting mislabeled cells.
+    categories: [tampering, repudiation]
+    cwes: [285, 345]
+    risk:
+      likelihood: 30
+      impact: 60
+
+  - id: t-cv-bulk-unlabeled
+    name: Bulk-imported RFiles contain unintended / empty visibility
+    description: >-
+      Externally-generated RFiles imported via bulk import carry cells whose
+      ColumnVisibility was set incorrectly or left empty, injecting
+      over-visible data that bypasses normal write-path checks.
+    categories: [tampering, information-disclosure]
+    cwes: [345, 20]
+    risk:
+      likelihood: 30
+      impact: 75
+
+  - id: t-cv-stale-auth-cache
+    name: Revoked authorizations remain effective (cache staleness)
+    description: >-
+      After an administrator revokes a label from a user, cached authorization
+      data on the server keeps honoring the revoked label until TTL expiry.
+    categories: [elevation-of-privilege]
+    cwes: [613, 863]
+    risk:
+      likelihood: 35
+      impact: 55
+
+  - id: t-cv-zk-auth-tamper
+    name: Tampering the granted-authorizations store in ZooKeeper
+    description: >-
+      An attacker with write access to the ZK security znodes grants a user
+      additional authorization labels, elevating what that user can see.
+    categories: [tampering, elevation-of-privilege]
+    cwes: [732, 284]
+    risk:
+      likelihood: 20
+      impact: 90
+
+  - id: t-cv-combiner-leak
+    name: Server-side combiner merges cells across visibilities
+    description: >-
+      A combiner/aggregating iterator merges values from cells with different
+      ColumnVisibility labels, producing a result that leaks higher-visibility
+      data into a lower-visibility cell.
+    categories: [information-disclosure]
+    cwes: [200, 863]
+    risk:
+      likelihood: 25
+      impact: 70
+
+mitigations:
+  - id: m-cv-auth-subset-check
+    name: Scan authorizations must be a subset of granted authorizations
+    description: >-
+      SecurityOperation.authenticatedUserHasAuthorizations rejects any scan whose
+      presented Authorizations exceed the labels granted to the authenticated
+      user, before results are produced.
+    riskReduction: 85
+
+  - id: m-cv-system-filter-nonremovable
+    name: Non-removable system VisibilityFilter on every scan
+    description: >-
+      The system VisibilityFilter (VisibilityEvaluator) is applied on every read
+      so per-cell ColumnVisibility is always evaluated against the scan's
+      authorizations, independent of user-configured iterators.
+    riskReduction: 85
+
+  - id: m-cv-write-constraint
+    name: VisibilityConstraint on the write path
+    description: >-
+      When configured, VisibilityConstraint rejects mutations bearing a
+      ColumnVisibility the writer cannot satisfy, and can flag empty-visibility
+      writes for review.
+    riskReduction: 60
+
+  - id: m-cv-expr-hardening
+    name: Strict ColumnVisibility parsing / evaluation
+    description: >-
+      Fail-closed parsing and evaluation of ColumnVisibility expressions, with
+      test coverage for malformed and adversarial expressions.
+    riskReduction: 60
+
+  - id: m-cv-zk-acl
+    name: Kerberos-authenticated ACLs on ZK security store
+    description: >-
+      Restrict the ZKAuthorizor/ZKPermHandler znodes with Kerberos/SASL ACLs so
+      only cluster principals can read or modify granted authorizations.
+    riskReduction: 70
+
+  - id: m-cv-audit
+    name: Audited authorization decisions
+    description: >-
+      AuditedSecurityOperation records authorization checks, enabling detection
+      of attempts to scan with unheld authorizations.
+    riskReduction: 40
+
+  - id: m-cv-cache-ttl
+    name: Bounded authorization cache TTL
+    description: >-
+      A short, bounded TTL on cached authorizations limits how long a revoked
+      label stays effective.
+    riskReduction: 50
+
+  - id: m-cv-bulk-validation
+    name: Validate visibility on bulk import
+    description: >-
+      Verify/label cells during bulk import so externally-generated RFiles cannot
+      inject over-visible cells into a table.
+    riskReduction: 55
