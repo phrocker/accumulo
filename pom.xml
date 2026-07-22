@@ -936,6 +936,8 @@ under the License.
               <exclude>.factorypath</exclude>
               <exclude>.github/**</exclude>
               <exclude>**/*.rf</exclude>
+              <!-- JSON does not support comments, so a license header cannot be embedded -->
+              <exclude>threat-model/*.json</exclude>
             </excludes>
           </configuration>
           <dependencies>

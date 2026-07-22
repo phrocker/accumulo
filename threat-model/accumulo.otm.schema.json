@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://accumulo.apache.org/threat-model/accumulo.otm.schema.json",
+  "title": "Open Threat Model (OTM) 0.2.0 — Accumulo subset",
+  "description": "Validation schema for the Accumulo OTM threat model. Covers the OTM 0.2.0 constructs used in this repo; permissive on optional vendor fields.",
+  "type": "object",
+  "required": ["otmVersion", "project"],
+  "additionalProperties": true,
+  "properties": {
+    "otmVersion": { "type": "string", "pattern": "^0\\.2\\.0$" },
+    "project": {
+      "type": "object",
+      "required": ["name", "id"],
+      "properties": {
+        "name": { "type": "string" },
+        "id": { "type": "string" },
+        "description": { "type": "string" },
+        "owner": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "representations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "id", "type"],
+        "properties": {
+          "name": { "type": "string" },
+          "id": { "type": "string" },
+          "type": { "type": "string", "enum": ["diagram", "code", "threat-model"] }
+        }
+      }
+    },
+    "trustZones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "risk"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "risk": {
+            "type": "object",
+            "required": ["trustRating"],
+            "properties": {
+              "trustRating": { "type": "integer", "minimum": 1, "maximum": 100 }
+            }
+          },
+          "properties": { "type": "object" }
+        }
+      }
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "type", "parent"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "type": { "type": "string" },
+          "parent": {
+            "type": "object",
+            "minProperties": 1,
+            "maxProperties": 1,
+            "properties": {
+              "trustZone": { "type": "string" },
+              "component": { "type": "string" }
+            },
+            "additionalProperties": false
+          },
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "threats": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["threat"],
+              "properties": {
+                "threat": { "type": "string" },
+                "state": { "type": "string" },
+                "mitigations": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["mitigation"],
+                    "properties": {
+                      "mitigation": { "type": "string" },
+                      "state": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "dataflows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "source", "destination"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "source": { "type": "string" },
+          "destination": { "type": "string" },
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "assets": {
+            "type": "object",
+            "properties": {
+              "processed": { "type": "array", "items": { "type": "string" } },
+              "stored": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "threats": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "categories": { "type": "array", "items": { "type": "string" } },
+          "cwes": { "type": "array", "items": { "type": "integer" } },
+          "risk": {
+            "type": "object",
+            "properties": {
+              "likelihood": { "type": "integer", "minimum": 0, "maximum": 100 },
+              "impact": { "type": "integer", "minimum": 0, "maximum": 100 }
+            }
+          }
+        }
+      }
+    },
+    "mitigations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name"],
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "description": { "type": "string" },
+          "riskReduction": { "type": "integer", "minimum": 0, "maximum": 100 }
+        }
+      }
+    }
+  }
+}
