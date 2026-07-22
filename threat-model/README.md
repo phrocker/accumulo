@@ -13,9 +13,13 @@ time, and validated in CI — instead of drifting in a wiki or diagram tool.
 
 | File | Purpose |
 | --- | --- |
-| `accumulo.otm.yaml` | The threat model itself, in [Open Threat Model (OTM) 0.2.0](https://github.com/iriusrisk/OpenThreatModel) format. |
+| `accumulo.otm.yaml` | Whole-system threat model, in [Open Threat Model (OTM) 0.2.0](https://github.com/iriusrisk/OpenThreatModel) format. |
+| `column-visibility.otm.yaml` | Subsystem-depth model of the cell-level security data path (worked example of extending the skeleton). |
 | `accumulo.otm.schema.json` | JSON Schema (Draft 2020-12) for the OTM subset used here. |
-| `validate.py` | Validates structure **and** referential integrity. |
+| `validate.py` | Validates structure **and** referential integrity for every `*.otm.yaml` model. |
+
+CI validates every model on any change under `threat-model/` — see
+`.github/workflows/threat-model.yaml`.
 
 ## Why OTM
 
@@ -46,20 +50,26 @@ Threat/mitigation `state` fields (`exposed`, `partially-implemented`,
 ```bash
 # PyYAML required; jsonschema optional (adds structural validation)
 python3 -m pip install pyyaml jsonschema
-python3 threat-model/validate.py
+python3 threat-model/validate.py                       # all *.otm.yaml models
+python3 threat-model/validate.py threat-model/accumulo.otm.yaml   # one model
 ```
 
 `validate.py` checks the JSON Schema **and** referential integrity that a schema
 cannot express: every `component.parent`, dataflow `source`/`destination`, and
 threat/mitigation reference must resolve to a defined `id`. Orphan threats (not
-attached to any component) are reported as warnings.
+attached to any component) are reported as warnings. It runs in CI on every
+change under `threat-model/`.
 
 ## Scope & status
 
-This is a **whole-system skeleton**: the major boundaries and a representative
-set of threats/mitigations are in place. It is intended to be extended
-per-subsystem over time (deeper RPC/auth, delegation tokens, column visibility,
-crypto, FATE, etc.). It is **not** a security audit or a completeness guarantee.
+`accumulo.otm.yaml` is a **whole-system skeleton**: the major boundaries and a
+representative set of threats/mitigations. `column-visibility.otm.yaml` is a
+**worked example** of extending that skeleton to subsystem depth — the
+cell-level security data path, with threats/mitigations naming the real classes
+(`SecurityOperation`, `VisibilityEvaluator`, the system `VisibilityFilter`, the
+ZK security handlers). Further subsystems (RPC/auth, delegation tokens, crypto,
+FATE) can follow the same pattern. This is **not** a security audit or a
+completeness guarantee.
 
 To report a security vulnerability, follow the ASF process at
 <https://accumulo.apache.org/contact-us/> — do **not** use public issues.

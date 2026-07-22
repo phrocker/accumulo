@@ -26,7 +26,7 @@ Two layers:
      must resolve to a defined id.
 
 Usage:
-    python3 threat-model/validate.py            # validate default model
+    python3 threat-model/validate.py            # validate every *.otm.yaml here
     python3 threat-model/validate.py path.yaml  # validate a specific file
 
 Exit code 0 = valid, 1 = problems found. Requires PyYAML; jsonschema optional.
@@ -38,7 +38,6 @@ import sys
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-DEFAULT_MODEL = HERE / "accumulo.otm.yaml"
 SCHEMA = HERE / "accumulo.otm.schema.json"
 
 
@@ -108,10 +107,10 @@ def ref_validate(model, errors: list[str]) -> None:
         print(f"WARN: threat '{orphan}' is defined but not attached to any component")
 
 
-def main() -> int:
-    path = Path(sys.argv[1]) if len(sys.argv) > 1 else DEFAULT_MODEL
+def validate_one(path: Path) -> bool:
     if not path.exists():
-        sys.exit(f"ERROR: model not found: {path}")
+        print(f"ERROR: model not found: {path}")
+        return False
     model = load_yaml(path)
 
     errors: list[str] = []
@@ -119,15 +118,27 @@ def main() -> int:
     ref_validate(model, errors)
 
     if errors:
-        print(f"\nFAILED — {len(errors)} problem(s):")
+        print(f"\nFAILED — {path.name}: {len(errors)} problem(s):")
         for e in errors:
             print(f"  - {e}")
-        return 1
+        return False
     print(f"OK — {path.name} is valid "
           f"({len(model.get('components', []))} components, "
           f"{len(model.get('threats', []))} threats, "
           f"{len(model.get('mitigations', []))} mitigations).")
-    return 0
+    return True
+
+
+def main() -> int:
+    if len(sys.argv) > 1:
+        paths = [Path(a) for a in sys.argv[1:]]
+    else:
+        paths = sorted(HERE.glob("*.otm.yaml"))
+    if not paths:
+        sys.exit("ERROR: no *.otm.yaml models found")
+
+    ok = all(validate_one(p) for p in paths)
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":
