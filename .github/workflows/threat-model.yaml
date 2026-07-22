@@ -50,3 +50,5 @@ jobs:
       run: python3 -m pip install --quiet pyyaml jsonschema
     - name: Validate threat model
       run: python3 threat-model/validate.py
+    - name: Check diagrams are up to date
+      run: python3 threat-model/gen-diagram.py --check

@@ -17,9 +17,13 @@ time, and validated in CI — instead of drifting in a wiki or diagram tool.
 | `column-visibility.otm.yaml` | Subsystem-depth model of the cell-level security data path (worked example of extending the skeleton). |
 | `accumulo.otm.schema.json` | JSON Schema (Draft 2020-12) for the OTM subset used here. |
 | `validate.py` | Validates structure **and** referential integrity for every `*.otm.yaml` model. |
+| `gen-diagram.py` | Generates Mermaid data-flow diagrams from the models. |
+| `DIAGRAMS.md` | Generated diagrams (GitHub renders Mermaid) — **do not edit by hand**. |
 
-CI validates every model on any change under `threat-model/` — see
-`.github/workflows/threat-model.yaml`.
+See **[DIAGRAMS.md](DIAGRAMS.md)** for the rendered data-flow diagrams.
+
+CI validates every model and checks the diagrams are up to date on any change
+under `threat-model/` — see `.github/workflows/threat-model.yaml`.
 
 ## Why OTM
 
@@ -76,6 +80,8 @@ To report a security vulnerability, follow the ASF process at
 
 ## Extending the model
 
-1. Edit `accumulo.otm.yaml` (add components/threats/mitigations, deepen a subsystem).
+1. Edit a model (add components/threats/mitigations, deepen a subsystem), or add
+   a new `*.otm.yaml`.
 2. Run `python3 threat-model/validate.py` until it passes.
-3. Open a PR — the model change is reviewed alongside the code change.
+3. Run `python3 threat-model/gen-diagram.py` to refresh `DIAGRAMS.md`.
+4. Open a PR — the model change is reviewed alongside the code change.
